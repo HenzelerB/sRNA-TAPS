@@ -133,7 +133,12 @@ print(as.data.frame(site_counts))
 
 # Normalise chromosome names: ensure they have 'chr' prefix for BSgenome
 normalise_chrom <- function(chrom) {
-  ifelse(grepl("^chr", chrom), chrom, paste0("chr", chrom))
+  dplyr::case_when(
+    chrom == "MT"          ~ "chrM",   # mitochondrial
+    chrom == "M"           ~ "chrM",
+    grepl("^chr", chrom)   ~ chrom,    # already has chr prefix
+    TRUE                   ~ paste0("chr", chrom)
+  )
 }
 
 extract_sequences <- function(sites_df, genome, half_window) {

@@ -49,7 +49,7 @@ load_calls <- function(calls_dir, biotypes, min_cov) {
     bt     <- basename(dirname(f))
     sample <- sub(paste0("_", bt, "_taps\\.tsv$"), "", basename(f))
     tryCatch({
-      df <- read_tsv(f, show_col_types = FALSE) %>%
+      df <- read_tsv(f, show_col_types = FALSE, col_types = cols(chrom = col_character())) %>%
         dplyr::filter(coverage >= min_cov, snp_flag == "PASS") %>%
         dplyr::mutate(
           biotype   = bt,
@@ -102,69 +102,63 @@ save_figure(p_dist, file.path(opt$figdir, "03a_modrate_distribution.pdf"),
             width = 12, height = 5)
 message("Figure 3a: Modification rate distribution — done")
 
-
-# ── Figure 3b: Top 20 modified RNA species (dot plot) ────────────────────────
-
-top_species <- calls %>%
-  dplyr::filter(condition == "treat", !is.na(gene_id), gene_id != ".") %>%
-  dplyr::group_by(biotype, gene_id, cell_line) %>%
+# ── Figure 3b: Top 30 modified sites ─────────────────────────────────────────
+top_sites <- calls %>%
+  dplyr::filter(condition == "treat") %>%
+  dplyr::mutate(site_id = paste0(chrom, ":", start)) %>%
+  dplyr::group_by(biotype, site_id, cell_line) %>%
   dplyr::summarise(
     median_mod = median(mod_rate),
     mean_cov   = mean(coverage),
-    n_sites    = n(),
     .groups    = "drop"
   ) %>%
-  dplyr::filter(n_sites >= 2) %>%
   dplyr::group_by(biotype, cell_line) %>%
-  dplyr::slice_max(median_mod, n = 20) %>%
+  dplyr::slice_max(median_mod, n = 30) %>%
   dplyr::ungroup()
 
-if (nrow(top_species) > 0) {
-  p_top <- top_species %>%
-    dplyr::mutate(gene_id = reorder(gene_id, median_mod)) %>%
-    ggplot(aes(x = median_mod, y = gene_id,
+if (nrow(top_sites) > 0) {
+  p_top <- top_sites %>%
+    dplyr::mutate(site_id = reorder(site_id, median_mod)) %>%
+    ggplot(aes(x = median_mod, y = site_id,
                size = log10(mean_cov + 1), colour = biotype)) +
       geom_point(alpha = 0.8) +
       facet_grid(biotype ~ cell_line, scales = "free_y", space = "free_y") +
       scale_colour_manual(values = BIOTYPE_COLOURS, guide = "none") +
-      scale_size_continuous(name = "log10(mean coverage)",
-                            range = c(1, 5), breaks = c(1, 2, 3)) +
-      scale_x_continuous(labels = percent_format(accuracy = 1),
-                         limits = c(0, 1)) +
+      scale_size_continuous(name = "log10(coverage)", range = c(1, 5)) +
+      scale_x_continuous(labels = percent_format(accuracy = 1), limits = c(0, 1)) +
       labs(
-        title    = "Top modified RNA species (TET+PB condition)",
-        subtitle = "Top 20 per biotype ranked by median modification rate",
-        x        = "Median modification rate",
-        y        = NULL
+        title    = "Top 30 modified sites per biotype (TET+PB)",
+        subtitle = "Ranked by median modification rate across replicates",
+        x        = "Modification rate",
+        y        = "Genomic site"
       ) +
       theme_srnataps() +
-      theme(axis.text.y = element_text(size = 6))
-
-  save_figure(p_top, file.path(opt$figdir, "03b_top_species.pdf"),
+      theme(axis.text.y = element_text(size = 5))
+  save_figure(p_top, file.path(opt$figdir, "03b_top_sites.pdf"),
               width = 10, height = 12)
-  message("Figure 3b: Top modified species — done")
+  message("Figure 3b: Top modified sites — done")
 }
 
 
-# ── Figure 3c: Condition comparison scatter (PB vs TET+PB) ───────────────────
-
+# ── Figure 3c: Condition comparison scatter (site level) ─────────────────────
 cond_wide <- calls %>%
-  dplyr::filter(condition %in% c("pb_ctrl", "treat"),
-                !is.na(gene_id), gene_id != ".") %>%
-  dplyr::group_by(biotype, gene_id, cell_line, condition) %>%
-  dplyr::summarise(median_mod = median(mod_rate), .groups = "drop") %>%
-  tidyr::pivot_wider(names_from = condition, values_from = median_mod) %>%
+  dplyr::filter(condition %in% c("pb_ctrl", "treat")) %>%
+  dplyr::mutate(site_id = paste0(chrom, ":", start)) %>%
+  dplyr::group_by(biotype, site_id, cell_line, condition) %>%
+  dplyr::summarise(mod_rate = median(mod_rate), .groups = "drop") %>%
+  tidyr::pivot_wider(names_from = condition, values_from = mod_rate) %>%
   dplyr::filter(!is.na(pb_ctrl), !is.na(treat))
 
 if (nrow(cond_wide) > 0) {
-  p_scatter <- ggplot(cond_wide, aes(x = pb_ctrl, y = treat, colour = biotype)) +
+  p_scatter <- ggplot(cond_wide,
+                      aes(x = pb_ctrl, y = treat, colour = biotype)) +
     geom_abline(slope = 1, intercept = 0, linetype = "dashed",
                 colour = "grey60", linewidth = 0.4) +
-    geom_point(alpha = 0.6, size = 1.5) +
+    geom_point(alpha = 0.5, size = 0.8) +
     geom_text_repel(
-      data = dplyr::filter(cond_wide, treat > 0.3),
-      aes(label = gene_id),
-      size = 2.5, max.overlaps = 15, segment.colour = "grey70"
+      data      = dplyr::filter(cond_wide, treat > 0.5 & pb_ctrl < 0.2),
+      aes(label = site_id),
+      size = 2.0, max.overlaps = 10, segment.colour = "grey70"
     ) +
     facet_grid(biotype ~ cell_line) +
     scale_colour_manual(values = BIOTYPE_COLOURS, guide = "none") +
@@ -172,18 +166,16 @@ if (nrow(cond_wide) > 0) {
     scale_y_continuous(labels = percent_format(accuracy = 1), limits = c(0, 1)) +
     labs(
       title    = "Condition comparison: PB-only vs TET+PB",
-      subtitle = "Sites above diagonal = enriched by TET oxidation (genuine m5C/5hmC)",
-      x        = "PB-only median mod rate",
-      y        = "TET+PB median mod rate",
-      caption  = "Dashed line: y = x (no enrichment)"
+      subtitle = "Sites above diagonal = TET-enriched (genuine m5C/5hmC)",
+      x        = "PB-only mod rate",
+      y        = "TET+PB mod rate",
+      caption  = "Labelled: TET-specific sites (treat > 0.5, pb_ctrl < 0.2)"
     ) +
     theme_srnataps()
-
   save_figure(p_scatter, file.path(opt$figdir, "03c_condition_comparison.pdf"),
               width = 8, height = 10)
   message("Figure 3c: Condition comparison scatter — done")
 }
-
 
 # ── Figure 3d: Waterfall plot (sites ranked by mod_rate) ─────────────────────
 

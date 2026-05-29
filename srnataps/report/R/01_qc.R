@@ -59,12 +59,14 @@ parse_fastqc_length <- function(fastqc_dir, trim_status) {
   dplyr::bind_rows(Filter(Negate(is.null), all_data))
 }
 
-pre_dir  <- file.path(opt$outdir, "02.fastqc", "pre_trim")
-post_dir <- file.path(opt$outdir, "02.fastqc", "post_trim")
+# Your FastQC files are flat in 02.fastqc/ — all pre-trim only
+pre_dir  <- file.path(opt$outdir, "02.fastqc")
+post_dir <- file.path(opt$outdir, "03.trimGalore")  # post-trim QC not run separately
 
-if (dir.exists(pre_dir) && dir.exists(post_dir)) {
-  pre  <- parse_fastqc_length(pre_dir,  "Pre-trim")
-  post <- parse_fastqc_length(post_dir, "Post-trim")
+if (dir.exists(pre_dir)) {
+  pre  <- parse_fastqc_length(pre_dir, "Pre-trim")
+  post <- data.frame()  # no post-trim FastQC available
+  if (nrow(post) == 0) post <- pre %>% dplyr::mutate(trim = "Pre-trim")
   len_data <- dplyr::bind_rows(pre, post) %>%
     dplyr::mutate(
       condition = factor(condition, levels = names(CONDITION_COLOURS)),
@@ -108,11 +110,11 @@ parse_bowtie_logs <- function(log_dir) {
     lines  <- readLines(f)
 
     total_line  <- grep("reads processed", lines, value = TRUE)
-    mapped_line <- grep("alignment rate",  lines, value = TRUE)
+    mapped_line <- grep("reads with at least one alignment", lines, value = TRUE)
     multi_line  <- grep("reported alignments", lines, value = TRUE)
 
     total  <- as.numeric(gsub("[^0-9]", "", total_line[1]))
-    rate   <- as.numeric(gsub("[^0-9\\.]", "", mapped_line[1]))
+    pct <- regmatches(mapped_line[1], regexpr("\\([0-9.]+%\\)", mapped_line[1])); rate <- as.numeric(gsub("[^0-9.]", "", pct))
 
     if (is.na(total) || is.na(rate)) return(NULL)
 
@@ -127,7 +129,7 @@ parse_bowtie_logs <- function(log_dir) {
   }) %>% dplyr::bind_rows()
 }
 
-log_dir  <- file.path(opt$outdir, "logs", "align")
+log_dir  <- file.path(opt$outdir, "logs")
 map_data <- parse_bowtie_logs(log_dir)
 
 if (!is.null(map_data) && nrow(map_data) > 0) {
