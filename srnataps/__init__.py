@@ -15,6 +15,6 @@ Usage:
     srnataps module fastqc --configfile my_project/config.yaml
 """
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __author__  = "Bennett Henzeler"
 __email__   = "bennett.henzeler@cup.lmu.de"
