@@ -1,0 +1,83 @@
+{% set name = "sRNA-TAPS" %}
+{% set version = "0.1.0" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  url: https://pypi.io/packages/source/{{ name[0]|lower }}/{{ name|lower }}/sRNA_TAPS-{{ version }}.tar.gz
+  sha256: ""   # fill in after uploading to PyPI: sha256sum dist/sRNA_TAPS-0.1.0.tar.gz
+
+build:
+  number: 0
+  noarch: python
+  script: {{ PYTHON }} -m pip install . --no-deps --no-build-isolation -vvv
+  entry_points:
+    - srnataps = srnataps.cli:cli
+
+requirements:
+  host:
+    - python >=3.10
+    - pip
+    - setuptools
+
+  run:
+    # Python runtime
+    - python >=3.10
+    - click >=8.0
+    - pysam >=0.22
+    - pandas >=2.1
+    - numpy >=1.26
+    - scipy >=1.12
+    - statsmodels >=0.14
+    - snakemake >=7.0
+    - jinja2 >=3.0
+    - pyyaml >=6.0
+    - rich >=13.0
+    # Bioinformatics tools
+    - bowtie =1.3.1
+    - samtools >=1.20
+    - bcftools >=1.20
+    - htslib >=1.20
+    - fastqc >=0.12.1
+    - trim-galore >=0.6.10
+    - multiqc >=1.21
+
+test:
+  imports:
+    - srnataps
+    - srnataps.cli
+    - srnataps.caller
+    - srnataps.annotate
+    - srnataps.snp
+    - srnataps.compare
+    - srnataps.utils
+
+  commands:
+    - srnataps --version
+    - srnataps --help
+    - srnataps run --help
+    - srnataps module --help
+    - srnataps init --help
+    - srnataps check --help
+
+about:
+  home: https://github.com/bhenzeler/sRNA-TAPS
+  license: MIT
+  license_family: MIT
+  license_file: LICENSE
+  summary: TAPS-based m5C and 5hmC detection pipeline for small RNA sequencing
+  description: |
+    sRNA-TAPS detects 5-methylcytosine (m5C) and 5-hydroxymethylcytosine (5hmC)
+    in small RNA (miRNA, tRNA, rRNA, snoRNA, snRNA, piRNA, lncRNA) using
+    TET-assisted pyridine borane sequencing (TAPS). Features Bowtie1 alignment,
+    RNA biotype splitting, three-layer SNP filtering, and optional benchmarking
+    against rastair, asTair, and Bismark. Orchestrated by Snakemake with SLURM
+    cluster support.
+  doc_url: https://github.com/bhenzeler/sRNA-TAPS#readme
+  dev_url: https://github.com/bhenzeler/sRNA-TAPS
+
+extra:
+  recipe-maintainers:
+    - bhenzeler

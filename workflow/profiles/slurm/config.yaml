@@ -1,0 +1,13 @@
+executor: slurm
+default-resources:
+  slurm_partition: "compute"
+  slurm_account: ""
+  mem_mb: 32000
+  runtime: 240
+  cpus_per_task: 8
+retries: 2
+jobs: 50
+latency-wait: 60
+rerun-incomplete: true
+printshellcmds: true
+keep-going: true
