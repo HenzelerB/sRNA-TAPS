@@ -192,7 +192,7 @@ MIT
   <img src="Lab_Logo.png" height="80" alt="Institute of Chemical Epigenetics-Munich">
   <br><br>
   <a href="https://schneider.cup.uni-muenchen.de"> Schneider Lab</a><br>
-  Institute of Chemical Epigenetics-Munich (ICEM)</a><br>
-  Ludwig-Maximilians-Universität München<br>
+  Institute of Chemical Epigenetics-Munich (ICEM)</a><br>,
+  Ludwig-Maximilians-Universität München<br>,
   Munich, Germany
 </p>
