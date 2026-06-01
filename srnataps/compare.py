@@ -98,15 +98,16 @@ def load_custom(condition, biotype):
 
 def load_rastair(condition):
     """
-    Load rastair 2.1.1 BED output (--bed flag, --cpgs-only).
-    rastair BED format (tab-separated):
-        chrom, start, end, name, score, strand, mod_count, total_count, mod_rate
-    Returns DataFrame with site_key, mod_rate, coverage.
+    Load rastair 2.1.1 BED output.
+    Actual columns (with header line starting #):
+        #chr, start, end, name, beta_est, strand, unmod, mod,
+        no_snp, snp, coverage, genotype, gt_p_score, gt_conf_score, cpg
+    mod_rate = beta_est (0.0-1.0)
+    coverage = coverage column
     """
     pattern = f"{BENCH_DIR}/rastair/{condition}*/*.bed.gz"
     files = sorted(glob.glob(pattern))
     if not files:
-        # also try uncompressed
         pattern = f"{BENCH_DIR}/rastair/{condition}*/*.bed"
         files = sorted(glob.glob(pattern))
     if not files:
@@ -114,67 +115,66 @@ def load_rastair(condition):
     dfs = []
     for f in files:
         compression = "gzip" if f.endswith(".gz") else None
-        # rastair BED has no header — read raw then assign columns
         try:
-            df = pd.read_csv(f, sep="\t", header=None, compression=compression)
-        except Exception:
+            df = pd.read_csv(f, sep="\t", compression=compression,
+                             dtype={"#chr": str})
+            # Strip # from column name
+            df.columns = [c.lstrip("#") for c in df.columns]
+            df = df.rename(columns={
+                "chr":      "chrom",
+                "beta_est": "mod_rate",
+            })
+            # mod_rate is already 0-1
+            df["mod_rate"] = pd.to_numeric(df["mod_rate"], errors="coerce")
+            df["coverage"] = pd.to_numeric(df["coverage"], errors="coerce")
+            df = df.dropna(subset=["mod_rate", "coverage"])
+            dfs.append(df[["chrom", "start", "mod_rate", "coverage"]])
+        except Exception as e:
+            log.warning("rastair load error %s: %s", f, e)
             continue
-        # rastair 2.1.1 BED columns: chrom,start,end,name,score,strand,...
-        # mod_rate is in the last numeric column; coverage second-to-last
-        # Assign by position defensively
-        if df.shape[1] >= 9:
-            df.columns = list(df.columns[:df.shape[1]])
-            df = df.rename(columns={
-                df.columns[0]: "chrom",
-                df.columns[1]: "start",
-                df.columns[2]: "end",
-                df.columns[-1]: "mod_rate",
-                df.columns[-2]: "coverage",
-            })
-        elif df.shape[1] >= 6:
-            df = df.rename(columns={
-                df.columns[0]: "chrom",
-                df.columns[1]: "start",
-                df.columns[2]: "end",
-                df.columns[4]: "mod_rate",
-                df.columns[3]: "coverage",
-            })
-        # mod_rate may be 0-1 or 0-100 — normalise to 0-1
-        if "mod_rate" in df.columns:
-            if df["mod_rate"].max() > 1.0:
-                df["mod_rate"] = df["mod_rate"] / 100.0
-        dfs.append(df)
     if not dfs:
         return None
     combined = pd.concat(dfs, ignore_index=True)
-    combined["site_key"] = combined["chrom"].astype(str) + ":" + combined["start"].astype(str)
+    combined["chrom"] = combined["chrom"].astype(str)
+    combined["site_key"] = combined["chrom"] + ":" + combined["start"].astype(str)
     return combined[["site_key", "chrom", "start", "mod_rate", "coverage"]].copy()
 
 
-def load_astair(condition, biotype, context="CpG"):
+def load_astair(condition, biotype, context="all"):
     """
     Load asTair mCaller output for a specific biotype and context.
     """
     # asTair names output from BAM basename: <bam_name>_<context>.mCaller.gz
     # BAM basename format: <condition>_<biotype>.sorted
     # Output: <condition>_<biotype>.sorted_<context>.mCaller.gz
-    pattern = f"{BENCH_DIR}/astair/{biotype}/{condition}*_{biotype}*.{context}.mCaller*"
+    pattern = f"{BENCH_DIR}/astair/{biotype}/{condition}*_{biotype}.sorted_mCtoT_{context}.mods.gz"
     files = sorted(glob.glob(pattern))
     if not files:
         return None
     dfs = []
     for f in files:
-        df = pd.read_csv(f, sep="\t", compression="gzip")
+        # asTair column names: #CHROM START END MOD_LEVEL MOD UNMOD TOTAL_DEPTH
+        df = pd.read_csv(f, sep="\t", compression="gzip",
+                         comment=None, header=0)
+        # Strip leading # from column names (asTair uses #CHROM)
+        df.columns = [str(c).lstrip("#") for c in df.columns]
+        # Rename to standard names
         rename = {
-            "position": "start", "pos": "start", "begin": "start",
-            "chr": "chrom",
-            "rate": "mod_rate", "methylation": "mod_rate",
-            "total": "coverage", "methylated": "mod_count",
+            "CHROM": "chrom", "START": "start", "END": "end",
+            "MOD_LEVEL": "mod_rate", "MOD": "mod_count",
+            "UNMOD": "unmod_count", "TOTAL_DEPTH": "coverage",
         }
         df = df.rename(columns={k: v for k, v in rename.items() if k in df.columns})
-        if "mod_rate" not in df.columns and "mod_count" in df.columns:
-            df["mod_rate"] = df["mod_count"] / df["coverage"].clip(lower=1)
+        if "mod_rate" not in df.columns:
+            continue  # skip if rename failed
+        # Drop zero-coverage sites (MOD_LEVEL == "*")
+        df = df[df["mod_rate"].astype(str) != "*"].copy()
+        df["mod_rate"] = pd.to_numeric(df["mod_rate"], errors="coerce")
+        df["chrom"]    = df["chrom"].astype(str)
+        df = df.dropna(subset=["mod_rate"])
         dfs.append(df)
+    if not dfs:
+        return None
     combined = pd.concat(dfs, ignore_index=True)
     combined["site_key"] = combined["chrom"].astype(str) + ":" + combined["start"].astype(str)
     return combined[["site_key", "chrom", "start", "mod_rate", "coverage"]].copy()
@@ -336,7 +336,7 @@ def main():
                     else:
                         custom_sub = custom
                 elif tool == "astair":
-                    tool_df    = load_astair(condition, biotype, context="CpG")
+                    tool_df    = load_astair(condition, biotype, context="all")
                     custom_sub = custom
                 elif tool == "bismark":
                     tool_df    = load_bismark(condition, biotype)

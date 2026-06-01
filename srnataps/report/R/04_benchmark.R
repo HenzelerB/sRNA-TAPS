@@ -50,7 +50,7 @@ TOOL_COLOURS <- c(
 conc_file <- file.path(COMPARE_DIR, "concordance_summary.tsv")
 if (file.exists(conc_file)) {
   conc <- read_tsv(conc_file, show_col_types = FALSE) %>%
-    dplyr::filter(condition == "treat") %>%
+    dplyr::filter(grepl("treat", condition) & !grepl("no.treat|no_treat", condition)) %>%
     dplyr::mutate(
       tool    = factor(tool,    levels = names(TOOL_LABELS)),
       biotype = factor(biotype, levels = names(BIOTYPE_COLOURS))
@@ -124,7 +124,8 @@ if (file.exists(corr_file)) {
     shared_data <- lapply(shared_files, function(f) {
       tool    <- sub(".*shared_treat_[^_]+_([^.]+)\\.tsv", "\\1", basename(f))
       biotype <- sub(".*shared_treat_([^_]+)_.*\\.tsv", "\\1", basename(f))
-      df <- read_tsv(f, show_col_types = FALSE)
+      df <- read_tsv(f, show_col_types = FALSE,
+                     col_types = cols(site_key = col_character()))
       df$tool    <- tool
       df$biotype <- biotype
       df
@@ -169,7 +170,7 @@ if (file.exists(corr_file)) {
 
 if (file.exists(conc_file)) {
   conc_bar <- read_tsv(conc_file, show_col_types = FALSE) %>%
-    dplyr::filter(condition == "treat") %>%
+    dplyr::filter(grepl("treat", condition) & !grepl("no.treat|no_treat", condition)) %>%
     dplyr::select(tool, biotype, sites_custom, sites_tool, shared) %>%
     tidyr::pivot_longer(cols = c(sites_custom, sites_tool, shared),
                         names_to = "category", values_to = "n_sites") %>%
@@ -184,6 +185,9 @@ if (file.exists(conc_file)) {
       tool     = factor(tool, levels = names(TOOL_LABELS))
     )
 
+  if (nrow(conc_bar) == 0 || length(unique(conc_bar$biotype)) == 0) {
+    message("WARNING: No data for Figure 4c — skipping")
+  } else {
   p_venn <- ggplot(conc_bar, aes(x = tool, y = n_sites, fill = category)) +
     geom_col(position = "dodge", width = 0.75,
              colour = "grey30", linewidth = 0.2) +
@@ -210,6 +214,7 @@ if (file.exists(conc_file)) {
   save_figure(p_venn, file.path(opt$figdir, "04c_site_overlap.pdf"),
               width = 12, height = 8)
   message("Figure 4c: Site overlap bar chart — done")
+  } # end guard
 }
 
 message("04_benchmark.R complete.")
