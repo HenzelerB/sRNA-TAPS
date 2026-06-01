@@ -186,5 +186,4 @@ And the underlying TAPS method:
 <p align="left">
   <img src="Lab_Logo.png" width="200" alt="Lab logo">
 </p>
-
 MIT
