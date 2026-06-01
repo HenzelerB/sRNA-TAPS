@@ -1,8 +1,8 @@
-# sRNA-TAPS
 <p align="center">
   <img src="sRNA-taps_logo.png" alt="SRNA-TAPS logo">
 </p>
 
+# sRNA-TAPS
 **TAPS-based m5C and 5hmC detection pipeline for small RNA sequencing**
 
 sRNA-TAPS detects 5-methylcytosine (m5C) and 5-hydroxymethylcytosine (5hmC) in small RNA using TET-assisted pyridine borane sequencing (TAPS). The pipeline supports miRNA, tRNA, rRNA, snoRNA, snRNA, piRNA, and lncRNA biotypes from human samples (hg38).
