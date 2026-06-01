@@ -178,19 +178,19 @@ rawfiles/           Raw merged FASTQs (SE, TruSeq small RNA)
 
 ## Pipeline Steps in Detail
 
-### Step 1 — Quality Control
+### Step 1 Quality Control
 
 **Tool:** FastQC, MultiQC
 
 Before any analysis, the quality of raw sequencing reads must be assessed. FastQC evaluates per-base quality scores, GC content, sequence duplication levels, overrepresented sequences, and adapter content. MultiQC aggregates results across all samples into a single interactive report. For small RNA libraries, a dominant read length peak around 18-22 nt (miRNA) and 26-32 nt (piRNA/tRNA fragments) is expected, along with adapter sequences since small RNA inserts are shorter than the sequencing read length.
 
-### Step 2 — Adapter Trimming
+### Step 2 Adapter Trimming
 
 **Tool:** TrimGalore (wrapper for Cutadapt)
 
 Small RNA sequencing libraries are prepared by ligating adapters to the 3' end of RNA molecules. Because miRNAs are 18-22 nt and the sequencing read length is typically 50-75 nt, every read contains adapter sequence after the insert. If adapters are not removed they prevent alignment or cause misalignment to the genome. TrimGalore automatically detects adapter sequences and applies quality trimming simultaneously. A minimum length filter of 15 nt is applied to remove reads too short to align reliably.
 
-### Step 3 — TAPS-aware Alignment
+### Step 3 TAPS-aware Alignment
 
 **Tool:** Bowtie 1.3.1, SAMtools
 
@@ -205,7 +205,7 @@ TAPS data requires careful alignment parameter choices. The alignment must be co
 
 Alignment is performed to GRCh38 at the genome level rather than a transcriptome, because small RNA species including piRNAs, tRNAs (~600 gene copies), and snoRNAs are encoded at specific genomic loci whose coordinates are needed for downstream annotation.
 
-### Step 4 — Biotype Annotation and BAM Splitting
+### Step 4 Biotype Annotation and BAM Splitting
 
 **Tool:** Custom Python script using pysam, Ensembl GRCh38 v112 GTF
 
@@ -219,7 +219,7 @@ This priority order ensures reads overlapping multiple annotations are assigned 
 
 > **Note:** TAPS chemistry is known to alter small RNA library composition relative to untreated samples, particularly enriching for rRNA. Users should expect biotype proportions to differ between treated and untreated conditions. This is a technical consequence of the pyridine borane step and should be accounted for in downstream interpretation.
 
-### Step 5 — TAPS Methylation Calling
+### Step 5 TAPS Methylation Calling
 
 **Tool:** Custom Python caller (`taps_calling_fast.py`) using pysam, multiprocessing
 
@@ -243,7 +243,7 @@ Minimum coverage thresholds per biotype: **rRNA 10x**, **miRNA and snoRNA 5x**, 
 
 Output columns: `chrom, start, end, context, mod_count, unmod_count, coverage, mod_rate`
 
-### Step 6 — Background Correction and Replicate Merging
+### Step 6 Background Correction and Replicate Merging
 
 **Tool:** Custom Python script
 
@@ -255,7 +255,7 @@ The `pb_Ctrl` samples define the chemistry background rate at each genomic posit
 
 This subtraction removes two sources of false signal: the intrinsic rate of pyridine borane-mediated C→T conversion at unmodified cytosines, and position-specific biases in the chemistry related to local sequence context. Sites detected in fewer than two replicates are discarded — a modification detectable in only one replicate cannot be distinguished from sample-specific noise. This replicate reproducibility filter is the most important quality gate in the pipeline.
 
-### Step 7 — Differential Methylation Analysis
+### Step 7 Differential Methylation Analysis
 
 **Tool:** Custom Python cross-condition comparison
 
@@ -275,7 +275,7 @@ Sites passing all three criteria are classified by confidence:
 | **Medium** | rep ≥ 2 and δ > 0.15 |
 | **Low** | rep = 2 and δ > 0.1 |
 
-### Step 8 — Genomic Annotation
+### Step 8 Genomic Annotation
 
 **Tool:** bedtools intersect, Ensembl GRCh38 v112 GTF
 
