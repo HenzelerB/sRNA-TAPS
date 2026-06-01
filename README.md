@@ -183,7 +183,16 @@ And the underlying TAPS method:
 > Liu Y. et al. Bisulfite-free direct detection of 5-methylcytosine and 5-hydroxymethylcytosine at base resolution. *Nature Biotechnology* 37, 424–429 (2019). https://doi.org/10.1038/s41587-019-0041-2
 
 ## License
-<p align="left">
-  <img src="Lab_Logo.png" width="200" alt="Lab logo">
-</p>
+
 MIT
+
+## Affiliation
+
+<p align="left">
+  <img src="Lab_Logo.png" height="80" alt="Institute of Chemical Epigenetics-Munich">
+  <br><br>
+  <b>Bennett Henzeler</b><br>
+  <a href="https://schneider.cup.uni-muenchen.de">Institute of Chemical Epigenetics-Munich (ICEM)</a><br>
+  Ludwig-Maximilians-Universität München<br>
+  Munich, Germany
+</p>
