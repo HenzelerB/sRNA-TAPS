@@ -183,5 +183,8 @@ And the underlying TAPS method:
 > Liu Y. et al. Bisulfite-free direct detection of 5-methylcytosine and 5-hydroxymethylcytosine at base resolution. *Nature Biotechnology* 37, 424–429 (2019). https://doi.org/10.1038/s41587-019-0041-2
 
 ## License
+<p align="center">
+  <img src="Lab_Logo.png" alt="Lab logo">
+</p>
 
 MIT
