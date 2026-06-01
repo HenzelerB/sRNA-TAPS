@@ -184,7 +184,7 @@ And the underlying TAPS method:
 
 ## License
 <p align="center">
-  <img src="Lab_Logo.png" alt="Lab logo">
+  <img src="Lab_Logo.png" width="200" alt="Lab logo">
 </p>
 
 MIT
