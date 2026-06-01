@@ -32,8 +32,6 @@ sRNA-TAPS pipeline is developed to detect 5-methylcytosine (m5C) and 5-hydroxyme
 - [License](#license)
 - [Affiliation](#affiliation)
 
----
-
 ## Chemistry
 
 TAPS operates through a two-step chemical conversion:
