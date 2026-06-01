@@ -5,6 +5,14 @@
 # sRNA-TAPS
 **TAPS-based m5C and 5hmC detection pipeline for small RNA sequencing**
 
+<p align="center">
+  <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT">
+  <img src="https://img.shields.io/badge/Python-3.10+-blue.svg" alt="Python">
+  <img src="https://img.shields.io/badge/Platform-Linux-lightgrey.svg" alt="Platform">
+  <img src="https://img.shields.io/badge/Genome-GRCh38-green.svg" alt="Genome">
+  <img src="https://img.shields.io/badge/Status-In%20Development-orange.svg" alt="Status">
+</p>
+
 sRNA-TAPS pipeline is developed to detect 5-methylcytosine (m5C) and 5-hydroxymethylcytosine (5hmC) in small RNA using TET-assisted pyridine borane sequencing (TAPS). The pipeline supports miRNA, tRNA, rRNA, snoRNA, snRNA, piRNA, and lncRNA biotypes from human samples (hg38). The pipeline was adapted from the original DNA TAPS method (Liu et al., Nature Biotechnology 2019) for application to biological RNA samples without synthetic spike-in controls. TAPS operates through a two-step chemical conversion. First, ten-eleven translocation (TET) enzymes oxidise 5mC and 5hmC to 5-carboxylcytosine (5caC). Second, pyridine borane reduces 5caC to dihydrouracil (DHU), which is subsequently read as thymine during PCR amplification. The result is a C-to-T transition at modified cytosine positions in the sequencing reads. Crucially, unmodified cytosines remain unchanged and read as C. This is the inverse of bisulfite sequencing, where unmodified C is converted and modified 5mC is protected.
 
 ## Chemistry
