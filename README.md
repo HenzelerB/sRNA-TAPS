@@ -15,7 +15,7 @@
 </p>
 
 <p align="center">
-sRNA-TAPS is a pipeline for detecting 5-methylcytosine (m5C) and 5-hydroxymethylcytosine (5hmC) in small RNA using TET-assisted pyridine borane sequencing (TAPS). It supports miRNA, tRNA, rRNA, snoRNA, snRNA, piRNA, and lncRNA biotypes from human samples (hg38). The pipeline was adapted from the original DNA TAPS method (Liu et al., <em>Nature Biotechnology</em> 2019) for application to biological RNA samples without synthetic spike-in controls.
+sRNA-TAPS detects 5-methylcytosine (m5C) and 5-hydroxymethylcytosine (5hmC) in small RNA using TET-assisted pyridine borane sequencing (TAPS). It covers miRNA, tRNA, rRNA, snoRNA, snRNA, piRNA, and lncRNA biotypes from human samples (hg38), and was developed from the original DNA TAPS method (Liu et al., <em>Nature Biotechnology</em> 2019) for biological RNA without synthetic spike-in controls.
 </p>
 
 ---
@@ -44,34 +44,29 @@ sRNA-TAPS is a pipeline for detecting 5-methylcytosine (m5C) and 5-hydroxymethyl
 
 ## 🧪 Chemistry
 
-TAPS operates through a two-step chemical conversion:
-1. TET enzymes oxidise m5C and 5hmC to 5-carboxylcytosine (5caC)
-2. Pyridine borane reduces 5caC to dihydrouracil (DHU), read as **T** during PCR
-
-> **Key principle: Unmodified C stays as C. Modified C → T.**
-> This is the **inverse** of bisulfite sequencing, where unmodified C is converted and modified 5mC is protected.
+TAPS works through two sequential reactions: TET enzymes oxidise m5C and 5hmC to 5-carboxylcytosine (5caC), which pyridine borane then reduces to dihydrouracil (DHU). DHU is read as T during PCR. Unmodified cytosines pass through the chemistry unchanged, so the readout is the opposite of bisulfite sequencing — a C→T transition marks a modified base rather than an unmodified one.
 
 #### Why TAPS for small RNA?
 
-Standard bisulfite sequencing is poorly suited for small RNA because the harsh bisulfite treatment degrades short RNA molecules, the high conversion rate (~99%) of unmodified C makes short reads difficult to align uniquely, and existing bisulfite tools assume DNA chemistry where the signal direction is inverted relative to TAPS. sRNA-TAPS uses TAPS-aware alignment parameters and a custom methylation caller that correctly interprets C-to-T transitions as genuine m5C signal.
+Bisulfite treatment degrades short RNA molecules and converts ~99% of unmodified cytosines, making 18–22 nt reads nearly impossible to align uniquely. TAPS leaves unmodified cytosines intact, preserving alignment specificity. The pipeline uses Bowtie1 parameters tuned to tolerate the C→T mismatches introduced by modification rather than penalising them as sequencing errors.
 
 #### Why not use lambda phage spike-ins?
 
-Lambda phage spike-ins (used in the original DNA TAPS paper) are incompatible with RNA TAPS. TET enzymes are DNA dioxygenases — their activity on RNA differs fundamentally from double-stranded DNA. RNA library preparation (adapter ligation, reverse transcription) does not process DNA spike-ins equivalently, and lambda conversion efficiency calibrates DNA chemistry, not RNA chemistry. sRNA-TAPS instead uses the `pb_Ctrl` condition for position-specific background subtraction, with known mitochondrial rRNA m5C sites serving as internal positive controls to confirm successful chemistry conversion.
+Lambda spike-ins calibrate conversion efficiency for double-stranded DNA. TET enzymes act differently on RNA, and the adapter ligation and reverse transcription steps in small RNA library preparation do not process DNA spike-ins the same way. sRNA-TAPS uses `pb_Ctrl` samples for position-specific background correction instead, with mitochondrial rRNA m5C sites (C1402, C1407 in 12S rRNA) as internal positive controls for chemistry conversion.
 
 ---
 
 ## 🔬 Experimental Design
 
-sRNA-TAPS implements a three-condition control framework:
+Three conditions are required:
 
 | Condition | Treatment | Purpose |
 |-----------|-----------|---------|
 | `treat` | TET oxidation + pyridine borane | Full TAPS — detects 5mC and 5hmC |
-| `pb_Ctrl` | Pyridine borane only (no TET) | Background control — chemistry noise without TET |
-| `no-treat` | No chemistry | Baseline — sequencing error rate only |
+| `pb_Ctrl` | Pyridine borane only (no TET) | Captures chemistry background without TET |
+| `no-treat` | No chemistry | Sequencing error baseline |
 
-The `pb_Ctrl` samples quantify the background C-to-T conversion rate from pyridine borane chemistry alone. Subtracting this from the treated sample isolates only the TET-dependent signal, which represents genuine 5mC or 5hmC.
+The `pb_Ctrl` condition is essential. Pyridine borane converts a small fraction of unmodified cytosines non-specifically (~8–9%), and this background varies by sequence context. Subtracting `pb_Ctrl` rates from `treat` at each position leaves only the TET-dependent signal.
 
 ---
 
@@ -138,7 +133,7 @@ srnataps run --configfile ~/my_taps_project/config.yaml --slurm --benchmark
 
 ## 🧬 Test Dataset
 
-sRNA-TAPS includes a synthetic FASTQ simulator for pipeline validation. It generates realistic TAPS small RNA reads with accurate chemistry — seeded m5C positions show **40–80% C→T** in the TET+PB condition and **2–5% background** in untreated samples.
+The repository includes a synthetic FASTQ simulator (`tests/simulate_taps_srna.py`) that generates small RNA reads with realistic TAPS chemistry. Known m5C positions are seeded into the templates at 40–80% conversion in the `treat` condition and 2–5% background in `no_treat`, so you can verify end-to-end pipeline behaviour without real sequencing data.
 
 #### Generating test FASTQs
 
@@ -149,7 +144,7 @@ python3 tests/simulate_taps_srna.py \
     --seed   42
 ```
 
-This produces **9 samples** (3 conditions × 3 replicates, HEK cell line):
+This writes **9 samples** (3 conditions × 3 replicates, HEK cell line):
 
 | Sample | Condition | Description |
 |--------|-----------|-------------|
@@ -157,11 +152,11 @@ This produces **9 samples** (3 conditions × 3 replicates, HEK cell line):
 | `pb_Ctrl_HEK_R1/R2/R3` | `pb_ctrl` | PB only — chemistry background without TET |
 | `treat_HEK_R1/R2/R3` | `treat` | TET + PB — genuine TAPS signal |
 
-Each sample contains **100,000 reads** with a TruSeq small RNA 3′ adapter (`TGGAATTCTCGGGTGCCAAGG`). Four biotypes are simulated — miRNA (40%), tRNA (25%), rRNA (25%), snoRNA (10%) — using sequences from real hg38 loci including hsa-miR-21-5p, mt-tRNA-Leu, mt-12S rRNA, and SNORD14. A `samples.tsv` is written automatically.
+Reads are 18–50 nt with a TruSeq small RNA 3′ adapter (`TGGAATTCTCGGGTGCCAAGG`). Biotype proportions: miRNA 40%, tRNA 25%, rRNA 25%, snoRNA 10%, drawn from real hg38 loci (hsa-miR-21-5p, mt-tRNA-Leu, mt-12S rRNA, SNORD14). A `samples.tsv` is written alongside the FASTQs.
 
 #### Running the test pipeline
 
-The test FASTQs are compatible with your existing hg38 Bowtie1 index and GTF. Start from Step 02 (trimming):
+These files use standard hg38 coordinates and work directly with an existing Bowtie1 index and Ensembl GTF. Start from trimming:
 
 ```bash
 # Step 02: Adapter trimming
@@ -197,27 +192,22 @@ python3 07_taps_calling.py \
 
 #### Expected results
 
-**Alignment rate:** ~80% of trimmed reads align to hg38.
+Around 80% of trimmed reads align to hg38. At the two seeded miRNA m5C sites:
 
-**TAPS signal validation:**
+| Position | Gene | Condition | mod_rate |
+|----------|------|-----------|----------|
+| chr17:59841313 | hsa-miR-21-5p | TET+PB | **90.9%** |
+| chr17:59841313 | hsa-miR-21-5p | Untreated | **1.7%** |
+| chrX:66018955 | hsa-miR-223-3p | TET+PB | **71.6%** |
+| chrX:66018955 | hsa-miR-223-3p | Untreated | **0.2%** |
 
-| Position | Gene | Condition | mod_rate | Interpretation |
-|----------|------|-----------|----------|----------------|
-| chr17:59841313 | hsa-miR-21-5p | TET+PB | **90.9%** | Genuine m5C signal |
-| chr17:59841313 | hsa-miR-21-5p | Untreated | **1.7%** | Background only |
-| chrX:66018955 | hsa-miR-223-3p | TET+PB | **71.6%** | Genuine m5C signal |
-| chrX:66018955 | hsa-miR-223-3p | Untreated | **0.2%** | Background only |
-
-The >40-fold enrichment between treat and no_treat at seeded m5C positions confirms the pipeline is working correctly end-to-end.
-
-**Quick verification:**
 ```bash
-# Expect mod_rate ~0.9 in treat, ~0.02 in no_treat
+# Quick check — expect ~0.9 in treat, ~0.02 in no_treat
 grep "^17.*59841313" 07.taps_calls/miRNA/treat_HEK_R1_miRNA_taps.tsv
 grep "^17.*59841313" 07.taps_calls/miRNA/no-treat_Ctrl_HEK_R1_miRNA_taps.tsv
 ```
 
-> **Note on multi-lane data:** If your sequencing data was split across multiple lanes, merge per-lane FASTQs before running: `cat sample_L001.fastq.gz sample_L002.fastq.gz > sample_merged.fastq.gz`. The synthetic test dataset is pre-merged and does not require this step.
+> **Multi-lane data:** If your sequencing run was split across lanes, merge the per-lane FASTQs before running: `cat sample_L001.fastq.gz sample_L002.fastq.gz > sample_merged.fastq.gz`. The test dataset is already single-file per sample.
 
 ---
 
@@ -295,48 +285,48 @@ rawfiles/           Raw merged FASTQs (SE, TruSeq small RNA)
 ### Step 1 — Quality Control
 **Tool:** FastQC, MultiQC
 
-FastQC evaluates per-base quality scores, GC content, sequence duplication levels, overrepresented sequences, and adapter content. MultiQC aggregates results across all samples into a single interactive report. For small RNA libraries, a dominant read length peak around 18–22 nt (miRNA) and 26–32 nt (piRNA/tRNA fragments) is expected, along with adapter sequences since small RNA inserts are shorter than the sequencing read length.
+FastQC is run on raw FASTQs and MultiQC aggregates the results across all samples. For small RNA libraries, expect a dominant length peak at 18–22 nt (miRNA) and a second peak at 26–32 nt (tRNA fragments and piRNAs). All reads will contain adapter sequence, since small RNA inserts are shorter than the read length.
 
 ---
 
 ### Step 2 — Adapter Trimming
-**Tool:** TrimGalore (wrapper for Cutadapt)
+**Tool:** TrimGalore (Cutadapt)
 
-Small RNA sequencing libraries are prepared by ligating adapters to the 3' end of RNA molecules. Because miRNAs are 18–22 nt and the sequencing read length is typically 50–75 nt, every read contains adapter sequence after the insert. TrimGalore automatically detects and removes the TruSeq small RNA adapter (`TGGAATTCTCGGGTGCCAAGG`) and applies quality trimming. A minimum length filter of 18 nt and maximum of 50 nt is applied.
+TrimGalore removes the TruSeq small RNA 3′ adapter (`TGGAATTCTCGGGTGCCAAGG`) and quality-trims the 3′ end. Reads shorter than 18 nt or longer than 50 nt are discarded. The `--small_rna` flag sets sensible defaults for this library type.
 
 ---
 
 ### Step 3 — TAPS-aware Alignment
 **Tool:** Bowtie 1.3.1, SAMtools
 
-TAPS data requires careful alignment parameter choices — the alignment must tolerate C-to-T mismatches because these represent genuine 5mC modifications rather than sequencing errors.
+Alignment is to the whole GRCh38 genome rather than a transcriptome — tRNA families (~600 gene copies), piRNA clusters, and snoRNA loci need genomic coordinates for correct downstream annotation. Four parameters are set specifically for TAPS data:
 
 | Parameter | Purpose |
 |-----------|---------|
-| `-v 2` | Up to 2 total mismatches — tolerates C→T TAPS transitions |
-| `--norc` | Forward strand only — small RNA libraries are strand-specific |
-| `-k 10 --best --strata` | Up to 10 alignments per read, writes `XA:i:N` tag for multi-mapping |
-| `--sam` | Required for the XA tag to be written |
-
-Alignment is to GRCh38 at the whole-genome level (not transcriptome) because tRNA (~600 gene copies), piRNA clusters, and snoRNA loci require genomic coordinates for downstream annotation.
+| `-v 2` | Up to 2 total mismatches — tolerates C→T modifications without penalising them |
+| `--norc` | Forward strand only — reverse complement alignment would introduce false G→A calls |
+| `-k 10 --best --strata` | Up to 10 alignments per read from the best stratum; writes `XA:i:N` tag used for fractional weighting |
+| `--sam` | Required for XA tag output |
 
 ---
 
 ### Step 4 — Biotype Annotation and BAM Splitting
-**Tool:** Custom Python script using pysam, Ensembl GRCh38 v112 GTF
+**Tool:** Custom Python script (pysam), Ensembl GRCh38 v112 GTF
 
-Each aligned read is intersected with Ensembl gene annotations and assigned to the highest-priority biotype:
+Reads are assigned to the highest-priority overlapping biotype:
 
 ```
 miRNA > tRNA > piRNA > snoRNA > snRNA > rRNA > lncRNA > other
 ```
 
-> **Note:** TAPS chemistry alters small RNA library composition relative to untreated samples, particularly enriching for rRNA. Biotype proportions will differ between treated and untreated conditions — this is a known technical effect of the pyridine borane step.
+Keeping biotypes in separate BAMs matters because m5C at a tRNA wobble position has completely different biological meaning from m5C in a miRNA seed region, and coverage thresholds appropriate for one biotype are not appropriate for another.
+
+> **Note:** TAPS enriches for rRNA relative to untreated libraries due to the pyridine borane step. Biotype proportions will differ between conditions — this is expected and not a sign of a failed experiment.
 
 ---
 
 ### Step 5 — TAPS Methylation Calling
-**Tool:** Custom Python caller using pysam, multiprocessing
+**Tool:** Custom Python caller (pysam, multiprocessing)
 
 For each cytosine position with sufficient coverage:
 
@@ -346,14 +336,14 @@ mod_rate = T_count / (C_count + T_count)
 
 | Feature | Implementation |
 |---------|---------------|
-| **Strand-specific logic** | Forward: modified C reads as T. Reverse: modified C reads as A. |
-| **CIGAR-aware parsing** | `get_aligned_pairs()` handles indels and soft-clipping correctly |
-| **Multi-mapper weighting** | Reads with `XA:i:N` tag contribute `1/N` per locus |
-| **Base quality filter** | Phred Q < 20 excluded |
-| **Parallel processing** | Chromosome-level parallelisation |
-| **Statistical testing** | Binomial test against background rate + BH FDR correction |
+| **Strand-specific logic** | Forward strand: modified C reads as T. Reverse strand: modified C reads as A. |
+| **CIGAR-aware parsing** | `get_aligned_pairs()` handles indels and soft-clipping without positional offset errors |
+| **Multi-mapper weighting** | Reads with `XA:i:N` contribute `1/N` per locus rather than 1, preventing inflation at tRNA gene copies and rRNA repeats |
+| **Base quality filter** | Bases with Phred Q < 20 are excluded |
+| **Parallel processing** | Jobs distributed across chromosomes |
+| **Statistical testing** | Binomial test against background rate, BH FDR correction |
 
-Output: `chrom, start, end, context, mod_count, unmod_count, coverage, mod_rate, pvalue, padj, snp_flag`
+Output columns: `chrom, start, end, context, mod_count, unmod_count, coverage, mod_rate, pvalue, padj, snp_flag`
 
 ---
 
@@ -364,20 +354,22 @@ Output: `chrom, start, end, context, mod_count, unmod_count, coverage, mod_rate,
 δ = treat_mod_rate − pb_Ctrl_mod_rate
 ```
 
-This removes the intrinsic pyridine borane-mediated C→T conversion at unmodified cytosines and position-specific chemistry biases. Sites detected in fewer than two replicates are discarded — a modification detectable in only one replicate cannot be distinguished from sample-specific noise.
+Subtracting `pb_Ctrl` removes both the global pyridine borane background and sequence-context-specific biases. Sites seen in only one replicate are discarded — stochastic noise is not reproducible, so this filter is the most effective way to reduce false positives.
 
 ---
 
 ### Step 7 — Differential Methylation Analysis
 **Tool:** Custom Python cross-condition comparison
 
+A site is called as genuine m5C if it passes all three filters simultaneously:
+
 | Criterion | Threshold | Rationale |
 |-----------|-----------|-----------|
-| `delta > 0.1` | δ > 10% | Accounts for residual chemistry noise |
-| `notx_mean < 0.05` | no-treat < 5% | Excludes SNPs and RNA editing sites |
-| `rep >= 2` | ≥ 2/3 replicates | Strongest filter against false positives |
+| `delta > 0.1` | δ > 10% | Removes residual chemistry noise after background subtraction |
+| `notx_mean < 0.05` | no-treat < 5% | Removes SNPs and A-to-I editing sites, which are condition-independent |
+| `rep >= 2` | ≥ 2/3 replicates | Reproducibility across replicates is the strongest indicator of genuine signal |
 
-Sites passing all three criteria are classified by confidence:
+Called sites are then stratified by confidence:
 
 | Confidence | Criteria |
 |------------|----------|
@@ -390,38 +382,30 @@ Sites passing all three criteria are classified by confidence:
 ### Step 8 — Genomic Annotation
 **Tool:** bedtools intersect, Ensembl GRCh38 v112 GTF
 
-Each candidate m5C site is intersected with the Ensembl gene annotation to assign gene name, gene biotype, and feature type. For miRNA candidates, gene names follow miRBase nomenclature.
+Called sites are intersected with the Ensembl annotation to assign gene name, biotype, and feature. miRNA gene names follow miRBase nomenclature. Where a site overlaps multiple features, the most specific annotation is kept using the priority hierarchy from Step 4.
 
 ---
 
 ### Step 9 — Report Generation
 **Tools:** R (ggplot2, ggseqlogo, BSgenome.Hsapiens.UCSC.hg38), Python (Plotly)
 
-Two output formats are generated:
-
-**Static figures (PDF/PNG/SVG)** — publication-ready at 300 dpi, Arial 8pt:
-- QC: read length distribution, Bowtie1 mapping rates
-- Biotype composition: all samples + mean by condition
-- Modification: rate distributions, top sites, condition comparison, waterfall, trinucleotide context
-- Benchmarking: concordance heatmap, Pearson correlation, site overlap
-- Sequence logos: ±5 and ±10 nt around high-confidence m5C sites, per biotype and combined
-
-**Interactive HTML report** — single self-contained file, opens in any browser.
+The pipeline generates publication-ready static figures (PDF/PNG/SVG at 300 dpi, Arial 8pt) and a self-contained interactive HTML report. Figures cover QC, biotype composition, modification rates, condition comparisons, benchmarking concordance, and sequence logos at ±5 and ±10 nt windows around called sites.
 
 ```bash
 RDIR=/path/to/sRNA-TAPS/srnataps/report/R
 export SRNATAPS_R_DIR=$RDIR
 
-# All figures
+# Full report
 Rscript $RDIR/run_all.R \
     --outdir  /path/to/project \
     --figdir  /path/to/project/report/figures \
     --scripts $RDIR
 
-# Skip specific sections (--skip-qc, --skip-bio, --skip-mod, --skip-bench, --skip-logos)
-Rscript $RDIR/run_all.R --outdir /path/to/project --scripts $RDIR --skip-bench
+# Skip sections you don't need
+Rscript $RDIR/run_all.R --outdir /path/to/project --scripts $RDIR \
+    --skip-qc --skip-bio --skip-mod --skip-bench --skip-logos
 
-# Interactive HTML report
+# Interactive HTML
 python3 srnataps/report.py \
     --outdir /path/to/project \
     --out    /path/to/project/report/srnataps_report.html
@@ -431,26 +415,13 @@ python3 srnataps/report.py \
 
 ## Δ The Delta (δ) Score
 
-#### What is δ?
-
-Delta is the background-corrected methylation signal — how much of the C-to-T conversion in the treated sample is genuinely due to 5mC, after subtracting chemistry noise.
+δ is the background-corrected modification rate — the fraction of C→T signal in the treated sample that is attributable to TET-dependent oxidation rather than pyridine borane chemistry alone:
 
 ```
 δ = treat_mod_rate − pb_Ctrl_mod_rate
 ```
 
-#### Why subtract pb_Ctrl?
-
-Pyridine borane causes ~8–9% non-specific C→T conversion at unmodified cytosines. The `pb_Ctrl` samples went through pyridine borane but not TET oxidation, so subtracting their signal isolates only TET-dependent 5mC/5hmC.
-
-#### Concrete example
-
-```
-treat_mod_rate   = 0.823  (82.3% C→T)
-pb_Ctrl_mod_rate = 0.323  (32.3% chemistry noise)
-
-δ = 0.500  →  50% genuine 5mC
-```
+For example, if a position shows 82.3% C→T in `treat` and 32.3% in `pb_Ctrl`, then δ = 0.50 — half the signal is genuine 5mC and half is chemistry noise. Without this correction, the site would appear 82% methylated.
 
 #### Interpreting δ values
 
@@ -462,21 +433,21 @@ pb_Ctrl_mod_rate = 0.323  (32.3% chemistry noise)
 | 0.40–0.70 | High methylation |
 | > 0.70 | Near-stoichiometric methylation |
 
-> **Important:** δ is a relative measure, not absolute stoichiometry. Without a fully methylated RNA spike-in, conversion efficiency cannot be determined. δ values are suitable for site identification and cross-condition comparison.
+> δ is not absolute stoichiometry. Without a fully modified RNA standard, the actual conversion efficiency is unknown. Use δ for site discovery and cross-condition comparisons, not as an absolute measure of methylation fraction.
 
 ---
 
 ## 🛡️ SNP Filtering
 
-sRNA-TAPS applies three-layer polymorphism filtering **before** counting C→T events — a C/T heterozygous SNP is chemically indistinguishable from a TAPS m5C signal.
+A C/T heterozygous SNP produces exactly the same signal as a TAPS m5C site. sRNA-TAPS filters at three levels before any C→T counts are made:
 
 | Layer | Method | Flag |
 |-------|--------|------|
 | 1 | dbSNP common C→T/G→A variants (AF ≥ 1%) | `SNP_KNOWN` |
-| 2 | Cell-line-specific SNPs from no-treat BAMs | `SNP_SAMPLE` |
-| 3 | No-treat C→T rate ≥ 40% (heterozygosity) | `SNP_HET` |
+| 2 | Cell-line-specific C→T variants called from no-treat BAMs | `SNP_SAMPLE` |
+| 3 | No-treat C→T rate ≥ 40% at a position (heterozygosity proxy) | `SNP_HET` |
 
-The `snp_flag` column in output TSVs records the flag for every site. Only `PASS` sites proceed to statistical testing. sRNA-TAPS also supports cross-validation with **Rastair v2.1.1**, which applies independent machine-learning-based SNP correction.
+Filtering happens upstream of the binomial test — SNP-flagged positions are excluded entirely rather than called and then filtered. The `snp_flag` column in every output TSV records the reason for exclusion. Only `PASS` sites are tested. Cross-validation with Rastair v2.1.1 adds an independent machine-learning-based SNP correction layer for benchmarking purposes.
 
 ---
 
