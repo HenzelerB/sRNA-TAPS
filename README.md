@@ -1,7 +1,6 @@
 <p align="center">
   <img src="sRNA-taps_logo.png" alt="sRNA-TAPS logo" width="600">
 </p>
-
 <p align="center"><strong>TAPS-based m5C and 5hmC detection pipeline for small RNA sequencing</strong></p>
 
 <p align="center">
