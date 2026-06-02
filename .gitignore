@@ -17,3 +17,4 @@ htmlcov/
 *.gz
 *.tsv
 !config/samples.tsv
+bioconda-recipes/
