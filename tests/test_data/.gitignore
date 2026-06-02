@@ -2,3 +2,4 @@
 *.fq.gz
 *.bam
 *.bai
+*.sam

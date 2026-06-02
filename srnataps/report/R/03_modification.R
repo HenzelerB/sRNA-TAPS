@@ -49,7 +49,7 @@ load_calls <- function(calls_dir, biotypes, min_cov) {
     bt     <- basename(dirname(f))
     sample <- sub(paste0("_", bt, "_taps\\.tsv$"), "", basename(f))
     tryCatch({
-      df <- read_tsv(f, show_col_types = FALSE, col_types = cols(chrom = col_character())) %>%
+      df <- read_tsv(f, show_col_types = FALSE, col_types = cols(chrom = col_character(), start = col_integer(), end = col_integer(), mod_count = col_double(), unmod_count = col_double(), coverage = col_double(), mod_rate = col_double(), pvalue = col_double(), padj = col_double())) %>%
         dplyr::filter(coverage >= min_cov, snp_flag == "PASS") %>%
         dplyr::mutate(
           biotype   = bt,
