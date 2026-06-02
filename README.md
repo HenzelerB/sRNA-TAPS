@@ -21,6 +21,7 @@ sRNA-TAPS pipeline is developed to detect 5-methylcytosine (m5C) and 5-hydroxyme
 - [Experimental Design](#experimental-design)
 - [Installation](#installation)
 - [Quick Start](#quick-start)
+- [Test Dataset](#test-dataset)
 - [Usage](#usage)
 - [Pipeline Overview](#pipeline-overview)
 - [Pipeline Steps in Detail](#pipeline-steps-in-detail)
@@ -77,7 +78,7 @@ pip install sRNA-TAPS
 ### From source
 
 ```bash
-git clone https://github.com/bhenzeler/sRNA-TAPS
+git clone https://github.com/HenzelerB/sRNA-TAPS
 cd sRNA-TAPS
 pip install -e .
 ```
@@ -87,6 +88,12 @@ pip install -e .
 ```bash
 conda env create -f environment.yaml
 conda activate sRNA-TAPS
+```
+
+### R packages (for report figures)
+
+```bash
+Rscript install_R_packages.R
 ```
 
 ## Quick Start
@@ -110,6 +117,112 @@ srnataps run --configfile ~/my_taps_project/config.yaml --slurm
 # 5. Run with benchmarking
 srnataps run --configfile ~/my_taps_project/config.yaml --slurm --benchmark
 ```
+
+## Test Dataset
+
+sRNA-TAPS includes a synthetic FASTQ simulator for pipeline validation. It generates realistic TAPS small RNA reads with accurate chemistry — seeded m5C positions show 40–80% C→T in the TET+PB condition and 2–5% background in untreated samples.
+
+### Generating test FASTQs
+
+```bash
+python3 tests/simulate_taps_srna.py \
+    --outdir /path/to/test_fastq \
+    --reads  100000 \
+    --seed   42
+```
+
+This produces **9 samples** (3 conditions × 3 replicates, HEK cell line):
+
+| Sample | Condition | Description |
+|--------|-----------|-------------|
+| `no-treat_Ctrl_HEK_R1/R2/R3` | `no_treat` | No chemistry — sequencing error baseline |
+| `pb_Ctrl_HEK_R1/R2/R3` | `pb_ctrl` | PB only — chemistry background without TET |
+| `treat_HEK_R1/R2/R3` | `treat` | TET + PB — genuine TAPS signal |
+
+Each sample contains **100,000 reads** with a TruSeq small RNA 3′ adapter (`TGGAATTCTCGGGTGCCAAGG`). Four biotypes are simulated: miRNA (40%), tRNA (25%), rRNA (25%), snoRNA (10%), using sequences from real hg38 loci including hsa-miR-21-5p, hsa-miR-155-5p, mt-tRNA-Leu, mt-12S rRNA, and SNORD14.
+
+A `samples.tsv` is written automatically and can be used directly in your pipeline config.
+
+### Running the test pipeline
+
+The test FASTQs are compatible with your existing hg38 Bowtie1 index and GTF. Start from Step 02 (trimming):
+
+```bash
+# Step 02: Adapter trimming
+trim_galore --small_rna --length 18 --max_length 50 \
+    --output_dir 03.trimGalore \
+    /path/to/test_fastq/*.fastq.gz
+
+# Step 03: Bowtie1 alignment
+bowtie -x /path/to/hg38_index \
+    -q sample_trimmed.fq.gz \
+    --norc -v 2 -k 10 --best --strata -m 100 \
+    -S sample.sam
+
+# Step 04: Biotype annotation
+python3 05_annotate_biotype.py \
+    --bam  sample.sorted.bam \
+    --gtf  hg38.gtf \
+    --out_dir 05.biotype_bams \
+    --sample  <sample_name>
+
+# Step 05: Cell-line SNP blacklist (merge no_treat BAMs first)
+samtools merge notreated_HEK_merged.bam \
+    no-treat_Ctrl_HEK_R1.sorted.bam \
+    no-treat_Ctrl_HEK_R2.sorted.bam \
+    no-treat_Ctrl_HEK_R3.sorted.bam
+
+python3 06_build_snp_blacklist.py \
+    --bam  notreated_HEK_merged.bam \
+    --fasta hg38.fa \
+    --out  06.snp_resources/sample_snps_HEK.bed \
+    --min-af 0.20 --min-cov 5 --cell-line HEK
+
+# Step 06: TAPS modification calling
+python3 07_taps_calling.py \
+    --bam  05.biotype_bams/miRNA/treat_HEK_R1_miRNA.sorted.bam \
+    --fasta hg38.fa \
+    --out  07.taps_calls/miRNA/treat_HEK_R1_miRNA_taps.tsv \
+    --min-cov 3 --context ALL \
+    --sample-snp-bed 06.snp_resources/sample_snps_HEK.bed \
+    --cell-line HEK
+```
+
+### Expected results
+
+**Alignment rate:** ~80% of trimmed reads align to hg38 with `--norc -v2`.
+
+**Biotype composition:** miRNA ~17%, lncRNA ~14%, other ~69%.
+Note: tRNA (mt-tRNA) and rRNA fragments are multimappers and fall predominantly into `other` with synthetic data — this is expected behaviour and does not occur with real data where coverage is deeper and biotype-specific.
+
+**TAPS signal** — the key validation result from the miRNA caller:
+
+| Position | Gene | Condition | mod_rate |
+|----------|------|-----------|----------|
+| chr17:59841313 | hsa-miR-21-5p | TET+PB | **90.9%** |
+| chr17:59841313 | hsa-miR-21-5p | Untreated | **1.7%** |
+| chrX:66018955 | hsa-miR-223-3p | TET+PB | **71.6%** |
+| chrX:66018955 | hsa-miR-223-3p | Untreated | **0.2%** |
+
+The >40-fold enrichment between treat and no_treat at seeded m5C positions confirms that TAPS chemistry simulation, adapter trimming, alignment, SNP filtering, and modification calling are all functioning correctly.
+
+**Quick verification:**
+
+```bash
+# Should show mod_rate ~0.9 in treat, ~0.02 in no_treat
+grep "^17.*59841313" 07.taps_calls/miRNA/treat_HEK_R1_miRNA_taps.tsv
+grep "^17.*59841313" 07.taps_calls/miRNA/no-treat_Ctrl_HEK_R1_miRNA_taps.tsv
+```
+
+### Note on multi-lane sequencing data
+
+If your sequencing data was split across multiple lanes, merge the per-lane FASTQs before running the pipeline:
+
+```bash
+cat sample_L001.fastq.gz sample_L002.fastq.gz > sample_merged.fastq.gz
+```
+
+The synthetic test dataset is pre-merged (single file per sample) and does not require this step.
 
 ## Usage
 
@@ -172,7 +285,7 @@ rawfiles/           Raw merged FASTQs (SE, TruSeq small RNA)
     ↓
 07. Benchmark*      rastair (Bowtie1 BAMs) · asTair (biotype BAMs) · Bismark
 08. Compare*        Concordance · Pearson/Spearman correlation
-09. Report          MultiQC · per-biotype TSVs · HTML summary
+09. Report          R figures (PDF/PNG/SVG) · interactive HTML (Plotly)
 ```
 *requires `--benchmark` flag
 
@@ -241,7 +354,7 @@ Key design decisions that make this caller correct for TAPS RNA data:
 
 Minimum coverage thresholds per biotype: **rRNA 10x**, **miRNA and snoRNA 5x**, **tRNA 3x**.
 
-Output columns: `chrom, start, end, context, mod_count, unmod_count, coverage, mod_rate`
+Output columns: `chrom, start, end, context, mod_count, unmod_count, coverage, mod_rate, pvalue, padj, snp_flag`
 
 ### Step 6 Background Correction and Replicate Merging
 
@@ -280,6 +393,43 @@ Sites passing all three criteria are classified by confidence:
 **Tool:** bedtools intersect, Ensembl GRCh38 v112 GTF
 
 Genomic coordinates alone are biologically uninterpretable. Each candidate m5C site is intersected with the Ensembl gene annotation to assign gene name, gene biotype, and feature type. For miRNA candidates, gene names follow miRBase nomenclature. For sites overlapping multiple gene annotations, the most specific annotation is retained using the priority hierarchy from Step 4.
+
+### Step 9 Report Generation
+
+**Tools:** R (ggplot2, ggseqlogo, BSgenome.Hsapiens.UCSC.hg38), Python (Plotly)
+
+Two output formats are generated:
+
+**Static figures (PDF/PNG/SVG)** — publication-ready at 300 dpi, Arial 8pt:
+- QC: read length distribution, Bowtie1 mapping rates per sample
+- Biotype composition: all samples stacked bar + mean by condition
+- Modification: rate distributions per biotype, top modified sites, condition comparison (PB-only vs TET+PB scatter), waterfall, trinucleotide context heatmap
+- Benchmarking: concordance heatmap (Jaccard), Pearson correlation at shared sites, site overlap bar chart
+- Sequence logos: ggseqlogo + BSgenome hg38, ±5 and ±10 nt windows around high-confidence m5C sites, per biotype and combined
+
+**Interactive HTML report** — single self-contained file, opens in any browser, no server required.
+
+Generate reports manually:
+
+```bash
+RDIR=/path/to/sRNA-TAPS/srnataps/report/R
+export SRNATAPS_R_DIR=$RDIR
+
+# All figures
+Rscript $RDIR/run_all.R \
+    --outdir /path/to/project \
+    --figdir /path/to/project/report/figures \
+    --scripts $RDIR
+
+# Skip specific sections
+Rscript $RDIR/run_all.R --outdir /path/to/project --scripts $RDIR \
+    --skip-qc --skip-bench --skip-logos
+
+# Interactive HTML report
+python3 srnataps/report.py \
+    --outdir /path/to/project \
+    --out /path/to/project/report/srnataps_report.html
+```
 
 ## The Delta (δ) Score
 
@@ -338,17 +488,26 @@ Additionally, sRNA-TAPS supports cross-validation with **Rastair v2.1.1**, which
 
 ```
 outdir/
-├── 02.fastqc/          FastQC HTML reports (pre + post trim)
+├── 02.fastqc/          FastQC HTML reports (pre-trim)
 ├── 03.trimGalore/      Trimmed FASTQs + trim reports
 ├── 04a.genome/         Bowtie1 genome index
 ├── 04b.aligned/        Sorted BAMs per sample
-├── 05.biotype_bams/    Per-biotype BAMs + composition summary
+├── 05.biotype_bams/    Per-biotype BAMs + biotype_composition_all_samples.tsv
 ├── 06.snp_resources/   SNP blacklists per cell line
-├── 07.taps_calls/      Per-biotype TAPS TSVs (chrom,start,end,context,
-│                       mod_count,unmod_count,coverage,mod_rate,pvalue,padj,snp_flag)
+├── 07.taps_calls/      Per-biotype TAPS TSVs
+│                       (chrom, start, end, context, mod_count, unmod_count,
+│                        coverage, mod_rate, pvalue, padj, snp_flag)
 ├── 08.benchmark/       rastair · asTair · Bismark outputs
 ├── 09.compare/         concordance_summary.tsv · correlation_summary.tsv
-└── report/             multiqc_report.html
+└── report/
+    ├── figures/        PDF + PNG + SVG per figure
+    │   ├── 01_qc/      Read length distribution, mapping rates
+    │   ├── 02_bio/     Biotype composition
+    │   ├── 03_mod/     Modification rates, top sites, condition comparison,
+    │   │               waterfall, trinucleotide context
+    │   ├── 04_bench/   Concordance heatmap, correlation, site overlap
+    │   └── 05_logos/   Sequence logos (±5 and ±10 nt, per biotype)
+    └── srnataps_report.html   Interactive HTML report (Plotly)
 ```
 
 ## Requirements
@@ -360,10 +519,11 @@ outdir/
 - fastqc ≥ 0.12
 - trim-galore ≥ 0.6.10
 - multiqc ≥ 1.21
-- bismark ≥ 0.24 (benchmarking)
-- rastair ≥ 2.1 (benchmarking)
-- asTair ≥ 3.3 (benchmarking)
+- bismark ≥ 0.24 *(benchmarking only)*
+- rastair ≥ 2.1 *(benchmarking only)*
+- asTair ≥ 3.3 *(benchmarking only)*
 - snakemake ≥ 7.0
+- R ≥ 4.3 with ggplot2, ggseqlogo, BSgenome.Hsapiens.UCSC.hg38
 
 ## Citation
 
