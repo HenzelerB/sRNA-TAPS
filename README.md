@@ -500,7 +500,7 @@ outdir/
 
 If you use sRNA-TAPS, please cite:
 
-> Henzeler B. et al. sRNA-TAPS: TAPS-based m5C detection in small RNA. *(in preparation)*
+> Simsir Ö, Henzeler B. et al. sRNA-TAPS: TAPS-based m5C detection in small RNA. *(in preparation)*
 
 And the underlying TAPS method:
 
