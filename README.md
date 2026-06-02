@@ -280,21 +280,21 @@ rawfiles/           Raw merged FASTQs (SE, TruSeq small RNA)
 
 ## 🔍 Pipeline Steps in Detail
 
-### Step 1 — Quality Control
+### Step 1: Quality Control
 **Tool:** FastQC, MultiQC
 
 FastQC is run on raw FASTQs and MultiQC aggregates the results across all samples. For small RNA libraries, expect a dominant length peak at 18–22 nt (miRNA) and a second peak at 26–32 nt (tRNA fragments and piRNAs). All reads will contain adapter sequence, since small RNA inserts are shorter than the read length.
 
 ---
 
-### Step 2 — Adapter Trimming
+### Step 2: Adapter Trimming
 **Tool:** TrimGalore (Cutadapt)
 
 TrimGalore removes the TruSeq small RNA 3′ adapter (`TGGAATTCTCGGGTGCCAAGG`) and quality-trims the 3′ end. Reads shorter than 18 nt or longer than 50 nt are discarded. The `--small_rna` flag sets sensible defaults for this library type.
 
 ---
 
-### Step 3 — TAPS-aware Alignment
+### Step 3: TAPS-aware Alignment
 **Tool:** Bowtie 1.3.1, SAMtools
 
 Alignment is to the whole GRCh38 genome rather than a transcriptome — tRNA families (~600 gene copies), piRNA clusters, and snoRNA loci need genomic coordinates for correct downstream annotation. Four parameters are set specifically for TAPS data:
@@ -308,7 +308,7 @@ Alignment is to the whole GRCh38 genome rather than a transcriptome — tRNA fam
 
 ---
 
-### Step 4 — Biotype Annotation and BAM Splitting
+### Step 4: Biotype Annotation and BAM Splitting
 **Tool:** Custom Python script (pysam), Ensembl GRCh38 v112 GTF
 
 Reads are assigned to the highest-priority overlapping biotype:
@@ -323,7 +323,7 @@ Keeping biotypes in separate BAMs matters because m5C at a tRNA wobble position 
 
 ---
 
-### Step 5 — TAPS Methylation Calling
+### Step 5: TAPS Methylation Calling
 **Tool:** Custom Python caller (pysam, multiprocessing)
 
 For each cytosine position with sufficient coverage:
@@ -345,7 +345,7 @@ Output columns: `chrom, start, end, context, mod_count, unmod_count, coverage, m
 
 ---
 
-### Step 6 — Background Correction and Replicate Merging
+### Step 6: Background Correction and Replicate Merging
 **Tool:** Custom Python script
 
 ```
@@ -356,7 +356,7 @@ Subtracting `pb_Ctrl` removes both the global pyridine borane background and seq
 
 ---
 
-### Step 7 — Differential Methylation Analysis
+### Step 7: Differential Methylation Analysis
 **Tool:** Custom Python cross-condition comparison
 
 A site is called as genuine m5C if it passes all three filters simultaneously:
@@ -377,14 +377,14 @@ Called sites are then stratified by confidence:
 
 ---
 
-### Step 8 — Genomic Annotation
+### Step 8: Genomic Annotation
 **Tool:** bedtools intersect, Ensembl GRCh38 v112 GTF
 
 Called sites are intersected with the Ensembl annotation to assign gene name, biotype, and feature. miRNA gene names follow miRBase nomenclature. Where a site overlaps multiple features, the most specific annotation is kept using the priority hierarchy from Step 4.
 
 ---
 
-### Step 9 — Report Generation
+### Step 9: Report Generation
 **Tools:** R (ggplot2, ggseqlogo, BSgenome.Hsapiens.UCSC.hg38), Python (Plotly)
 
 The pipeline generates publication-ready static figures (PDF/PNG/SVG at 300 dpi, Arial 8pt) and a self-contained interactive HTML report. Figures cover QC, biotype composition, modification rates, condition comparisons, benchmarking concordance, and sequence logos at ±5 and ±10 nt windows around called sites.
