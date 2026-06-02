@@ -22,21 +22,21 @@ sRNA-TAPS is a pipeline for detecting 5-methylcytosine (m5C) and 5-hydroxymethyl
 
 ## 📋 Table of Contents
 
-| Section | Contents |
-|---------|----------|
-| [🧪 Chemistry](#-chemistry) | TAPS mechanism, why not bisulfite, why not spike-ins |
-| [🔬 Experimental Design](#-experimental-design) | Three-condition framework |
-| [⚙️ Installation](#️-installation) | conda, pip, source, R packages |
-| [🚀 Quick Start](#-quick-start) | Init, validate, run |
-| [🧬 Test Dataset](#-test-dataset) | Synthetic FASTQs, expected results, validation |
-| [📖 Usage](#-usage) | CLI reference, run options, modules |
-| [🔄 Pipeline Overview](#-pipeline-overview) | Step-by-step diagram |
-| [🔍 Pipeline Steps in Detail](#-pipeline-steps-in-detail) | QC → Trim → Align → Call → Report |
-| [Δ The Delta Score](#-the-delta-δ-score) | Background correction, interpretation |
-| [🛡️ SNP Filtering](#️-snp-filtering) | Three-layer polymorphism filtering |
-| [📁 Output](#-output) | Directory structure, file formats |
-| [📦 Requirements](#-requirements) | Software dependencies |
-| [📄 Citation](#-citation) | How to cite |
+- [🧪 Chemistry](#-chemistry)
+- [🔬 Experimental Design](#-experimental-design)
+- [⚙️ Installation](#️-installation)
+- [🚀 Quick Start](#-quick-start)
+- [🧬 Test Dataset](#-test-dataset)
+- [📖 Usage](#-usage)
+- [🔄 Pipeline Overview](#-pipeline-overview)
+- [🔍 Pipeline Steps in Detail](#-pipeline-steps-in-detail)
+- [Δ The Delta (δ) Score](#-the-delta-δ-score)
+- [🛡️ SNP Filtering](#️-snp-filtering)
+- [📁 Output](#-output)
+- [📦 Requirements](#-requirements)
+- [📄 Citation](#-citation)
+- [⚖️ License](#️-license)
+- [🏛️ Affiliation](#️-affiliation)
 
 ---
 
