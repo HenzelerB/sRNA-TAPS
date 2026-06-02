@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="sRNA-taps_logo.png" alt="sRNA-TAPS logo" width="500">
+  <img src="sRNA-taps_logo.png" alt="sRNA-TAPS logo" width="600">
 </p>
 
 <h1 align="center">sRNA-TAPS</h1>
