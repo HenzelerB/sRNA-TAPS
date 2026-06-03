@@ -10,8 +10,8 @@
     :root {
       --bg:#f7f6f2;--bg2:#eeecea;--surface:#ffffff;--border:#dedad4;
       --text:#1a1814;--text2:#5a5650;--text3:#8a8680;
-      --accent:#00d4aa;--accent2:#d0f5ee;--accent3:#2c5f8a;
-      --green:#27ae60;--code-bg:#f0eeea;--nav-h:64px;
+      --accent:#c0392b;--accent2:#e8d5d3;--accent3:#2c5f8a;
+      --green:#27ae60;--code-bg:#f0eeea;--nav-h:72px;
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     html{scroll-behavior:smooth}
@@ -20,9 +20,9 @@
     .nav-logo{font-family:'DM Serif Display',serif;font-size:1.25rem;color:var(--text);text-decoration:none;margin-right:auto;display:flex;align-items:center;gap:10px}
     .nav-logo span.accent{color:var(--accent)}
     .nav-links{display:flex;gap:8px;align-items:center}
-    .nav-links a{font-size:.875rem;font-weight:500;color:var(--text2);text-decoration:none;padding:6px 14px;border-radius:6px;transition:all .15s}
+    .nav-links a{font-size:1rem;font-weight:500;color:var(--text2);text-decoration:none;padding:8px 16px;border-radius:6px;transition:all .15s}
     .nav-links a:hover,.nav-links a.active{color:var(--text);background:var(--bg2)}
-    .nav-btn{background:var(--accent)!important;color:#fff!important;border-radius:6px;padding:6px 16px!important}
+    .nav-btn{background:var(--accent)!important;color:#fff!important;border-radius:6px;padding:8px 18px!important}
     .nav-btn:hover{opacity:.88!important;background:var(--accent)!important}
 
     .layout{display:grid;grid-template-columns:260px 1fr;min-height:100vh;padding-top:var(--nav-h)}
@@ -59,7 +59,7 @@
 </head>
 <body>
 <nav>
-  <a class="nav-logo" href="https://henzelerb.github.io/sRNA-TAPS/"><img src="sRNA-taps_logo_left.png" alt="sRNA-TAPS" style="height:48px;width:auto;"></a>
+  <a class="nav-logo" href="index.html">sRNA<span class="accent">-TAPS</span></a>
   <div class="nav-links">
     <a href="docs.html" class="active">Docs</a>
     <a href="tutorial.html">Tutorial</a>
