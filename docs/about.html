@@ -11,35 +11,52 @@
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     html{scroll-behavior:smooth}
     body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:16px;line-height:1.7;-webkit-font-smoothing:antialiased}
+
     nav{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--nav-h);background:rgba(247,246,242,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 40px}
     .nav-logo{text-decoration:none;margin-right:auto;display:flex;align-items:center}
-    .nav-logo img{height:80px;width:auto}
+    .nav-logo img{height:60px;width:auto}
     .nav-links{display:flex;gap:8px;align-items:center}
     .nav-links a{font-size:1rem;font-weight:500;color:var(--text2);text-decoration:none;padding:8px 16px;border-radius:6px;transition:all .15s}
     .nav-links a:hover,.nav-links a.active{color:var(--text);background:var(--bg2)}
     .nav-btn{background:var(--accent)!important;color:#fff!important;border-radius:6px;padding:8px 18px!important}
-    .nav-btn:hover{opacity:.88!important}
 
-    .hero{max-width:820px;margin:0 auto;padding:calc(var(--nav-h)+64px) 40px 64px}
+    .hero{max-width:900px;margin:0 auto;padding:calc(var(--nav-h)+64px) 40px 48px}
     h1{font-family:'DM Serif Display',serif;font-size:2.2rem;margin-bottom:12px}
-    .lead{font-size:1.1rem;color:var(--text2);line-height:1.75;max-width:640px;margin-bottom:0}
+    .lead{font-size:1.1rem;color:var(--text2);line-height:1.75;max-width:640px}
+
     section{padding:60px 0;border-top:1px solid var(--border)}
-    .container{max-width:820px;margin:0 auto;padding:0 40px}
-    h2{font-family:'DM Serif Display',serif;font-size:1.6rem;margin-bottom:20px}
+    .container{max-width:900px;margin:0 auto;padding:0 40px}
+    h2{font-family:'DM Serif Display',serif;font-size:1.6rem;margin-bottom:24px}
     p{color:var(--text2);margin-bottom:14px;line-height:1.75}
     p strong{color:var(--text)}
     a{color:var(--accent);text-decoration:none}
     a:hover{text-decoration:underline}
 
-    .person-card{display:flex;gap:24px;align-items:flex-start;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:28px;margin-bottom:16px}
-    .person-avatar{width:200px;height:200px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid var(--border)}
-    .person-avatar img{width:100%;height:100%;object-fit:cover;object-position:center top}
-    .person-name{font-weight:600;font-size:1rem;margin-bottom:3px;color:var(--text)}
-    .person-name a{color:var(--text);text-decoration:none}
-    .person-name a:hover{color:var(--accent);text-decoration:underline}
-    .person-role{font-size:.82rem;color:#008a70;font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em}
-    .person-desc{font-size:.9rem;color:var(--text2);line-height:1.65;margin:0}
+    /* 2x2 AUTHOR GRID */
+    .authors-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
 
+    .author-card{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;overflow:hidden;cursor:pointer;transition:all .2s}
+    .author-card:hover{transform:translateY(-3px);box-shadow:0 8px 32px rgba(0,0,0,.08);border-color:var(--accent)}
+
+    .author-card-front{display:flex;flex-direction:column;align-items:center;padding:32px 24px 24px;text-align:center}
+    .author-photo{width:200px;height:200px;border-radius:50%;overflow:hidden;border:3px solid var(--border);margin-bottom:20px;transition:border-color .2s}
+    .author-card:hover .author-photo{border-color:var(--accent)}
+    .author-photo img{width:100%;height:100%;object-fit:cover;object-position:center top}
+    .author-name{font-weight:700;font-size:1.05rem;color:var(--text);margin-bottom:4px}
+    .author-name a{color:var(--text);text-decoration:none;transition:color .15s}
+    .author-name a:hover{color:var(--accent);text-decoration:none}
+    .author-role{font-size:.8rem;color:#008a70;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:16px}
+    .expand-hint{font-size:.78rem;color:var(--text3);display:flex;align-items:center;gap:4px;transition:color .15s}
+    .author-card:hover .expand-hint{color:var(--accent)}
+    .expand-arrow{display:inline-block;transition:transform .3s}
+
+    /* DROPDOWN BIO */
+    .author-bio{max-height:0;overflow:hidden;transition:max-height .4s ease,padding .3s ease;background:var(--bg);border-top:0px solid var(--border)}
+    .author-bio.open{max-height:300px;border-top:1px solid var(--border)}
+    .author-bio-inner{padding:20px 24px}
+    .author-bio-inner p{font-size:.9rem;color:var(--text2);line-height:1.65;margin:0}
+
+    /* OTHER SECTIONS */
     .cite-block{background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:20px 24px;margin-bottom:12px}
     .cite-block p{margin:0;font-size:.9rem;font-style:italic;color:var(--text2)}
     .cite-block .cite-doi{display:block;margin-top:8px;font-size:.8rem;font-style:normal;color:var(--accent3)}
@@ -54,13 +71,20 @@
     footer{background:var(--bg2);border-top:1px solid var(--border);padding:32px 40px}
     .footer-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
 
-    @media(max-width:700px){.hero{padding:calc(var(--nav-h)+32px) 20px 48px}.container{padding:0 20px}.links-grid{grid-template-columns:1fr}.person-card{flex-direction:column}nav{padding:0 20px}}
+    @media(max-width:700px){
+      .authors-grid{grid-template-columns:1fr}
+      .hero{padding:calc(var(--nav-h)+32px) 20px 40px}
+      .container{padding:0 20px}
+      .links-grid{grid-template-columns:1fr}
+      nav{padding:0 20px}
+    }
   </style>
 </head>
 <body>
+
 <nav>
   <a class="nav-logo" href="https://henzelerb.github.io/sRNA-TAPS/">
-    <img src="sRNA-taps_logo_left.png" alt="sRNA-TAPS" style="height:60px;width:auto;">
+    <img src="sRNA-taps_logo_left.png" alt="sRNA-TAPS">
   </a>
   <div class="nav-links">
     <a href="docs.html">Docs</a>
@@ -73,63 +97,82 @@
 
 <div class="hero">
   <h1>About sRNA-TAPS</h1>
-  <p class="lead">sRNA-TAPS was developed at the Institute of Chemical Epigenetics Munich (ICEM), Ludwig-Maximilians-Universität München, to bring TAPS-based 5mC and 5hmC detection to the world of small RNA.</p>
+  <p class="lead">Developed at the Institute of Chemical Epigenetics Munich (ICEM), Ludwig-Maximilians-Universität München, to bring TAPS-based 5mC and 5hmC detection to small RNA.</p>
 </div>
 
 <section>
   <div class="container">
-    <h2>The project</h2>
-    <p>TAPS was originally developed for double-stranded DNA methylation mapping. Adapting it for small RNA presented unique challenges — short reads, strand specificity, extreme biotype diversity, and the absence of suitable spike-in controls for conversion efficiency calibration.</p>
-    <p>sRNA-TAPS addresses these challenges through TAPS-aware alignment parameters, a custom multi-mapper-aware methylation caller, three-layer SNP filtering, and a three-condition experimental framework that uses pyridine-borane-only treated samples for position-specific background correction.</p>
-  </div>
-</section>
-
-<section>
-  <div class="container">
     <h2>Authors</h2>
+    <div class="authors-grid">
 
-    <div class="person-card">
-      <div class="person-avatar">
-        <img src="Bennett.png" alt="Dr. Bennett Henzeler">
+      <!-- Bennett -->
+      <div class="author-card" onclick="toggleBio(this)">
+        <div class="author-card-front">
+          <div class="author-photo">
+            <img src="Bennett.png" alt="Dr. Bennett Henzeler">
+          </div>
+          <div class="author-name"><a href="https://orcid.org/0000-0003-2333-3791" target="_blank" onclick="event.stopPropagation()">Dr. Bennett Henzeler ↗</a></div>
+          <div class="author-role">Postdoctoral Fellow · Lead Developer</div>
+          <div class="expand-hint">Click to read more <span class="expand-arrow">↓</span></div>
+        </div>
+        <div class="author-bio">
+          <div class="author-bio-inner">
+            <p>Molecular biologist specialising in RNA biology, epigenetics, and small RNA modifications, with a focus on developing methodologies for RNA modification analysis.</p>
+          </div>
+        </div>
       </div>
-      <div>
-        <div class="person-name"><a href="https://orcid.org/0000-0003-2333-3791" target="_blank">Dr. Bennett Henzeler ↗</a></div>
-        <div class="person-role">Postdoctoral Fellow · Lead Developer</div>
-        <p class="person-desc">Molecular biologist specialising in RNA biology, epigenetics, and small RNA modifications, with a focus on developing methodologies for RNA modification analysis.</p>
-      </div>
-    </div>
 
-    <div class="person-card">
-      <div class="person-avatar">
-        <img src="Özge.png" alt="Özge Simsir">
+      <!-- Özge -->
+      <div class="author-card" onclick="toggleBio(this)">
+        <div class="author-card-front">
+          <div class="author-photo">
+            <img src="Özge.png" alt="Özge Simsir">
+          </div>
+          <div class="author-name"><a href="https://www.researchgate.net/profile/Oezge-Simsir-2" target="_blank" onclick="event.stopPropagation()">Özge Simsir ↗</a></div>
+          <div class="author-role">PhD Student · Biochemistry Support</div>
+          <div class="expand-hint">Click to read more <span class="expand-arrow">↓</span></div>
+        </div>
+        <div class="author-bio">
+          <div class="author-bio-inner">
+            <p>Research focuses on the role of small RNAs — primarily miRNAs — in the epigenome and epitranscriptome, and the effects of chemical modifications such as methylation on disease and cellular processes.</p>
+          </div>
+        </div>
       </div>
-      <div>
-        <div class="person-name"><a href="https://www.researchgate.net/profile/Oezge-Simsir-2" target="_blank">Özge Simsir ↗</a></div>
-        <div class="person-role">PhD Student · Biochemistry Support</div>
-        <p class="person-desc">Research focuses on the role of small RNAs — primarily miRNAs — in the epigenome and epitranscriptome, and the effects of chemical modifications such as methylation on disease and cellular processes.</p>
-      </div>
-    </div>
 
-    <div class="person-card">
-      <div class="person-avatar">
-        <img src="sabine.jpg" alt="PD Dr. Sabine Schneider">
+      <!-- Sabine -->
+      <div class="author-card" onclick="toggleBio(this)">
+        <div class="author-card-front">
+          <div class="author-photo">
+            <img src="sabine.jpg" alt="PD Dr. Sabine Schneider">
+          </div>
+          <div class="author-name"><a href="https://schneider.cup.uni-muenchen.de/group/sabine-schneider/" target="_blank" onclick="event.stopPropagation()">PD Dr. Sabine Schneider ↗</a></div>
+          <div class="author-role">Group Leader · Supervisor</div>
+          <div class="expand-hint">Click to read more <span class="expand-arrow">↓</span></div>
+        </div>
+        <div class="author-bio">
+          <div class="author-bio-inner">
+            <p>Her lab investigates the structure–function relationships of nucleic acids, their interactions with proteins and small molecules, and the chemical and epigenetic modification landscape of small non-coding RNAs.</p>
+          </div>
+        </div>
       </div>
-      <div>
-        <div class="person-name"><a href="https://schneider.cup.uni-muenchen.de/group/sabine-schneider/" target="_blank">PD Dr. Sabine Schneider ↗</a></div>
-        <div class="person-role">Group Leader · Supervisor</div>
-        <p class="person-desc">Her lab investigates the structure–function relationships of nucleic acids, their interactions with proteins and small molecules, and the chemical and epigenetic modification landscape of small non-coding RNAs.</p>
-      </div>
-    </div>
 
-    <div class="person-card">
-      <div class="person-avatar">
-        <img src="pascal.png" alt="Dr. Pascal Giehr">
+      <!-- Pascal -->
+      <div class="author-card" onclick="toggleBio(this)">
+        <div class="author-card-front">
+          <div class="author-photo">
+            <img src="pascal.png" alt="Dr. Pascal Giehr">
+          </div>
+          <div class="author-name"><a href="https://giehr.cup.uni-muenchen.de/group/pascal-giehr/" target="_blank" onclick="event.stopPropagation()">Dr. Pascal Giehr ↗</a></div>
+          <div class="author-role">Junior Group Leader · Advisor and Coding Support</div>
+          <div class="expand-hint">Click to read more <span class="expand-arrow">↓</span></div>
+        </div>
+        <div class="author-bio">
+          <div class="author-bio-inner">
+            <p>His lab investigates how epigenetic and epitranscriptomic factors influence chromatin architecture and gene regulation, with a focus on dynamic nucleic acid modifications in DNA and RNA.</p>
+          </div>
+        </div>
       </div>
-      <div>
-        <div class="person-name"><a href="https://giehr.cup.uni-muenchen.de/group/pascal-giehr/" target="_blank">Dr. Pascal Giehr ↗</a></div>
-        <div class="person-role">Junior Group Leader · Advisor and Coding Support</div>
-        <p class="person-desc">His lab investigates how epigenetic and epitranscriptomic factors influence chromatin architecture and gene regulation, with a focus on dynamic nucleic acid modifications in DNA and RNA.</p>
-      </div>
+
     </div>
   </div>
 </section>
@@ -203,5 +246,18 @@
     <div style="font-size:.8rem;color:var(--text3)">© 2026 Schneider Lab, LMU Munich · MIT License</div>
   </div>
 </footer>
+
+<script>
+  function toggleBio(card) {
+    const bio = card.querySelector('.author-bio');
+    const arrow = card.querySelector('.expand-arrow');
+    const hint = card.querySelector('.expand-hint');
+    const isOpen = bio.classList.contains('open');
+    bio.classList.toggle('open');
+    arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+    hint.childNodes[0].textContent = isOpen ? 'Click to read more ' : 'Click to close ';
+  }
+</script>
+
 </body>
 </html>
