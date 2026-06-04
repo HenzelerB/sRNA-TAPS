@@ -62,13 +62,13 @@ CONDITIONS = [
     "treat_Caco2",          "treat_HEK",
 ]
 BIOTYPES = ["rRNA", "miRNA", "tRNA", "snoRNA", "snRNA", "piRNA", "lncRNA", "other"]
-TOOLS    = ["rastair", "astair", "bismark"]
+TOOLS    = ["rastair", "rastair_all", "astair", "bismark"]
 
 # Bismark chemistry is inverted vs TAPS — applied before comparison
-INVERT_CHEMISTRY = {"bismark": True, "rastair": False, "astair": False}
+INVERT_CHEMISTRY = {"bismark": True, "rastair": False, "rastair_all": False, "astair": False}
 
 # rastair is CpG-only — comparison restricted to CpG context sites
-CpG_ONLY = {"rastair": True, "astair": False, "bismark": False}
+CpG_ONLY = {"rastair": True, "rastair_all": False, "astair": False, "bismark": False}
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -96,17 +96,25 @@ def load_custom(condition, biotype):
     return combined
 
 
-def load_rastair(condition):
+def load_rastair(condition, subdir="cpg"):
     """
     Load rastair 2.1.1 BED output.
+    subdir: "cpg" for CpG-only run, "all" for all-context run.
     Actual columns (with header line starting #):
         #chr, start, end, name, beta_est, strand, unmod, mod,
         no_snp, snp, coverage, genotype, gt_p_score, gt_conf_score, cpg
     mod_rate = beta_est (0.0-1.0)
     coverage = coverage column
     """
-    pattern = f"{BENCH_DIR}/rastair/{condition}*/*.bed.gz"
+    pattern = f"{BENCH_DIR}/rastair/{subdir}/{condition}*/*.bed.gz"
     files = sorted(glob.glob(pattern))
+    if not files:
+        pattern = f"{BENCH_DIR}/rastair/{subdir}/{condition}*/*.bed"
+        files = sorted(glob.glob(pattern))
+    # fallback to old flat structure
+    if not files:
+        pattern = f"{BENCH_DIR}/rastair/{condition}*/*.bed.gz"
+        files = sorted(glob.glob(pattern))
     if not files:
         pattern = f"{BENCH_DIR}/rastair/{condition}*/*.bed"
         files = sorted(glob.glob(pattern))
@@ -329,12 +337,16 @@ def main():
                 # ── Load tool output ──────────────────────────────────────────
                 tool_df = None
                 if tool == "rastair":
-                    tool_df = load_rastair(condition)
+                    tool_df = load_rastair(condition, subdir="cpg")
                     # rastair is CpG-only: restrict custom to CpG sites
                     if tool_df is not None and "context" in custom.columns:
                         custom_sub = custom[custom["context"].str[1:3] == "CG"].copy()
                     else:
                         custom_sub = custom
+                elif tool == "rastair_all":
+                    tool_df = load_rastair(condition, subdir="all")
+                    # all-context: compare against full custom call set
+                    custom_sub = custom
                 elif tool == "astair":
                     tool_df    = load_astair(condition, biotype, context="all")
                     custom_sub = custom

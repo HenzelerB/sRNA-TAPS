@@ -4,12 +4,11 @@
 # =============================================================================
 
 # ── rastair ───────────────────────────────────────────────────────────────────
-rule rastair_call:
+rule rastair_call_cpg:
     """
-    rastair 2.1.1 CpG methylation calling on Bowtie1-aligned BAMs.
-    TAPS-native by default (no --taps flag needed in v2.1.1).
-    BAM is positional argument. Output is BED format via --bed flag.
-    Aligner is matched to custom pipeline (Bowtie1 BAMs fed directly).
+    rastair 2.1.1 CpG-only methylation calling on Bowtie1-aligned BAMs.
+    Output: 08.benchmark/rastair/cpg/<sample>/
+    Used for CpG-specific concordance analysis vs sRNA-TAPS.
     """
     input:
         bam   = str(ALIGN_DIR / "{sample}.sorted.bam"),
@@ -17,15 +16,14 @@ rule rastair_call:
         fasta = config["reference"]["genome_fa"],
         fai   = config["reference"]["genome_fa"] + ".fai",
     output:
-        bed = str(BENCH_DIR / "rastair" / "{sample}" / "{sample}.bed.gz"),
+        bed = str(BENCH_DIR / "rastair" / "cpg" / "{sample}" / "{sample}.bed.gz"),
     params:
-        outdir    = str(BENCH_DIR / "rastair" / "{sample}"),
-        prefix    = str(BENCH_DIR / "rastair" / "{sample}" / "{sample}"),
+        outdir    = str(BENCH_DIR / "rastair" / "cpg" / "{sample}"),
         min_depth = config["benchmark"]["tools"]["rastair"]["min_depth"],
         min_mapq  = config["benchmark"]["tools"]["rastair"]["min_mapq"],
         min_baseq = config["benchmark"]["tools"]["rastair"]["min_baseq"],
     log:
-        str(LOG_DIR / "benchmark" / "rastair_{sample}.log"),
+        str(LOG_DIR / "benchmark" / "rastair_cpg_{sample}.log"),
     threads: 8
     resources:
         mem_mb   = 32000,
@@ -33,12 +31,9 @@ rule rastair_call:
     shell:
         """
         mkdir -p {params.outdir}
-
-        # Index FASTA if needed (rastair requirement)
         if [ ! -f "{input.fai}" ]; then
             samtools faidx {input.fasta}
         fi
-
         rastair call \
             -r              {input.fasta} \
             --bed           {output.bed} \
@@ -48,6 +43,51 @@ rule rastair_call:
             -Q              {params.min_baseq} \
             -q              {params.min_mapq} \
             --cpgs-only \
+            --no-ml \
+            {input.bam} \
+            > {log} 2>&1
+        """
+
+
+rule rastair_call_all:
+    """
+    rastair 2.1.1 all-context methylation calling on Bowtie1-aligned BAMs.
+    Output: 08.benchmark/rastair/all/<sample>/
+    Used for full concordance analysis vs sRNA-TAPS (all cytosine contexts).
+    Note: rastair reports all positions it can call; non-CpG sites included.
+    """
+    input:
+        bam   = str(ALIGN_DIR / "{sample}.sorted.bam"),
+        bai   = str(ALIGN_DIR / "{sample}.sorted.bam.bai"),
+        fasta = config["reference"]["genome_fa"],
+        fai   = config["reference"]["genome_fa"] + ".fai",
+    output:
+        bed = str(BENCH_DIR / "rastair" / "all" / "{sample}" / "{sample}.bed.gz"),
+    params:
+        outdir    = str(BENCH_DIR / "rastair" / "all" / "{sample}"),
+        min_depth = config["benchmark"]["tools"]["rastair"]["min_depth"],
+        min_mapq  = config["benchmark"]["tools"]["rastair"]["min_mapq"],
+        min_baseq = config["benchmark"]["tools"]["rastair"]["min_baseq"],
+    log:
+        str(LOG_DIR / "benchmark" / "rastair_all_{sample}.log"),
+    threads: 8
+    resources:
+        mem_mb   = 32000,
+        runtime  = 240,
+    shell:
+        """
+        mkdir -p {params.outdir}
+        if [ ! -f "{input.fai}" ]; then
+            samtools faidx {input.fasta}
+        fi
+        rastair call \
+            -r              {input.fasta} \
+            --bed           {output.bed} \
+            --unpaired \
+            -@              {threads} \
+            --v-min-depth   {params.min_depth} \
+            -Q              {params.min_baseq} \
+            -q              {params.min_mapq} \
             --no-ml \
             {input.bam} \
             > {log} 2>&1
@@ -171,6 +211,9 @@ rule bismark_align_extract:
         bismark \
             --bowtie2 \
             --non_directional \
+            --score_min L,-1,-0.6 \
+            --rdg 100,100 \
+            --rfg 100,100 \
             --output_dir "{params.outdir}" \
             "{params.index_dir}" \
             "{input.fq}" \
