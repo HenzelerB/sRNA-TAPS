@@ -15,10 +15,10 @@
       --text:      #1a1814;
       --text2:     #5a5650;
       --text3:     #8a8680;
-      --accent:    #FF5C61;
+      --accent:    #FE7579;
       --accent2:   #ffe0e1;
       --accent3:   #2c5f8a;
-      --green:     #FF5C61;
+      --green:     #FE7579;
       --code-bg:   #f0eeea;
       --nav-h:     72px;
     }
@@ -39,7 +39,7 @@
     /* HERO */
     .hero { padding-top: calc(var(--nav-h) + 80px); padding-bottom: 60px; max-width: 760px; margin: 0 auto; padding-left: 40px; padding-right: 40px; text-align: center; }
     .hero-logo { margin: 0 auto 32px; display: block; max-width: 480px; width: 100%; height: auto; }
-    .hero-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--accent2); color: #cc2a2f; font-size: .78rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 4px 12px; border-radius: 100px; margin-bottom: 20px; }
+    .hero-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--accent2); color: #d94548; font-size: .78rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 4px 12px; border-radius: 100px; margin-bottom: 20px; }
     .hero h1 { font-family: 'DM Serif Display', serif; font-size: clamp(2.2rem, 4vw, 3.2rem); line-height: 1.15; margin-bottom: 20px; }
     .hero h1 em { font-style: italic; color: var(--accent); }
     .hero-desc { font-size: 1.05rem; color: var(--text2); line-height: 1.75; margin-bottom: 32px; max-width: 580px; margin-left: auto; margin-right: auto; }
@@ -56,7 +56,7 @@
     .tools-float { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-bottom: 16px; }
     .tool-badge { display: inline-flex; align-items: center; gap: 8px; background: var(--surface); border: 1.5px solid var(--border); border-radius: 100px; padding: 8px 16px; font-size: .85rem; font-weight: 500; color: var(--text); box-shadow: 0 2px 8px rgba(0,0,0,.06); transition: all .2s; }
     .tool-badge:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,.1); border-color: var(--accent); }
-    .tool-badge .tool-step { font-family: 'DM Mono', monospace; font-size: .7rem; background: var(--accent2); color: #cc2a2f; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+    .tool-badge .tool-step { font-family: 'DM Mono', monospace; font-size: .7rem; background: var(--accent2); color: #d94548; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
     .tool-badge.highlight { border-color: var(--accent); background: var(--accent2); }
     .tool-badge.highlight .tool-step { background: var(--accent); color: #fff; }
 
@@ -64,7 +64,7 @@
     .badges { max-width: 1100px; margin: 0 auto; padding: 0 40px 60px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
     .badge { display: inline-flex; align-items: center; gap: 6px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 5px 12px; font-size: .8rem; font-weight: 500; color: var(--text2); }
     .badge .dot { width: 7px; height: 7px; border-radius: 50%; }
-    .dot-green { background: #FF5C61; }
+    .dot-green { background: #FE7579; }
     .dot-orange { background: #e67e22; }
     .dot-blue { background: var(--accent3); }
     .dot-teal { background: var(--accent); }
@@ -86,7 +86,7 @@
     .chem-step p { font-size: .875rem; color: var(--text2); line-height: 1.6; }
     .chem-callout { background: var(--bg); border: 1.5px solid var(--border); border-left: 4px solid var(--accent); border-radius: 0 10px 10px 0; padding: 20px 24px; margin-top: 24px; }
     .chem-callout p { font-size: .925rem; color: var(--text); line-height: 1.65; }
-    .chem-callout strong { color: #cc2a2f; }
+    .chem-callout strong { color: #d94548; }
     .chem-comparison { background: var(--bg); border: 1.5px solid var(--border); border-radius: 12px; overflow: hidden; }
     .chem-comparison-header { display: grid; grid-template-columns: 1fr 1fr; background: var(--bg2); border-bottom: 1px solid var(--border); }
     .chem-col-head { padding: 12px 20px; font-size: .8rem; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--text2); }
@@ -95,7 +95,7 @@
     .chem-row:last-child { border-bottom: none; }
     .chem-cell { padding: 12px 20px; font-size: .875rem; color: var(--text2); }
     .chem-cell:first-child { border-right: 1px solid var(--border); }
-    .chem-cell.good { color: #cc2a2f; font-weight: 500; }
+    .chem-cell.good { color: #d94548; font-weight: 500; }
     .chem-cell.bad { color: #c0392b; font-weight: 500; }
 
     /* FEATURES */
@@ -116,7 +116,7 @@
     .dot-r { background: #ff5f57; } .dot-y { background: #febc2e; } .dot-g { background: #28c840; }
     .code-title { font-family: 'DM Mono', monospace; font-size: .75rem; color: rgba(255,255,255,.4); }
     .code-body { padding: 20px 22px; font-family: 'DM Mono', monospace; font-size: .85rem; line-height: 1.8; color: #e8e4de; }
-    .code-body .cmd { color: #FF5C61; }
+    .code-body .cmd { color: #FE7579; }
     .code-body .comment { color: #928374; font-style: italic; }
 
     /* CONDITIONS */
@@ -126,7 +126,7 @@
     .condition-card.pb { border-color: #e67e22; background: #fdf9f5; }
     .condition-card.notx { border-color: var(--accent3); background: #f5f8fc; }
     .condition-tag { display: inline-block; font-family: 'DM Mono', monospace; font-size: .78rem; padding: 2px 8px; border-radius: 4px; margin-bottom: 10px; font-weight: 500; }
-    .treat .condition-tag { background: var(--accent2); color: #cc2a2f; }
+    .treat .condition-tag { background: var(--accent2); color: #d94548; }
     .pb .condition-tag { background: #fde8d0; color: #c0622b; }
     .notx .condition-tag { background: #d5e5f5; color: var(--accent3); }
     .condition-card h3 { font-weight: 600; font-size: .95rem; margin-bottom: 6px; }
