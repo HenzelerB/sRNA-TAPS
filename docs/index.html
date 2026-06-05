@@ -177,6 +177,12 @@
       .container { padding: 0 20px; }
       .hero { padding-left: 20px; padding-right: 20px; }
     }
+
+    /* ── Animations ── */
+    @keyframes float { from { transform: translateY(0px); } to { transform: translateY(-8px); } }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
+    .fade-up { opacity: 0; transform: translateY(30px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .fade-up.visible { opacity: 1; transform: translateY(0); }
   </style>
 </head>
 <body>
@@ -374,5 +380,60 @@
   </div>
 </footer>
 
+
+<script>
+/* Scroll fade-up */
+const _obs = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.12 });
+document.querySelectorAll('section, .feature-card, .stat-card, .condition-card, .chem-step, .tool-badge').forEach(el => {
+  el.classList.add('fade-up'); _obs.observe(el);
+});
+
+/* Typing animation */
+const _h1 = document.querySelector('.hero h1');
+if (_h1) {
+  const _txt = _h1.innerHTML; _h1.innerHTML = ''; _h1.style.opacity = '1';
+  let _i = 0;
+  const _type = () => { if (_i < _txt.length) { _h1.innerHTML = _txt.slice(0, _i+1); _i++; setTimeout(_type, _i < 20 ? 60 : 20); } };
+  setTimeout(_type, 500);
+}
+
+/* Floating badges */
+document.querySelectorAll('.tool-badge').forEach((b, i) => {
+  b.style.animation = `float ${2.5 + (i%3)*0.4}s ease-in-out ${i*0.12}s infinite alternate`;
+});
+
+/* Counter animation */
+document.querySelectorAll('.stat-num').forEach(el => {
+  const target = el.textContent.trim();
+  const num = parseFloat(target);
+  if (!isNaN(num)) {
+    el.textContent = '0';
+    const co = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        let s = 0;
+        const step = () => { s += num/40; if (s >= num) { el.textContent = target; return; } el.textContent = target.includes('/') ? target : Math.floor(s); requestAnimationFrame(step); };
+        requestAnimationFrame(step); co.disconnect();
+      }
+    }); co.observe(el);
+  }
+});
+
+/* Particle background */
+const _hero = document.querySelector('.hero');
+if (_hero) {
+  const _c = document.createElement('canvas');
+  _c.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;opacity:0.3;z-index:0';
+  _hero.style.position = 'relative'; _hero.prepend(_c);
+  const _ctx = _c.getContext('2d');
+  const _ps = [];
+  const _resize = () => { _c.width = _hero.offsetWidth; _c.height = _hero.offsetHeight; };
+  _resize(); window.addEventListener('resize', _resize);
+  for (let i = 0; i < 35; i++) _ps.push({ x: Math.random()*_c.width, y: Math.random()*_c.height, r: Math.random()*2+0.5, dx: (Math.random()-0.5)*0.4, dy: (Math.random()-0.5)*0.4, color: Math.random()>0.5?'#00d4aa':'#2C5F8A' });
+  const _anim = () => { _ctx.clearRect(0,0,_c.width,_c.height); _ps.forEach(p => { _ctx.beginPath(); _ctx.arc(p.x,p.y,p.r,0,Math.PI*2); _ctx.fillStyle=p.color; _ctx.fill(); p.x+=p.dx; p.y+=p.dy; if(p.x<0||p.x>_c.width)p.dx*=-1; if(p.y<0||p.y>_c.height)p.dy*=-1; }); requestAnimationFrame(_anim); };
+  _anim();
+}
+</script>
 </body>
 </html>
