@@ -70,15 +70,6 @@
     .footer-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
 
     @media(max-width:700px){.hero{padding:calc(var(--nav-h)+32px) 20px 40px}.container{padding:0 20px}.figures-grid,.tools-grid{grid-template-columns:1fr}.compare-grid{grid-template-columns:1fr}nav{padding:0 20px}}
-
-    /* LIGHTBOX */
-    .lightbox{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:1000;align-items:center;justify-content:center;cursor:zoom-out}
-    .lightbox.open{display:flex}
-    .lightbox img{max-width:90vw;max-height:90vh;border-radius:8px;box-shadow:0 20px 60px rgba(0,0,0,.5);cursor:default}
-    .lightbox-close{position:fixed;top:20px;right:28px;color:#fff;font-size:2rem;cursor:pointer;line-height:1;opacity:.8}
-    .lightbox-close:hover{opacity:1}
-    .figure-card img{cursor:zoom-in;transition:opacity .15s}
-    .figure-card img:hover{opacity:.88}
   </style>
 </head>
 <body>
@@ -90,10 +81,9 @@
   <div class="nav-links">
     <a href="docs.html">Docs</a>
     <a href="tutorial.html">Tutorial</a>
-    <a href="benchmarking.html">Benchmarking</a>
+    <a href="benchmarking.html" class="active">Benchmarking</a>
     <a href="about.html">About</a>
     <a href="https://github.com/HenzelerB/sRNA-TAPS" target="_blank">GitHub</a>
-    <a href="contact.html">Contact</a>
     <a href="docs.html#installation" class="nav-btn">Install</a>
   </div>
 </nav>
@@ -225,6 +215,27 @@
 
 <section>
   <div class="container">
+    <h2>rastair in small RNA — a context mismatch</h2>
+    <p>rastair was originally designed and validated for genome-wide DNA methylation calling, where CpG is the dominant and biologically most relevant methylation context. In that setting, CpG-only calling is entirely appropriate and the tool performs excellently.</p>
+    <p>However, when applied to small RNA — as we do here for benchmarking purposes — this design choice becomes a fundamental mismatch. The most biologically relevant m5C sites in small RNA occur predominantly in non-CpG contexts: C34 and C38 in tRNA wobble positions (CHH/CHG), internal positions in rRNA, and seed-region cytosines in miRNA are rarely CpG dinucleotides.</p>
+    <p>To confirm this, we ran rastair twice on the same BAMs — once with <code>--cpgs-only</code> and once without. The outputs were <strong>identical</strong>: the same sites, the same modification rates, the same Pearson correlation with sRNA-TAPS. This demonstrates that rastair's CpG restriction is implemented at the core calling level, not just as a post-processing filter, and cannot be bypassed via command-line flags.</p>
+    <div class="callout">
+      <p><strong>This is not a criticism of rastair</strong> — it is working exactly as designed for its intended use case. It is rather a demonstration of why a dedicated small RNA pipeline is needed. sRNA-TAPS is currently the only pipeline that calls m5C in all cytosine contexts across all small RNA biotypes.</p>
+    </div>
+    <div class="figures-grid" style="grid-template-columns:1fr;max-width:700px">
+      <div class="figure-card" onclick="openLightbox(this.querySelector('img'))">
+        <img src="04d_rastair_cpg_vs_all.png" alt="rastair CpG vs all-context">
+        <div class="figure-caption">
+          <h4>Figure 4d — rastair CpG-only vs all-context: identical output</h4>
+          <p>Pearson r between sRNA-TAPS and rastair at shared sites, comparing the <code>--cpgs-only</code> run against the all-context run. The two lines are completely overlapping, confirming rastair produces identical output regardless of context flag.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
     <h2>Test dataset validation</h2>
     <p>Using the synthetic test dataset included with sRNA-TAPS, the pipeline correctly recovers seeded m5C positions with high signal-to-noise ratio:</p>
 
@@ -267,38 +278,11 @@
       <a href="tutorial.html" style="font-size:.85rem;color:var(--text2);text-decoration:none">Tutorial</a>
       <a href="benchmarking.html" style="font-size:.85rem;color:var(--text2);text-decoration:none">Benchmarking</a>
       <a href="about.html" style="font-size:.85rem;color:var(--text2);text-decoration:none">About</a>
-      <a href="references.html" style="font-size:.85rem;color:var(--text2);text-decoration:none">References</a>
-      <a href="contact.html" style="font-size:.85rem;color:var(--text2);text-decoration:none">Contact</a>
       <a href="https://github.com/HenzelerB/sRNA-TAPS" target="_blank" style="font-size:.85rem;color:var(--text2);text-decoration:none">GitHub</a>
     </div>
     <div style="font-size:.8rem;color:var(--text3)">© 2026 Schneider Lab, LMU Munich · MIT License</div>
   </div>
 </footer>
 
-
-<div class="lightbox" id="lightbox" onclick="closeLightbox()">
-  <span class="lightbox-close" onclick="closeLightbox()">✕</span>
-  <img id="lightbox-img" src="" alt="" onclick="event.stopPropagation()">
-</div>
-
-<script>
-  function openLightbox(img) {
-    document.getElementById('lightbox-img').src = img.src;
-    document.getElementById('lightbox-img').alt = img.alt;
-    document.getElementById('lightbox').classList.add('open');
-    document.body.style.overflow = 'hidden';
-  }
-  function closeLightbox() {
-    document.getElementById('lightbox').classList.remove('open');
-    document.body.style.overflow = '';
-  }
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closeLightbox();
-  });
-  // Add click handlers to all figure images
-  document.querySelectorAll('.figure-card img').forEach(function(img) {
-    img.addEventListener('click', function() { openLightbox(this); });
-  });
-</script>
 </body>
 </html>
