@@ -222,7 +222,11 @@ srnataps run --configfile ~/my_project/config.yaml --slurm --benchmark</code></p
 │                     (chrom, start, end, context, mod_count,
 │                      unmod_count, coverage, mod_rate,
 │                      pvalue, padj, snp_flag)
-├── 08.benchmark/     rastair · asTair · Bismark
+├── 08.benchmark/
+│   ├── rastair/cpg/  CpG-only rastair calls
+│   ├── rastair/all/  All-context rastair calls (identical to cpg — CpG-only by design)
+│   ├── astair/       asTair all-context calls per biotype
+│   └── bismark/      Bismark bisulfite calls
 ├── 09.compare/       concordance_summary.tsv
 │                     correlation_summary.tsv
 └── report/

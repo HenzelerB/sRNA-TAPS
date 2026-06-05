@@ -73,7 +73,7 @@
     <p>The simulator generates 9 samples — 3 conditions × 3 replicates — with accurate TAPS chemistry. Known m5C positions are seeded into the templates so you can verify the signal end-to-end.</p>
     <pre><code>python3 tests/simulate_taps_srna.py \
     --outdir ~/srnataps_tutorial/fastq \
-    --reads  100000 \
+    --reads  1000000 \
     --seed   42</code></pre>
     <p>You should see 9 <code>.fastq.gz</code> files and a <code>samples.tsv</code> written to the output directory.</p>
     <div class="tip"><strong>Tip:</strong> The <code>--seed 42</code> flag makes the simulation reproducible. You will get identical results every time.</div>
@@ -192,6 +192,30 @@ grep "^17.*59841313" \
       <tr><td>chrX:66018955</td><td>hsa-miR-223-3p</td><td>Untreated</td><td class="result-ok">~0.2%</td></tr>
     </table>
     <div class="tip"><strong>The &gt;40-fold enrichment confirms the pipeline is working correctly end-to-end.</strong></div>
+  </div>
+
+
+  <!-- STEP 7b -->
+  <div class="step-header"><div class="step-num">7b</div><h2>Run benchmarking (optional)</h2></div>
+  <div class="step-block">
+    <p>sRNA-TAPS includes a benchmarking suite comparing calls against rastair, asTair, and Bismark. rastair is run twice — once in CpG-only mode and once in all-context mode — to demonstrate that rastair is a CpG-only caller by design.</p>
+    <pre><code># Run rastair (CpG-only and all-context)
+sbatch 08a_rastair.sl
+
+# Run asTair (all contexts)
+sbatch 08b_astair.sl
+
+# Run Bismark (bisulfite contrast, small RNA Bowtie2 flags)
+sbatch 08c_bismark.sl
+
+# Run comparison
+python3 09_compare.py</code></pre>
+    <p>The benchmarking produces four output directories:</p>
+    <pre><code>08.benchmark/rastair/cpg/   — rastair CpG-only calls
+08.benchmark/rastair/all/   — rastair all-context calls (identical to cpg)
+08.benchmark/astair/        — asTair all-context calls per biotype
+08.benchmark/bismark/       — Bismark bisulfite calls (chemistry inverted)</code></pre>
+    <div class="note"><strong>Key finding:</strong> rastair/cpg/ and rastair/all/ produce identical outputs, confirming rastair is a CpG-only caller regardless of flags. This demonstrates why a dedicated small RNA pipeline is needed for non-CpG m5C detection. See the <a href="benchmarking.html">Benchmarking page</a> for full details.</div>
   </div>
 
   <!-- STEP 8 -->
