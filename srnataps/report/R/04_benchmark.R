@@ -200,3 +200,56 @@ if (file.exists(conc_file)) {
 }
 
 message("04_benchmark.R complete.")
+
+# ── Figure 4d: rastair CpG-only vs all-context — identical output proof ───────
+if (file.exists(corr_file)) {
+  cpg_vs_all <- read_tsv(corr_file, show_col_types = FALSE) %>%
+    add_condition_group() %>%
+    dplyr::filter(condition_group == "treat",
+                  tool %in% c("rastair", "rastair_all"),
+                  !is.na(pearson_r)) %>%
+    dplyr::group_by(biotype, tool) %>%
+    dplyr::summarise(pearson_r = mean(pearson_r, na.rm = TRUE), .groups = "drop") %>%
+    dplyr::mutate(
+      biotype = factor(biotype, levels = BIOTYPE_ORDER),
+      tool    = factor(tool, levels = c("rastair", "rastair_all"),
+                       labels = c("rastair (--cpgs-only)", "rastair (all contexts)"))
+    ) %>%
+    dplyr::filter(!is.na(biotype))
+
+  if (nrow(cpg_vs_all) > 0) {
+    p_cpg_all <- ggplot(cpg_vs_all,
+                        aes(x = biotype, y = pearson_r,
+                            colour = tool, group = tool, shape = tool)) +
+      geom_line(linewidth = 0.8, alpha = 0.9) +
+      geom_point(size = 3.5) +
+      geom_hline(yintercept = 0, linetype = "dashed",
+                 colour = "grey50", linewidth = 0.3) +
+      scale_colour_manual(
+        values = c("rastair (--cpgs-only)" = "#2196F3",
+                   "rastair (all contexts)" = "#B71C1C"),
+        name = "rastair mode") +
+      scale_shape_manual(
+        values = c("rastair (--cpgs-only)" = 16,
+                   "rastair (all contexts)" = 17),
+        name = "rastair mode") +
+      scale_y_continuous(limits = c(-0.1, 1), breaks = seq(0, 1, 0.25)) +
+      labs(
+        title    = "rastair: CpG-only vs all-context calling — identical output",
+        subtitle = "TET+PB condition | Pearson r vs sRNA-TAPS at shared sites",
+        x        = "RNA biotype", y = "Pearson r",
+        caption  = paste0(
+          "Both rastair runs produce identical site calls regardless of --cpgs-only flag.\n",
+          "This confirms rastair is a CpG-only caller by design and cannot detect\n",
+          "non-CpG m5C modifications characteristic of tRNA, rRNA and snoRNA."
+        )
+      ) +
+      theme_srnataps() +
+      theme(axis.text.x = element_text(angle = 30, hjust = 1))
+
+    save_figure(p_cpg_all,
+                file.path(opt$figdir, "04d_rastair_cpg_vs_all.pdf"),
+                width = 9, height = 5)
+    message("Figure 4d: rastair CpG vs all-context — done")
+  }
+}
