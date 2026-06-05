@@ -303,9 +303,9 @@
     <h2 class="section-title">Three-condition framework</h2>
     <p class="section-desc">Three sample conditions are required to separate genuine m5C signal from chemistry background and sequencing noise.</p>
     <div class="conditions-grid">
-      <div class="condition-card treat"><div class="condition-tag">treat</div><h3>TET + Pyridine Borane</h3><p>Full TAPS chemistry. Both 5mC and 5hmC are oxidised by TET and converted to T. This is your signal condition.</p></div>
-      <div class="condition-card pb"><div class="condition-tag">pb_Ctrl</div><h3>Pyridine Borane only</h3><p>No TET oxidation. Any C→T in these samples is chemistry background, used for δ score calculation.</p></div>
-      <div class="condition-card notx"><div class="condition-tag">no-treat</div><h3>No chemistry</h3><p>Untreated baseline. C→T at this level reflects sequencing error and SNPs, used to build the SNP blacklist.</p></div>
+      <div class="condition-card treat"><div class="condition-tag">treat</div><h3>TET + Pyridine Borane + PCR</h3><p>Full TAPS chemistry. Both 5mC and 5hmC are oxidised by TET to 5-carboxylcytosine (5caC), reduced to dihydrouracil (DHU) by pyridine borane, and subsequently read as T during PCR amplification. This is your signal condition.</p></div>
+      <div class="condition-card pb"><div class="condition-tag">pb_Ctrl</div><h3>Pyridine Borane + PCR</h3><p>No TET oxidation. Pyridine borane converts unprotected cytosines non-specifically, and any C→T signal in these samples represents chemistry background. Used for δ score calculation.</p></div>
+      <div class="condition-card notx"><div class="condition-tag">no-treat</div><h3>PCR only (No treatment)</h3><p>Untreated baseline. C→T at this level reflects sequencing errors and SNPs. Used to build the cell-line SNP blacklist.</p></div>
     </div>
     <div class="chem-callout">
       <p>The <strong>delta (δ) score</strong> = treat_mod_rate − pb_Ctrl_mod_rate. Subtracting the pb_Ctrl background isolates only TET-dependent signal, removing both global chemistry noise and sequence-context-specific biases.</p>
