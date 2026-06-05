@@ -390,13 +390,13 @@ document.querySelectorAll('section, .feature-card, .stat-card, .condition-card, 
   el.classList.add('fade-up'); _obs.observe(el);
 });
 
-/* Typing animation */
+/* Fade-in animation for hero heading */
 const _h1 = document.querySelector('.hero h1');
 if (_h1) {
-  const _txt = _h1.innerHTML; _h1.innerHTML = ''; _h1.style.opacity = '1';
-  let _i = 0;
-  const _type = () => { if (_i < _txt.length) { _h1.innerHTML = _txt.slice(0, _i+1); _i++; setTimeout(_type, _i < 20 ? 60 : 20); } };
-  setTimeout(_type, 500);
+  _h1.style.opacity = '0';
+  _h1.style.transform = 'translateY(20px)';
+  _h1.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+  setTimeout(() => { _h1.style.opacity = '1'; _h1.style.transform = 'translateY(0)'; }, 300);
 }
 
 /* Floating badges */
