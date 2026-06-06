@@ -274,6 +274,34 @@
     typeNext();
   }
 
+  function restart() {
+    idx = 0;
+    desc.style.opacity = '0';
+    h1.innerHTML = '';
+    setTimeout(typeWrong, 600);
+  }
+
+  function retypeCorrect(start) {
+    const suffix = '— without bisulfite';
+    const base   = 'm5C detection in small RNA ';
+    let si = 0;
+    function typeNext() {
+      if (si <= suffix.length) {
+        const current = base + suffix.slice(0, si);
+        const coloured = current.replace('small RNA', '<span style="color:#367FAC;">small RNA</span>');
+        h1.innerHTML = coloured + cursor;
+        si++;
+        setTimeout(typeNext, 50 + Math.random() * 25);
+      } else {
+        h1.innerHTML = finalHTML;
+        desc.style.opacity = '1';
+        // Loop after pause
+        setTimeout(restart, 4000);
+      }
+    }
+    typeNext();
+  }
+
   // Start after page load
   setTimeout(typeWrong, 800);
 })();
