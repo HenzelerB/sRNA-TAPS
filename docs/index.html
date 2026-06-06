@@ -770,8 +770,7 @@ function srnaAddMsg(role,text){
   var d=document.createElement('div');
   d.className='chat-msg '+role;
   var av=role==='bot'?'<div class="chat-avatar">&#x1F9EC;</div>':'';
-  var f=text.replace(/`([^`]+)`/g,'<code style="background:#f0eeea;padding:1px 4px;border-radius:3px;font-family:monospace">$1</code>').replace(/
-/g,'<br>');
+  var f=text.replace(/`([^`]+)`/g,'<code style="background:#f0eeea;padding:1px 4px;border-radius:3px;font-family:monospace">$1</code>').replace(/\n/g,'<br>');
   d.innerHTML=av+'<div class="chat-bubble">'+f+'</div>';
   m.appendChild(d);
   m.scrollTop=m.scrollHeight;
