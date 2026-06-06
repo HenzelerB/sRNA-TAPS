@@ -217,57 +217,59 @@
   const desc = document.getElementById('hero-desc');
   if (!h1) return;
 
-  const blueRNA = 'small RNA';
-  const cursor  = '<span style="border-right:3px solid var(--accent);margin-left:1px;animation:blink 0.7s step-end infinite"> </span>';
-
-  const phase1Plain = 'm5C detection in small RNA using bisulfite';
+  const finalHTML = 'm5C detection in <span style="color:#367FAC;">small RNA</span> — without bisulfite';
+  const wrongText = 'm5C detection in small RNA using bisulfite';
+  const deleteFrom = wrongText.indexOf(' using bisulfite');
+  const cursor = '<span style="border-right:3px solid var(--accent);margin-left:1px;animation:blink 0.7s step-end infinite"> </span>';
   let idx = 0;
 
   function restart() {
     idx = 0;
     desc.style.opacity = '0';
     h1.innerHTML = '';
-    setTimeout(typePhase1, 600);
+    setTimeout(typeWrong, 600);
   }
 
-  function typePhase1() {
-    if (idx <= phase1Plain.length) {
-      const plain = phase1Plain.slice(0, idx);
-      const coloured = plain.replace('small RNA', blueRNA);
-      h1.innerHTML = coloured + cursor;
+  function typeWrong() {
+    if (idx <= wrongText.length) {
+      h1.innerHTML = wrongText.slice(0, idx) + cursor;
       idx++;
-      setTimeout(typePhase1, 45 + Math.random() * 25);
+      setTimeout(typeWrong, 45 + Math.random() * 25);
     } else {
-      setTimeout(strikeThrough, 800);
+      setTimeout(deleteWrong, 900);
     }
   }
 
-  function strikeThrough() {
-    h1.innerHTML = 'm5C detection in ' + blueRNA +
-      ' <span id="struck" style="text-decoration:line-through;color:var(--text);">using bisulfite</span>' + cursor;
-    setTimeout(showCorrection, 1200);
+  function deleteWrong() {
+    if (idx > deleteFrom) {
+      idx--;
+      h1.innerHTML = wrongText.slice(0, idx) + cursor;
+      setTimeout(deleteWrong, 35);
+    } else {
+      setTimeout(typeCorrect, 400);
+    }
   }
 
-  function showCorrection() {
+  function typeCorrect() {
     const suffix = '— without bisulfite';
+    const base = 'm5C detection in small RNA ';
     let si = 0;
-    function typeCorrection() {
+    function typeNext() {
       if (si <= suffix.length) {
-        const struck = '<span style="text-decoration:line-through;color:var(--text);opacity:' + Math.max(0.15, 0.8 - si/suffix.length*0.7) + ';font-size:0.75em"> using bisulfite</span>';
-        h1.innerHTML = 'm5C detection in ' + blueRNA + struck + ' ' + suffix.slice(0, si) + cursor;
+        h1.innerHTML = base + suffix.slice(0, si) + cursor;
         si++;
-        setTimeout(typeCorrection, 50 + Math.random() * 25);
+        setTimeout(typeNext, 50 + Math.random() * 25);
       } else {
-        h1.innerHTML = 'm5C detection in <span style="color:#367FAC;">small RNA</span> — without bisulfite';
+        h1.innerHTML = finalHTML;
         desc.style.opacity = '1';
         setTimeout(restart, 4500);
       }
     }
-    setTimeout(typeCorrection, 300);
+    typeNext();
   }
 
   // Start after page load
-  setTimeout(typePhase1, 800);
+  setTimeout(typeWrong, 800);
 })();
 </script>
   <div class="hero-actions">
