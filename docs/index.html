@@ -759,7 +759,7 @@ window.srnaChat=async function(){
   try{
     var r=await fetch('https://srna-taps-chat.bennett-henzeler.workers.dev',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:1000,system:'You are the sRNA-TAPS assistant. You are an expert in the sRNA-TAPS pipeline for detecting RNA m5C using TAPS chemistry, small RNA biology (miRNA, tRNA, rRNA, snoRNA), RNA epigenetics, and general bioinformatics. Be concise and helpful.',messages:srnaHistory})});
     var txt=await r.text();
-    console.log('Worker response status:',r.status,'body:',txt);
+    
     t.remove();
     var d=JSON.parse(txt);
     var reply=(d.content&&d.content[0]&&d.content[0].text)||(d.error&&d.error.message)||('RAW: '+txt);
