@@ -209,8 +209,75 @@
 <div class="hero">
   <img src="sRNA-taps_logo.png" alt="sRNA-TAPS logo" class="hero-logo">
   <div class="hero-badge">🧬 New · v0.2.2 released</div>
-  <h1>m5C detection in <span style="color:#367FAC;">small RNA</span> — without bisulfite</h1>
-  <p class="hero-desc">sRNA-TAPS detects 5-methylcytosine and 5-hydroxymethylcytosine in miRNA, tRNA, rRNA, snoRNA and more, using TET-assisted pyridine borane sequencing on human samples (GRCh38).</p>
+  <h1 id="hero-h1" style="min-height:2.4em"></h1>
+  <p class="hero-desc" id="hero-desc" style="opacity:0;transition:opacity 0.6s ease;min-height:3em">sRNA-TAPS detects 5-methylcytosine and 5-hydroxymethylcytosine in miRNA, tRNA, rRNA, snoRNA and more, using TET-assisted pyridine borane sequencing on human samples (GRCh38).</p>
+<script>
+(function(){
+  const h1 = document.getElementById('hero-h1');
+  const desc = document.getElementById('hero-desc');
+  if (!h1) return;
+
+  const wrongText   = 'm5C detection in small RNA using bisulfite';
+  const deleteFrom  = wrongText.indexOf(' using bisulfite');
+  const finalHTML   = 'm5C detection in <span style="color:#367FAC;">small RNA</span> — without bisulfite';
+  const finalPlain  = 'm5C detection in small RNA — without bisulfite';
+
+  let phase = 'type'; // type → delete → retype → done
+  let idx = 0;
+  let cursor = '<span style="border-right:3px solid var(--accent);margin-left:1px;animation:blink 0.7s step-end infinite"> </span>';
+
+  function render(text, showCursor) {
+    h1.innerHTML = text + (showCursor ? cursor : '');
+  }
+
+  function typeWrong() {
+    if (idx <= wrongText.length) {
+      render(wrongText.slice(0, idx), true);
+      idx++;
+      setTimeout(typeWrong, 45 + Math.random() * 25);
+    } else {
+      // pause then start deleting
+      setTimeout(deleteWrong, 900);
+    }
+  }
+
+  function deleteWrong() {
+    if (idx > deleteFrom) {
+      idx--;
+      render(wrongText.slice(0, idx), true);
+      setTimeout(deleteWrong, 35);
+    } else {
+      // pause then type correction
+      setTimeout(() => retypeCorrect(deleteFrom), 400);
+    }
+  }
+
+  function retypeCorrect(start) {
+    // Type "— without bisulfite" character by character
+    const suffix = '— without bisulfite';
+    const base   = 'm5C detection in small RNA ';
+    let si = 0;
+    function typeNext() {
+      if (si <= suffix.length) {
+        const current = base + suffix.slice(0, si);
+        // Apply colour to "small RNA" part
+        const coloured = current.replace('small RNA', '<span style="color:#367FAC;">small RNA</span>');
+        h1.innerHTML = coloured + cursor;
+        si++;
+        setTimeout(typeNext, 50 + Math.random() * 25);
+      } else {
+        // Done — set final HTML, show desc
+        h1.innerHTML = finalHTML;
+        desc.style.opacity = '1';
+      }
+    }
+    typeNext();
+  }
+
+  // Start after page load
+  setTimeout(typeWrong, 800);
+})();
+</script>
   <div class="hero-actions">
     <a href="docs.html#installation" class="btn btn-primary">Get started →</a>
     <a href="tutorial.html" class="btn btn-secondary">Run tutorial</a>
