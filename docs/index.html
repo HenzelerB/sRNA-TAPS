@@ -578,19 +578,38 @@ document.querySelectorAll('.tool-badge').forEach((b, i) => {
   b.style.animation = `float ${2.5 + (i%3)*0.4}s ease-in-out ${i*0.12}s infinite alternate`;
 });
 
-/* Counter animation */
+/* Counter animation - looping */
 document.querySelectorAll('.stat-num').forEach(el => {
   const target = el.textContent.trim();
   const num = parseFloat(target);
   if (!isNaN(num)) {
     el.textContent = '0';
+
+    function runCounter() {
+      let s = 0;
+      const step = () => {
+        s += num / 40;
+        if (s >= num) {
+          el.textContent = target;
+          // Add pop effect
+          el.style.transform = 'scale(1.15)';
+          el.style.transition = 'transform 0.2s ease';
+          setTimeout(() => { el.style.transform = 'scale(1)'; }, 200);
+          // Loop after pause
+          setTimeout(runCounter, 3000);
+          return;
+        }
+        el.textContent = target.includes('/') ? target : Math.floor(s);
+        requestAnimationFrame(step);
+      };
+      el.textContent = '0';
+      requestAnimationFrame(step);
+    }
+
     const co = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting) {
-        let s = 0;
-        const step = () => { s += num/40; if (s >= num) { el.textContent = target; return; } el.textContent = target.includes('/') ? target : Math.floor(s); requestAnimationFrame(step); };
-        requestAnimationFrame(step); co.disconnect();
-      }
-    }); co.observe(el);
+      if (entries[0].isIntersecting) { runCounter(); co.disconnect(); }
+    });
+    co.observe(el);
   }
 });
 
