@@ -388,17 +388,91 @@
             <div class="code-dots"><div class="code-dot dot-r"></div><div class="code-dot dot-y"></div><div class="code-dot dot-g"></div></div>
             <span class="code-title">terminal</span>
           </div>
-          <div class="code-body">
-            <div><span class="comment"># conda (recommended)</span></div>
-            <div><span class="cmd">conda install</span> -c bioconda -c conda-forge srna-taps</div>
-            <br>
-            <div><span class="comment"># or pip</span></div>
-            <div><span class="cmd">pip install</span> sRNA-TAPS</div>
-            <br>
-            <div><span class="comment"># R packages for reports</span></div>
-            <div><span class="cmd">Rscript</span> install_R_packages.R</div>
-          </div>
+          <div class="code-body" id="install-terminal"></div>
         </div>
+<script>
+(function(){
+  const lines = [
+    { text: '# conda (recommended)', type: 'comment', delay: 400 },
+    { text: 'conda install -c bioconda -c conda-forge srna-taps', type: 'cmd', delay: 100 },
+    { text: '', type: 'br', delay: 0 },
+    { text: '# or pip', type: 'comment', delay: 200 },
+    { text: 'pip install sRNA-TAPS', type: 'cmd', delay: 100 },
+    { text: '', type: 'br', delay: 0 },
+    { text: '# R packages for reports', type: 'comment', delay: 200 },
+    { text: 'Rscript install_R_packages.R', type: 'cmd', delay: 100 },
+  ];
+  const container = document.getElementById('install-terminal');
+  if (!container) return;
+
+  let lineIdx = 0;
+  let charIdx = 0;
+  let currentDiv = null;
+  let cursor = document.createElement('span');
+  cursor.textContent = '|';
+  cursor.style.cssText = 'color:#00d4aa;animation:blink 0.8s step-end infinite;';
+
+  // Add blink keyframe if not present
+  if (!document.getElementById('cursor-blink-style')) {
+    const s = document.createElement('style');
+    s.id = 'cursor-blink-style';
+    s.textContent = '@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}';
+    document.head.appendChild(s);
+  }
+
+  function nextLine() {
+    if (lineIdx >= lines.length) {
+      if (cursor.parentNode) cursor.parentNode.removeChild(cursor);
+      return;
+    }
+    const line = lines[lineIdx];
+    lineIdx++;
+    charIdx = 0;
+
+    if (line.type === 'br') {
+      container.appendChild(document.createElement('br'));
+      setTimeout(nextLine, 120);
+      return;
+    }
+
+    currentDiv = document.createElement('div');
+    container.appendChild(currentDiv);
+    currentDiv.appendChild(cursor);
+
+    setTimeout(() => typeChar(line), line.delay);
+  }
+
+  function typeChar(line) {
+    if (charIdx < line.text.length) {
+      const char = line.text[charIdx];
+      charIdx++;
+      // Insert char before cursor
+      const t = document.createTextNode(char);
+      currentDiv.insertBefore(t, cursor);
+      setTimeout(() => typeChar(line), 38 + Math.random() * 24);
+    } else {
+      // Line done — style it
+      const txt = currentDiv.textContent.replace('|','').trim();
+      if (cursor.parentNode) cursor.parentNode.removeChild(cursor);
+      currentDiv.innerHTML = '';
+      if (line.type === 'comment') {
+        currentDiv.innerHTML = '<span class="comment">' + txt + '</span>';
+      } else {
+        const parts = txt.split(' ');
+        currentDiv.innerHTML = '<span class="cmd">' + parts[0] + '</span> ' + parts.slice(1).join(' ');
+      }
+      currentDiv.appendChild(cursor);
+      setTimeout(nextLine, 180);
+    }
+  }
+
+  // Start when section is visible
+  const obs = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) { nextLine(); obs.disconnect(); }
+  }, { threshold: 0.3 });
+  obs.observe(container);
+})();
+</script>
       </div>
     </div>
   </div>
