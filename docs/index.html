@@ -758,12 +758,14 @@ window.srnaChat=async function(){
   var t=srnaTyping();
   try{
     var r=await fetch('https://srna-taps-chat.bennett-henzeler.workers.dev',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:'You are the sRNA-TAPS assistant. You are an expert in the sRNA-TAPS pipeline for detecting RNA m5C using TAPS chemistry, small RNA biology (miRNA, tRNA, rRNA, snoRNA), RNA epigenetics, and general bioinformatics. Be concise and helpful.',messages:srnaHistory})});
-    var d=await r.json();
+    var txt=await r.text();
+    console.log('Worker response status:',r.status,'body:',txt);
     t.remove();
-    var reply=(d.content&&d.content[0]&&d.content[0].text)||(d.error&&d.error.message)||JSON.stringify(d);
+    var d=JSON.parse(txt);
+    var reply=(d.content&&d.content[0]&&d.content[0].text)||(d.error&&d.error.message)||('RAW: '+txt);
     srnaHistory.push({role:'assistant',content:reply});
     srnaAddMsg('bot',reply);
-  }catch(e){t.remove();srnaAddMsg('bot','Sorry, something went wrong. Please try again.');}
+  }catch(e){t.remove();srnaAddMsg('bot','Error: '+e.message);}
 }
 function srnaAddMsg(role,text){
   var m=document.getElementById('srna-chat-messages');
