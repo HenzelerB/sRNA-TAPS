@@ -217,7 +217,7 @@
   const desc = document.getElementById('hero-desc');
   if (!h1) return;
 
-  const blueRNA = '<span style="color:#367FAC;">small RNA</span>';
+  const blueRNA = 'small RNA';
   const cursor  = '<span style="border-right:3px solid var(--accent);margin-left:1px;animation:blink 0.7s step-end infinite"> </span>';
 
   const phase1Plain = 'm5C detection in small RNA using bisulfite';
@@ -244,7 +244,7 @@
 
   function strikeThrough() {
     h1.innerHTML = 'm5C detection in ' + blueRNA +
-      ' <span id="struck" style="text-decoration:line-through;color:#c0392b;">using bisulfite</span>' + cursor;
+      ' <span id="struck" style="text-decoration:line-through;color:var(--text);">using bisulfite</span>' + cursor;
     setTimeout(showCorrection, 1200);
   }
 
@@ -253,12 +253,12 @@
     let si = 0;
     function typeCorrection() {
       if (si <= suffix.length) {
-        const struck = '<span style="text-decoration:line-through;color:#c0392b;opacity:' + Math.max(0.15, 0.8 - si/suffix.length*0.7) + ';font-size:0.75em"> using bisulfite</span>';
+        const struck = '<span style="text-decoration:line-through;color:var(--text);opacity:' + Math.max(0.15, 0.8 - si/suffix.length*0.7) + ';font-size:0.75em"> using bisulfite</span>';
         h1.innerHTML = 'm5C detection in ' + blueRNA + struck + ' ' + suffix.slice(0, si) + cursor;
         si++;
         setTimeout(typeCorrection, 50 + Math.random() * 25);
       } else {
-        h1.innerHTML = 'm5C detection in ' + blueRNA + ' — without bisulfite';
+        h1.innerHTML = 'm5C detection in <span style="color:#367FAC;">small RNA</span> — without bisulfite';
         desc.style.opacity = '1';
         setTimeout(restart, 4500);
       }
