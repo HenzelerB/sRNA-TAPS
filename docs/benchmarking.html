@@ -188,28 +188,28 @@
     </div>
 
     <div class="figures-grid">
-      <div class="figure-card">
+      <div class="figure-card" onclick="openLightbox(this.querySelector('img'))">
         <img src="04a_concordance_heatmap.png" alt="Concordance heatmap">
         <div class="figure-caption">
           <h4>Figure 4a — Site concordance (Jaccard index)</h4>
           <p>Jaccard index between sRNA-TAPS called sites and each benchmark tool, per biotype. Higher values indicate greater overlap in called positions.</p>
         </div>
       </div>
-      <div class="figure-card">
+      <div class="figure-card" onclick="openLightbox(this.querySelector('img'))">
         <img src="04b_correlation.png" alt="Pearson correlation">
         <div class="figure-caption">
           <h4>Figure 4b — Pearson correlation at shared sites</h4>
           <p>Pearson r of modification rates at sites called by both sRNA-TAPS and each benchmark tool. rastair and asTair show strong positive correlation; Bismark is near zero or negative (expected — chemistry inversion).</p>
         </div>
       </div>
-      <div class="figure-card">
+      <div class="figure-card" onclick="openLightbox(this.querySelector('img'))">
         <img src="04b_shared_sites_scatter.png" alt="Shared sites scatter">
         <div class="figure-caption">
           <h4>Figure 4b — Modification rates at shared sites</h4>
           <p>Scatter plot of per-site modification rates at positions called by both sRNA-TAPS and each benchmark tool. Points on the diagonal indicate agreement between pipelines.</p>
         </div>
       </div>
-      <div class="figure-card">
+      <div class="figure-card" onclick="openLightbox(this.querySelector('img'))">
         <img src="04c_site_overlap.png" alt="Site overlap">
         <div class="figure-caption">
           <h4>Figure 4c — Called site overlap</h4>
@@ -293,5 +293,28 @@
   </div>
 </footer>
 
+
+<style>
+.lightbox-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:1000;align-items:center;justify-content:center;cursor:zoom-out}
+.lightbox-overlay.active{display:flex}
+.lightbox-overlay img{max-width:90vw;max-height:90vh;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,0.5)}
+.figure-card{cursor:zoom-in}
+</style>
+<div class="lightbox-overlay" id="lightbox" onclick="closeLightbox()">
+  <img id="lightbox-img" src="" alt="">
+</div>
+<script>
+function openLightbox(img) {
+  document.getElementById('lightbox-img').src = img.src;
+  document.getElementById('lightbox-img').alt = img.alt;
+  document.getElementById('lightbox').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('active');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+</script>
 </body>
 </html>
