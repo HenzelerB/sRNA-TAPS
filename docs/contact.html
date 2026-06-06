@@ -167,7 +167,9 @@
         </div>
         <div class="faq-answer">
           <div class="faq-answer-inner">
-            <p>This is expected, particularly in TAPS-treated samples. Pyridine borane enriches for rRNA and other abundant RNA species. Additionally, reads that do not overlap a uniquely annotated Ensembl feature, or that overlap multiple biotypes of equal priority, are assigned to <code>other</code>. Ensure you are using a current Ensembl GRCh38 GTF (v112 or later) and that your alignment is to the full genome rather than a transcriptome.</p>
+            <p>The "other" category captures reads that do not overlap a uniquely annotated Ensembl feature, or that map to regions where multiple biotypes share equal priority in the annotation hierarchy. This is common in small RNA-seq data and does not indicate a pipeline problem.</p>
+            <p>Several factors can contribute to a high "other" fraction: reads mapping to unannotated intergenic regions, reads overlapping antisense transcripts or pseudogenes not classified under the main biotypes, and multi-mapping reads that cannot be confidently assigned to a single locus. In TAPS-treated samples, the chemical conversion step can also affect alignment scores at modified positions, occasionally pushing reads into ambiguous mapping territory.</p>
+            <p>To reduce the "other" fraction, ensure you are using a current Ensembl GRCh38 GTF (v112 or later), that your alignment is to the full genome rather than a transcriptome, and that your GTF biotype priority list covers the RNA species most relevant to your experiment.</p>
           </div>
         </div>
       </div>
