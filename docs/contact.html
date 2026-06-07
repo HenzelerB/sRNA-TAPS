@@ -73,6 +73,11 @@
     .footer-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
 
     @media(max-width:700px){.hero{padding:calc(var(--nav-h)+32px) 20px 40px}.container{padding:0 20px}.contact-grid{grid-template-columns:1fr}nav{padding:0 20px}}
+
+    @keyframes bug-walk{0%,100%{transform:rotate(-8deg) translateY(0)}25%{transform:rotate(8deg) translateY(-4px)}50%{transform:rotate(-5deg) translateY(0)}75%{transform:rotate(5deg) translateY(-3px)}}
+    @keyframes mail-fly{0%{transform:translateX(0) translateY(0) rotate(0deg)}25%{transform:translateX(6px) translateY(-8px) rotate(5deg)}50%{transform:translateX(12px) translateY(-4px) rotate(-3deg)}75%{transform:translateX(6px) translateY(-10px) rotate(4deg)}100%{transform:translateX(0) translateY(0) rotate(0deg)}}
+    .bug-anim{display:inline-block;animation:bug-walk 1.2s ease-in-out infinite;font-size:2rem;}
+    .mail-anim{display:inline-block;animation:mail-fly 2s ease-in-out infinite;font-size:2rem;}
   </style>
 </head>
 <body>
@@ -103,14 +108,14 @@
     <div class="contact-grid">
 
       <div class="contact-card">
-        <div class="contact-icon">🐛</div>
+        <div class="contact-icon"><span class="bug-anim">🐛</span></div>
         <h3>Report a bug or request a feature</h3>
         <p>Open a GitHub Issue for bug reports, unexpected behaviour, or feature requests. This helps us track and prioritise fixes, and lets others see if the same issue has been reported.</p>
         <a class="contact-btn" href="https://github.com/HenzelerB/sRNA-TAPS/issues/new" target="_blank">Open a GitHub Issue ↗</a>
       </div>
 
       <div class="contact-card">
-        <div class="contact-icon">✉️</div>
+        <div class="contact-icon"><span class="mail-anim">✉️</span></div>
         <h3>Email us directly</h3>
         <p>For questions about experimental design, interpretation of results, collaboration inquiries, or anything not suited to a public GitHub Issue, reach out by email.</p>
         <a class="contact-btn contact-btn-outline" href="mailto:bennett.henzeler@cup.lmu.de">bennett.henzeler@cup.lmu.de</a>
