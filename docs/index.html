@@ -694,7 +694,7 @@ if (_hero) {
 
 <!-- sRNA-TAPS AI Chat Widget -->
 <style>
-#srna-chat-btn{position:fixed;bottom:28px;right:28px;z-index:99999;width:64px;height:64px;border-radius:0;background:transparent;border:none;cursor:pointer;box-shadow:none;display:flex;align-items:center;justify-content:center;transition:transform 0.2s ease;animation:chat-pulse 3s ease-in-out infinite}
+#srna-chat-btn{position:fixed;bottom:20px;right:20px;z-index:99999;width:72px;height:72px;border-radius:0;background:none;border:none;cursor:pointer;box-shadow:none;padding:0;transition:transform 0.2s ease}
 #srna-chat-btn:hover{transform:scale(1.08)}
 #srna-chat-btn svg{width:26px;height:26px;fill:white}
 @keyframes chat-pulse{0%,100%{box-shadow:0 4px 20px rgba(44,95,138,0.4)}50%{box-shadow:0 4px 28px rgba(0,212,170,0.5)}}
@@ -727,7 +727,7 @@ if (_hero) {
 #srna-chat-send svg{width:16px;height:16px;fill:white}
 </style>
 <button id="srna-chat-btn" onclick="toggleChat()" title="Ask sRNA-TAPS AI" style="padding:0;overflow:hidden;background:transparent;border:none;cursor:pointer;width:60px;height:60px;box-shadow:none;">
-<img src="robot.png" alt="AI Assistant" style="width:64px;height:64px;object-fit:contain;">
+<img src="robot.png" alt="AI Assistant" style="width:72px;height:72px;object-fit:contain;filter:drop-shadow(0 4px 12px rgba(44,95,138,0.4));">
 </button>
 <div id="srna-chat-window">
   <div class="chat-header">
