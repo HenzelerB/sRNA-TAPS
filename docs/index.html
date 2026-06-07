@@ -739,7 +739,7 @@ if (_hero) {
     <button class="chat-close" onclick="toggleChat()">&#10005;</button>
   </div>
   <div class="chat-messages" id="srna-chat-messages">
-    <div class="chat-msg bot"><div class="chat-avatar">&#x1F9EC;</div><div class="chat-bubble">Hi! I am the sRNA-TAPS assistant. Ask me anything about the pipeline, RNA methylation, or general bioinformatics!</div></div>
+    <div class="chat-msg bot"><div class="chat-avatar" style="background:none;padding:0;"><img src="robot_icon.svg" style="width:28px;height:28px;object-fit:contain;"></div><div class="chat-bubble">Hi! I am the sRNA-TAPS assistant. Ask me anything about the pipeline, RNA methylation, or general bioinformatics!</div></div>
   </div>
   <div class="chat-input-row">
     <input type="text" id="srna-chat-input" placeholder="Ask a question..." onkeydown="if(event.key==='Enter')srnaChat()">
@@ -773,7 +773,7 @@ function srnaAddMsg(role,text){
   var m=document.getElementById('srna-chat-messages');
   var d=document.createElement('div');
   d.className='chat-msg '+role;
-  var av=role==='bot'?'<div class="chat-avatar">&#x1F9EC;</div>':'';
+  var av=role==='bot'?'<div class="chat-avatar" style="background:none;padding:0;"><img src="robot_icon.svg" style="width:28px;height:28px;object-fit:contain;"></div>':{};
   var f=text.replace(/`([^`]+)`/g,'<code style="background:#f0eeea;padding:1px 4px;border-radius:3px;font-family:monospace">$1</code>').replace(/\n/g,'<br>');
   d.innerHTML=av+'<div class="chat-bubble">'+f+'</div>';
   m.appendChild(d);
@@ -784,7 +784,7 @@ function srnaTyping(){
   var m=document.getElementById('srna-chat-messages');
   var d=document.createElement('div');
   d.className='chat-msg bot';
-  d.innerHTML='<div class="chat-avatar">&#x1F9EC;</div><div class="chat-typing"><span></span><span></span><span></span></div>';
+  d.innerHTML='<div class="chat-avatar" style="background:none;padding:0;"><img src="robot_icon.svg" style="width:28px;height:28px;object-fit:contain;"></div><div class="chat-typing"><span></span><span></span><span></span></div>';
   m.appendChild(d);
   m.scrollTop=m.scrollHeight;
   return d;
