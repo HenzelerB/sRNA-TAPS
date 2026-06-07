@@ -694,7 +694,7 @@ if (_hero) {
 
 <!-- sRNA-TAPS AI Chat Widget -->
 <style>
-@keyframes robot-bounce{0%{transform:translateX(0) translateY(0) rotate(0deg) scale(1)}10%{transform:translateX(-30px) translateY(-5px) rotate(-8deg) scale(1.02)}20%{transform:translateX(-50px) translateY(0) rotate(-5deg) scale(1)}30%{transform:translateX(-35px) translateY(-8px) rotate(-6deg) scale(1.03)}40%{transform:translateX(-10px) translateY(-3px) rotate(-3deg) scale(1.01)}50%{transform:translateX(0) translateY(0) rotate(0deg) scale(1)}65%{transform:translateX(0) translateY(-14px) rotate(3deg) scale(1.04)}80%{transform:translateX(0) translateY(-6px) rotate(-2deg) scale(0.98)}100%{transform:translateX(0) translateY(0) rotate(0deg) scale(1)}}#srna-chat-btn{position:fixed;bottom:20px;right:20px;z-index:99999;width:80px;height:80px;border-radius:0;background:none;border:none;cursor:pointer;box-shadow:none;padding:0;animation:robot-bounce 4s ease-in-out infinite}
+@keyframes bubble-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.85;transform:scale(1.05)}}@keyframes robot-bounce{0%{transform:translateX(0) translateY(0) rotate(0deg) scale(1)}10%{transform:translateX(-30px) translateY(-5px) rotate(-8deg) scale(1.02)}20%{transform:translateX(-50px) translateY(0) rotate(-5deg) scale(1)}30%{transform:translateX(-35px) translateY(-8px) rotate(-6deg) scale(1.03)}40%{transform:translateX(-10px) translateY(-3px) rotate(-3deg) scale(1.01)}50%{transform:translateX(0) translateY(0) rotate(0deg) scale(1)}65%{transform:translateX(0) translateY(-14px) rotate(3deg) scale(1.04)}80%{transform:translateX(0) translateY(-6px) rotate(-2deg) scale(0.98)}100%{transform:translateX(0) translateY(0) rotate(0deg) scale(1)}}#srna-chat-btn{position:relative;bottom:auto;right:auto;z-index:1;width:80px;height:80px;border-radius:0;background:none;border:none;cursor:pointer;box-shadow:none;padding:0;animation:robot-bounce 4s ease-in-out infinite}
 #srna-chat-btn:hover{transform:scale(1.08)}
 #srna-chat-btn svg{width:26px;height:26px;fill:white}
 @keyframes chat-pulse{0%,100%{box-shadow:0 4px 20px rgba(44,95,138,0.4)}50%{box-shadow:0 4px 28px rgba(0,212,170,0.5)}}
@@ -726,9 +726,13 @@ if (_hero) {
 #srna-chat-send:hover{background:#1a3a5c}
 #srna-chat-send svg{width:16px;height:16px;fill:white}
 </style>
-<button id="srna-chat-btn" onclick="toggleChat()" title="Ask sRNA-TAPS AI">
+<div style="position:fixed;bottom:20px;right:20px;z-index:99999;display:flex;flex-direction:column;align-items:center;gap:4px">
+  <div id="srna-bubble" style="background:#2C5F8A;color:white;font-family:Outfit,sans-serif;font-size:0.78rem;font-weight:600;padding:5px 12px;border-radius:20px;box-shadow:0 2px 8px rgba(44,95,138,0.3);white-space:nowrap;animation:bubble-pulse 4s ease-in-out infinite;cursor:pointer;" onclick="toggleChat()">Ask me!</div>
+  <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid #2C5F8A;"></div>
+  <button id="srna-chat-btn" onclick="toggleChat()" title="Ask sRNA-TAPS AI">
 <img src="robot_icon.svg" alt="AI Assistant" style="width:80px;height:80px;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(44,95,138,0.2));">
 </button>
+</div>
 <div id="srna-chat-window">
   <div class="chat-header">
     <div class="chat-header-avatar" style="background:none;padding:2px;"><img src="sRNA-taps_logo_centre.svg" alt="sRNA-TAPS" style="width:32px;height:32px;object-fit:contain;"></div>
