@@ -753,7 +753,7 @@ if (_hero) {
 <script>
 var srnaOpen=false;
 var srnaHistory=[];
-window.toggleChat=function(){srnaOpen=!srnaOpen;document.getElementById('srna-chat-window').classList.toggle('open',srnaOpen);if(srnaOpen)setTimeout(function(){document.getElementById('srna-chat-input').focus();},200);}
+window.toggleChat=function(){srnaOpen=!srnaOpen;document.getElementById('srna-chat-window').classList.toggle('open',srnaOpen);if(srnaOpen){setTimeout(function(){document.getElementById('srna-chat-input').focus();},200);var b=document.getElementById('srna-bubble');if(b)b.style.display='none';}else{var b=document.getElementById('srna-bubble');if(b)b.style.display='block';}}
 window.srnaChat=async function(){
   var input=document.getElementById('srna-chat-input');
   var msg=input.value.trim();
