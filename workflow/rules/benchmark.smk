@@ -123,6 +123,8 @@ rule astair_call:
     shell:
         """
         mkdir -p {params.outdir}
+        # Remove any existing mods files to avoid asTair "file exists" error
+        rm -f {params.outdir}/$(basename {input.bam} .bam)_mCtoT_{params.context}.mods.gz
 
         READ_COUNT=$(samtools view -c -F 4 {input.bam})
         if [ "$READ_COUNT" -lt 50 ]; then
