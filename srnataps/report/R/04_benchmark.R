@@ -14,10 +14,10 @@ dir.create(opt$figdir, recursive = TRUE, showWarnings = FALSE)
 
 COMPARE_DIR   <- file.path(opt$outdir, "09.compare")
 BIOTYPE_ORDER <- c("miRNA","tRNA","rRNA","snoRNA","snRNA","lncRNA","other")
-TOOL_ORDER    <- c("rastair","astair","bismark")
-TOOL_COLS_FIX <- c("rastair"="#2196F3","astair"="#4CAF50","bismark"="#FF9800")
-TOOL_SHAPES   <- c("rastair"=16,"astair"=17,"bismark"=15)
-TOOL_LABS     <- c("rastair"="rastair","astair"="asTair","bismark"="Bismark")
+TOOL_ORDER    <- c("sRNA-TAPS","rastair","astair","bismark")
+TOOL_COLS_FIX <- c("sRNA-TAPS"="#1C4062","rastair"="#E07B39","astair"="#6AAB6E","bismark"="#9B6BB5")
+TOOL_SHAPES   <- c("sRNA-TAPS"=18,"rastair"=16,"astair"=17,"bismark"=15)
+TOOL_LABS     <- c("sRNA-TAPS"="sRNA-TAPS","rastair"="rastair","astair"="asTair","bismark"="Bismark")
 
 add_condition_group <- function(df) {
   dplyr::mutate(df, condition_group = dplyr::case_when(
@@ -44,7 +44,9 @@ if (file.exists(conc_file)) {
 
   p_conc <- ggplot(conc, aes(x = tool, y = biotype, fill = jaccard)) +
     geom_tile(colour = "white", linewidth = 0.5) +
-    geom_text(aes(label = sprintf("%.2f", jaccard)), size = 3, colour = "grey10") +
+    geom_text(aes(label = sprintf("%.2f", jaccard),
+                colour = ifelse(jaccard > 0.5, "white", "grey10")), size = 3) +
+    scale_colour_identity() +
     scale_fill_distiller(palette = "YlOrRd", direction = 1,
                          name = "Jaccard\nindex", limits = c(0, 1)) +
     scale_x_discrete(labels = TOOL_LABS) +
@@ -80,6 +82,8 @@ if (file.exists(corr_file)) {
                               colour = tool, group = tool, shape = tool)) +
     geom_line(linewidth = 0.6, alpha = 0.8) +
     geom_point(size = 3) +
+    geom_text(aes(label = sprintf("%.2f", pearson_r)),
+              size = 2.5, vjust = -0.8, family = "Arial") +
     geom_hline(yintercept = 0, linetype = "dashed",
                colour = "grey50", linewidth = 0.3) +
     scale_colour_manual(values = TOOL_COLS_FIX, labels = TOOL_LABS, name = "Tool") +
@@ -179,6 +183,9 @@ if (file.exists(conc_file)) {
     p_venn <- ggplot(conc_bar, aes(x = tool, y = n_sites, fill = category)) +
       geom_col(position = "dodge", width = 0.75,
                colour = "grey30", linewidth = 0.2) +
+      geom_text(aes(label = scales::label_comma()(round(n_sites))),
+                position = position_dodge(width = 0.75),
+                vjust = -0.3, size = 2, family = "Arial") +
       facet_wrap(~ biotype, scales = "free_y") +
       scale_fill_manual(
         values = c("Custom only"="#E41A1C","Shared"="#4DAF4A","Tool only"="#377EB8"),
@@ -221,6 +228,8 @@ if (file.exists(corr_file)) {
                             colour = tool, group = tool, shape = tool)) +
       geom_line(linewidth = 0.8, alpha = 0.9) +
       geom_point(size = 3.5) +
+      geom_text(aes(label = sprintf("%.2f", pearson_r)),
+                size = 2.5, vjust = -0.8, family = "Arial") +
       geom_hline(yintercept = 0, linetype = "dashed",
                  colour = "grey50", linewidth = 0.3) +
       scale_colour_manual(

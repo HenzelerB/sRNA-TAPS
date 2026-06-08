@@ -27,24 +27,31 @@ tryCatch(
   error = function(e) message("Note: extrafont loadfonts failed — using sans serif fallback")
 )
 
-# ── Colour scheme ─────────────────────────────────────────────────────────────
+# ── Colour scheme (aligned with sRNA-TAPS logo gradient) ─────────────────────
+# Logo palette: dark navy #1C4062 → primary blue #3B7DB6 → teal #3898BD → light #7CBBD4
+SRNATAPS_NAVY  <- "#1C4062"
+SRNATAPS_BLUE  <- "#3B7DB6"
+SRNATAPS_MID   <- "#3683AF"
+SRNATAPS_TEAL  <- "#3898BD"
+SRNATAPS_LIGHT <- "#7CBBD4"
+
 COLS <- c(
-  treat    = "#C0392B",
-  pb_Ctrl  = "#E67E22",
-  no_treat = "#2980B9",
-  HEK      = "#8E44AD",
-  Caco2    = "#27AE60",
-  high     = "#C0392B",
-  medium   = "#E67E22",
-  low      = "#7F8C8D"
+  treat    = "#1C4062",
+  pb_Ctrl  = "#3B7DB6",
+  no_treat = "#7CBBD4",
+  HEK      = "#3898BD",
+  Caco2    = "#3683AF",
+  high     = "#1C4062",
+  medium   = "#3B7DB6",
+  low      = "#A8CADA"
 )
 
 # Condition colours — keyed to internal condition strings
 CONDITION_COLOURS <- c(
-  "treat"    = "#C0392B",
-  "pb_ctrl"  = "#E67E22",
-  "no_treat" = "#2980B9",
-  "old"      = "#BDC3C7"
+  "treat"    = "#1C4062",
+  "pb_ctrl"  = "#3B7DB6",
+  "no_treat" = "#7CBBD4",
+  "old"      = "#C8DCE8"
 )
 
 CONDITION_LABELS <- c(
@@ -56,8 +63,8 @@ CONDITION_LABELS <- c(
 
 # Cell line colours
 CELL_COLOURS <- c(
-  "HEK"   = "#8E44AD",
-  "Caco2" = "#27AE60"
+  "HEK"   = "#1C4062",
+  "Caco2" = "#3898BD"
 )
 
 # Cell line shapes
@@ -66,27 +73,35 @@ CELL_SHAPES <- c(
   "Caco2" = 17
 )
 
-# Confidence colours — capitalised to match data values
+# Confidence colours
 CONF_COLOURS <- c(
-  "High"   = "#C0392B",
-  "Medium" = "#E67E22",
-  "Low"    = "#7F8C8D"
+  "High"   = "#1C4062",
+  "Medium" = "#3B7DB6",
+  "Low"    = "#A8CADA"
 )
 
-# Biotype colours
+# Biotype colours — sequential from logo palette + complementary neutrals
 BIOTYPE_COLOURS <- c(
-  "miRNA"  = "#C0392B",
-  "tRNA"   = "#2980B9",
-  "rRNA"   = "#27AE60",
-  "snoRNA" = "#8E44AD",
-  "snRNA"  = "#E67E22",
-  "piRNA"  = "#16A085",
-  "lncRNA" = "#F39C12",
-  "other"  = "#7F8C8D"
+  "miRNA"  = "#1C4062",
+  "tRNA"   = "#3B7DB6",
+  "rRNA"   = "#3683AF",
+  "snoRNA" = "#3898BD",
+  "snRNA"  = "#7CBBD4",
+  "piRNA"  = "#A8CADA",
+  "lncRNA" = "#5B8FA8",
+  "other"  = "#8DAFC0"
+)
+
+# Benchmark tool colours — sRNA-TAPS gets logo primary blue; others get neutral tones
+TOOL_COLOURS_BENCH <- c(
+  "sRNA-TAPS" = "#1C4062",
+  "rastair"   = "#E07B39",
+  "astair"    = "#6AAB6E",
+  "bismark"   = "#9B6BB5"
 )
 
 # ── Shared Arial 8pt theme ────────────────────────────────────────────────────
-theme_arial8 <- theme_bw(base_size = 8, base_family = "Arial") +
+theme_arial8 <- theme_bw(base_size = 8, base_family = "Arial") +  # sRNA-TAPS house style: Arial 8pt
   theme(
     text               = element_text(size = 8, family = "Arial", colour = "black"),
     axis.text          = element_text(size = 8, family = "Arial", colour = "black"),
