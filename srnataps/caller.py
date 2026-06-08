@@ -77,6 +77,7 @@ def parse_args():
     p.add_argument("--fasta",           required=True)
     p.add_argument("--out",             required=True)
     p.add_argument("--min-qual",        type=int,   default=20)
+    p.add_argument("--min-mapq",        type=int,   default=10)
     p.add_argument("--min-cov",         type=int,   default=5)
     p.add_argument("--context",         default="ALL",
                    choices=["ALL", "CpG", "CHH", "CHG"])
@@ -224,7 +225,7 @@ def process_chromosome(job):
     Returns list of dicts: one per PASS position meeting min_cov.
     """
     (bam_path, fasta_path, chrom,
-     min_qual, min_cov, context_filter,
+     min_qual, min_mapq, min_cov, context_filter,
      dbsnp, sample_snps, het_positions) = job
 
     bam   = pysam.AlignmentFile(bam_path, "rb")
@@ -249,6 +250,8 @@ def process_chromosome(job):
         if read.is_unmapped or read.query_sequence is None:
             continue
         if read.is_secondary or read.is_supplementary:
+            continue
+        if read.mapping_quality < min_mapq:
             continue
 
         # Bowtie1 uses XA:i:N; standard SAM uses NH:i:N
@@ -387,13 +390,14 @@ def main():
     print(f"[taps] Threads    : {args.threads}",    flush=True)
     print(f"[taps] Context    : {args.context}",    flush=True)
     print(f"[taps] Min cov    : {args.min_cov}",    flush=True)
+    print(f"[taps] Min mapq   : {args.min_mapq}",   flush=True)
     print(f"[taps] BG rate    : {args.background_rate}", flush=True)
     print(f"[taps] SNP filter : BEFORE counting (correct order)", flush=True)
 
     # Build jobs — SNP sets included so each worker can filter independently
     jobs = [
         (args.bam, args.fasta, chrom,
-         args.min_qual, args.min_cov, args.context,
+         args.min_qual, args.min_mapq, args.min_cov, args.context,
          dbsnp, sample_snps, het_positions)
         for chrom in chroms
     ]
