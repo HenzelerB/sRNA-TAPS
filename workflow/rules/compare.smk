@@ -11,7 +11,7 @@ rule compare:
     input:
         calls   = expand(str(CALLS_DIR / "{biotype}" / "{sample}_{biotype}_taps.tsv"),
                          sample=SAMPLE_NAMES, biotype=BIOTYPES),
-        rastair = expand(str(BENCH_DIR / "rastair" / "{sample}" / "{sample}.bed.gz"),
+        rastair = expand(str(BENCH_DIR / "rastair" / "all" / "{sample}" / "{sample}.bed.gz"),
                          sample=SAMPLE_NAMES),
         astair  = expand(str(BENCH_DIR / "astair" / "{biotype}" / ".done_{sample}"),
                          sample=SAMPLE_NAMES, biotype=BIOTYPES),
