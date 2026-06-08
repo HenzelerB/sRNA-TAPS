@@ -85,7 +85,7 @@ rule all_benchmark:
     input:
         rules.all.input,
         # Benchmarking
-        expand(str(BENCH_DIR / "rastair" / "{sample}" / "{sample}.bed.gz"), sample=SAMPLE_NAMES),
+        expand(str(BENCH_DIR / "rastair" / "all" / "{sample}" / "{sample}.bed.gz"), sample=SAMPLE_NAMES),
         expand(str(BENCH_DIR / "astair"  / "{biotype}" / ".done_{sample}"),
                sample=SAMPLE_NAMES, biotype=BIOTYPES),
         expand(str(BENCH_DIR / "bismark" / "{sample}" / ".done"), sample=SAMPLE_NAMES),
@@ -128,7 +128,7 @@ rule rule_call:
 
 rule rule_benchmark:
     input:
-        expand(str(BENCH_DIR / "rastair" / "{sample}" / "{sample}.bed.gz"), sample=SAMPLE_NAMES),
+        expand(str(BENCH_DIR / "rastair" / "all" / "{sample}" / "{sample}.bed.gz"), sample=SAMPLE_NAMES),
         expand(str(BENCH_DIR / "astair"  / "{biotype}" / ".done_{sample}"),
                sample=SAMPLE_NAMES, biotype=BIOTYPES),
         expand(str(BENCH_DIR / "bismark" / "{sample}" / ".done"), sample=SAMPLE_NAMES),
