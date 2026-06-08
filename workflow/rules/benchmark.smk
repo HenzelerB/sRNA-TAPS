@@ -168,15 +168,16 @@ rule bismark_index:
     threads: 8
     resources:
         mem_mb   = 64000,
-        runtime  = 480,
+        runtime  = 720,
     shell:
         """
         mkdir -p {params.index_dir}
         cp {input.fa} {params.index_dir}/
+        export TMPDIR={params.index_dir}
         bismark_genome_preparation \
             --bowtie2 \
             --large-index \
-            --parallel 4 \
+            --parallel 2 \
             {params.index_dir} \
             > {log} 2>&1
         touch {output.done}
@@ -203,7 +204,7 @@ rule bismark_align_extract:
     threads: 8
     resources:
         mem_mb   = 48000,
-        runtime  = 480,
+        runtime  = 720,
     shell:
         """
         mkdir -p {params.outdir}
