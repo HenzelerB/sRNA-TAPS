@@ -16,6 +16,9 @@ rule multiqc:
         title       = config["project"]["name"],
     log:
         str(LOG_DIR / "report" / "multiqc.log"),
+    resources:
+        mem_mb  = 8000,
+        runtime = 60,
     shell:
         """
         mkdir -p {params.outdir}
