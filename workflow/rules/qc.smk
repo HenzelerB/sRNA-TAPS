@@ -23,7 +23,9 @@ rule fastqc_pretrim:
         fastqc --outdir {params.outdir} --threads {threads} --extract {input.fq} \
             > {log} 2>&1
         # Rename output to match expected filenames (strip .merged suffix)
-        RAW=$(basename {input.fq} .fq.gz)
+        RAW=$(basename {input.fq})
+        RAW="${{RAW%.fastq.gz}}"
+        RAW="${{RAW%.fq.gz}}"
         SRC_HTML={params.outdir}/${{RAW}}_fastqc.html
         SRC_ZIP={params.outdir}/${{RAW}}_fastqc.zip
         if [ -f "$SRC_HTML" ] && [ "$SRC_HTML" != "{output.html}" ]; then
@@ -103,7 +105,9 @@ rule fastqc_posttrim:
         fastqc --outdir {params.outdir} --threads {threads} --extract {input.fq} \
             > {log} 2>&1
         # Rename output to match expected filenames (strip .merged suffix)
-        RAW=$(basename {input.fq} .fq.gz)
+        RAW=$(basename {input.fq})
+        RAW="${{RAW%.fastq.gz}}"
+        RAW="${{RAW%.fq.gz}}"
         SRC_HTML={params.outdir}/${{RAW}}_fastqc.html
         SRC_ZIP={params.outdir}/${{RAW}}_fastqc.zip
         if [ -f "$SRC_HTML" ] && [ "$SRC_HTML" != "{output.html}" ]; then
