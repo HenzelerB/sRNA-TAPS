@@ -20,11 +20,28 @@ opt <- parse_args(OptionParser(option_list = option_list))
 if (is.null(opt$figdir)) opt$figdir <- file.path(opt$outdir, "report", "figures")
 dir.create(opt$figdir, recursive = TRUE, showWarnings = FALSE)
 
-biotype_file <- file.path(opt$outdir, "05.biotype_bams",
-                           "biotype_composition_all_samples.tsv")
+biotype_dir  <- file.path(opt$outdir, "05.biotype_bams")
+biotype_file <- file.path(biotype_dir, "biotype_composition_all_samples.tsv")
 
+# Assemble from per-sample summary files if combined TSV doesn't exist
 if (!file.exists(biotype_file)) {
-  stop("Biotype composition file not found: ", biotype_file)
+  summary_files <- list.files(biotype_dir, pattern = "_biotype_summary\.txt$",
+                               full.names = TRUE)
+  if (length(summary_files) == 0) stop("No biotype summary files found in ", biotype_dir)
+  message("  Assembling biotype composition from ", length(summary_files), " summary files...")
+  bio_list <- lapply(summary_files, function(f) {
+    sample <- sub("_biotype_summary\.txt$", "", basename(f))
+    df <- read_tsv(f, show_col_types = FALSE) %>%
+      dplyr::mutate(
+        sample    = sample,
+        condition = get_condition(sample),
+        cell_line = get_cell_line(sample)
+      )
+    df
+  })
+  bio_combined <- dplyr::bind_rows(bio_list)
+  write_tsv(bio_combined, biotype_file)
+  message("  Written: ", biotype_file)
 }
 
 bio <- read_tsv(biotype_file, show_col_types = FALSE) %>%

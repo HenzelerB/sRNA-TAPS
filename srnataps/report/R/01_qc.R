@@ -61,12 +61,11 @@ parse_fastqc_length <- function(fastqc_dir, trim_status) {
 
 # Your FastQC files are flat in 02.fastqc/ — all pre-trim only
 pre_dir  <- file.path(opt$outdir, "02.fastqc")
-post_dir <- file.path(opt$outdir, "03.trimGalore")  # post-trim QC not run separately
+post_dir <- file.path(opt$outdir, "02.fastqc", "post_trim")
 
 if (dir.exists(pre_dir)) {
   pre  <- parse_fastqc_length(pre_dir, "Pre-trim")
-  post <- data.frame()  # no post-trim FastQC available
-  if (nrow(post) == 0) post <- pre %>% dplyr::mutate(trim = "Pre-trim")
+  post <- if (dir.exists(post_dir)) parse_fastqc_length(post_dir, "Post-trim") else data.frame()
   len_data <- dplyr::bind_rows(pre, post) %>%
     dplyr::mutate(
       condition = factor(condition, levels = names(CONDITION_COLOURS)),
@@ -129,7 +128,7 @@ parse_bowtie_logs <- function(log_dir) {
   }) %>% dplyr::bind_rows()
 }
 
-log_dir  <- file.path(opt$outdir, "logs")
+log_dir  <- file.path(opt$outdir, "logs", "align")
 map_data <- parse_bowtie_logs(log_dir)
 
 if (!is.null(map_data) && nrow(map_data) > 0) {

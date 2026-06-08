@@ -115,11 +115,9 @@ if (file.exists(corr_file)) {
     if (nrow(shared_data) > 0 && "mod_rate_custom" %in% names(shared_data)) {
       shared_long <- shared_data %>%
         dplyr::mutate(
-          mod_rate_tool = dplyr::case_when(
-            tool == "rastair" ~ mod_rate_rastair,
-            tool == "bismark" ~ mod_rate_bismark,
-            tool == "astair"  ~ mod_rate_astair,
-            TRUE              ~ NA_real_
+          mod_rate_tool = dplyr::coalesce(
+            mod_rate_rastair, mod_rate_astair, mod_rate_bismark,
+            mod_rate_rastair_all
           ),
           biotype = factor(biotype, levels = BIOTYPE_ORDER),
           tool    = factor(tool,    levels = TOOL_ORDER)
