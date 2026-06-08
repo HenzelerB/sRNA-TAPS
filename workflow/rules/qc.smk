@@ -67,9 +67,12 @@ rule trim_galore:
             {input.fq} \
             > {log} 2>&1
 
-        # Rename to consistent name
-        TRIMMED=$(ls {params.outdir}/{wildcards.sample}*_trimmed.fq.gz 2>/dev/null | head -1 || true)
-        REPORT=$(ls  {params.outdir}/{wildcards.sample}*_trimming_report.txt 2>/dev/null | head -1 || true)
+        # Rename to consistent name (use exact match to avoid greedy glob)
+        INPUT_BASE=$(basename {input.fq})
+        INPUT_STEM="${{INPUT_BASE%.fastq.gz}}"
+        INPUT_STEM="${{INPUT_STEM%.fq.gz}}"
+        TRIMMED=$(ls {params.outdir}/${{INPUT_STEM}}_trimmed.fq.gz 2>/dev/null || true)
+        REPORT=$(ls  {params.outdir}/${{INPUT_STEM}}_trimming_report.txt 2>/dev/null || true)
         if [[ -n "$TRIMMED" && "$TRIMMED" != "{output.fq}" ]]; then
             mv "$TRIMMED" "{output.fq}"
         fi
