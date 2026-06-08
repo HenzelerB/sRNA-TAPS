@@ -5,7 +5,7 @@
 def get_notreat_bams(wc):
     """Return all no-treat BAMs for a given cell line."""
     notreat = SAMPLES[
-        (SAMPLES["condition"] == "no_treat") &
+        (SAMPLES["condition"] == "no-treat") &
         (SAMPLES["cell_line"] == wc.cell_line)
     ]["sample"].tolist()
     return [str(ALIGN_DIR / f"{s}.sorted.bam") for s in notreat]
