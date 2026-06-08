@@ -69,16 +69,20 @@ rule trim_galore:
             {input.fq} \
             > {log} 2>&1
 
-        # Rename to consistent name (use exact match to avoid greedy glob)
+        # Trim Galore output naming:
+        # trimmed FASTQ: <stem>_trimmed.fq.gz where stem = basename stripped of .fq.gz
+        # report: <full_basename>_trimming_report.txt
+        # e.g. sample.merged.fq.gz -> sample.merged_trimmed.fq.gz + sample.merged.fq.gz_trimming_report.txt
+        # e.g. sample.fastq.gz -> sample_trimmed.fq.gz + sample.fastq.gz_trimming_report.txt
         INPUT_BASE=$(basename {input.fq})
-        INPUT_STEM="${{INPUT_BASE%.fastq.gz}}"
-        INPUT_STEM="${{INPUT_STEM%.fq.gz}}"
-        TRIMMED=$(ls {params.outdir}/${{INPUT_STEM}}_trimmed.fq.gz 2>/dev/null || true)
-        REPORT=$(ls  {params.outdir}/${{INPUT_STEM}}_trimming_report.txt 2>/dev/null || true)
-        if [[ -n "$TRIMMED" && "$TRIMMED" != "{output.fq}" ]]; then
+        INPUT_STEM="${{INPUT_BASE%.fq.gz}}"
+        INPUT_STEM="${{INPUT_STEM%.fastq.gz}}"
+        TRIMMED="{params.outdir}/${{INPUT_STEM}}_trimmed.fq.gz"
+        REPORT="{params.outdir}/${{INPUT_BASE}}_trimming_report.txt"
+        if [ -f "$TRIMMED" ] && [ "$TRIMMED" != "{output.fq}" ]; then
             mv "$TRIMMED" "{output.fq}"
         fi
-        if [[ -n "$REPORT" && "$REPORT" != "{output.report}" ]]; then
+        if [ -f "$REPORT" ] && [ "$REPORT" != "{output.report}" ]; then
             mv "$REPORT" "{output.report}"
         fi
         """
