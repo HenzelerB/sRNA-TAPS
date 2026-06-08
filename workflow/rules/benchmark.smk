@@ -118,7 +118,7 @@ rule astair_call:
         str(LOG_DIR / "benchmark" / "astair_{sample}_{biotype}.log"),
     threads: 8
     resources:
-        mem_mb   = 32000,
+        mem_mb   = 64000,
         runtime  = 240,
     shell:
         """
