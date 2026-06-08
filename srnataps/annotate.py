@@ -200,6 +200,13 @@ def main():
         if counts.get(bt, 0) > 0:
             pysam.sort("-@", "4", "-o", sorted_, unsorted)
             pysam.index(sorted_)
+        else:
+            # Create empty sorted BAM so Snakemake finds expected output
+            bam_in = pysam.AlignmentFile(args.bam, "rb")
+            empty  = pysam.AlignmentFile(sorted_, "wb", header=bam_in.header)
+            empty.close()
+            bam_in.close()
+            pysam.index(sorted_)
         Path(unsorted).unlink(missing_ok=True)
 
     # Write summary
