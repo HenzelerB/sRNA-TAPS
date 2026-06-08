@@ -30,7 +30,7 @@ SAMPLE_NAMES  = SAMPLES["sample"].tolist()
 CELL_LINES    = SAMPLES["cell_line"].unique().tolist()
 CONDITIONS    = SAMPLES["condition"].unique().tolist()
 BIOTYPES      = ["rRNA", "miRNA", "tRNA", "snoRNA", "snRNA", "piRNA", "lncRNA", "other"]
-BENCHMARK     = config.get("benchmark", False)
+BENCHMARK     = config.get("run_benchmark", False)
 
 # ── Output directory shortcuts ────────────────────────────────────────────────
 QC_DIR       = OUTDIR / config["output"]["fastqc"]
