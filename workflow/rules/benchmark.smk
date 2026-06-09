@@ -116,9 +116,9 @@ rule astair_call:
         context   = config["benchmark"]["tools"]["astair"]["context"],
     log:
         str(LOG_DIR / "benchmark" / "astair_{sample}_{biotype}.log"),
-    threads: 8
+    threads: 4
     resources:
-        mem_mb   = 64000,
+        mem_mb   = 120000,
         runtime  = 240,
     shell:
         """
