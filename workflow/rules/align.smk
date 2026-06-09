@@ -65,6 +65,7 @@ rule bowtie1_align:
     threads: 8
     resources:
         mem_mb   = 40000,
+        runtime  = 2880,
     shell:
         """
         mkdir -p {ALIGN_DIR}
