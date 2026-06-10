@@ -38,6 +38,11 @@ set-threads:
   snp_blacklist:    4
   taps_call:        4
   multiqc:          1
+  report_qc:        2
+  report_biotype:   2
+  report_modification: 4
+  report_seqlogos:  4
+  report_benchmark: 4
   rastair_cpg:      8
   rastair_all:      8
   astair_call:      4
@@ -99,6 +104,26 @@ set-resources:
 
   multiqc:
     mem_mb: 4000
+    runtime: 60
+
+  report_qc:
+    mem_mb: 8000
+    runtime: 60
+
+  report_biotype:
+    mem_mb: 8000
+    runtime: 60
+
+  report_modification:
+    mem_mb: 16000
+    runtime: 120
+
+  report_seqlogos:
+    mem_mb: 16000
+    runtime: 180
+
+  report_benchmark:
+    mem_mb: 8000
     runtime: 60
 
   rastair_cpg:

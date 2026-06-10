@@ -25,12 +25,12 @@ biotype_file <- file.path(biotype_dir, "biotype_composition_all_samples.tsv")
 
 # Assemble from per-sample summary files if combined TSV doesn't exist
 if (!file.exists(biotype_file)) {
-  summary_files <- list.files(biotype_dir, pattern = "_biotype_summary\.txt$",
+  summary_files <- list.files(biotype_dir, pattern = "_biotype_summary\\.txt$",
                                full.names = TRUE)
   if (length(summary_files) == 0) stop("No biotype summary files found in ", biotype_dir)
   message("  Assembling biotype composition from ", length(summary_files), " summary files...")
   bio_list <- lapply(summary_files, function(f) {
-    sample <- sub("_biotype_summary\.txt$", "", basename(f))
+    sample <- sub("_biotype_summary\\.txt$", "", basename(f))
     df <- read_tsv(f, show_col_types = FALSE) %>%
       dplyr::mutate(
         sample    = sample,

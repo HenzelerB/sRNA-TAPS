@@ -1,139 +1,116 @@
 # =============================================================================
-# sRNA-TAPS Snakefile
-# Main workflow orchestrating all pipeline rules.
+# Snakefile — sRNA-TAPS pipeline
+# Profile-based SLURM submission (no --cluster string needed).
+# Run via: snakemake --profile profile/
+#      or: bash sRNA_taps.bash   (from project directory)
 #
-# Usage (via CLI):
-#   srnataps run  --configfile config.yaml --slurm
-#   srnataps module call --configfile config.yaml --slurm
-#
-# Usage (direct Snakemake):
-#   snakemake --snakefile Snakefile --configfile config.yaml --cores 8
-#   snakemake --snakefile Snakefile --configfile config.yaml --config benchmark=true
+# Project structure expected in the working directory (e.g. sRNA_TAPS_bio/):
+#   config.yaml          — project config
+#   rawfiles/            — *.merged.fq.gz input FASTQs
+#   04a.genome/          — reference FASTA + GTF + bowtie1 index
+#   samples.tsv          — sample sheet (sample, condition, cell_line, fastq)
 # =============================================================================
 
 import pandas as pd
 from pathlib import Path
 
-# ── Load config ───────────────────────────────────────────────────────────────
-OUTDIR    = Path(config["project"]["outdir"])
-FASTQ_DIR = Path(config["input"]["fastq_dir"])
+configfile: "config.yaml"
 
-# ── Load sample sheet ─────────────────────────────────────────────────────────
-samples_path = config["input"]["samples_tsv"]
-if not Path(samples_path).is_absolute():
-    samples_path = Path(workflow.configfiles[0]).parent / samples_path
+# ── Sample sheet ──────────────────────────────────────────────────────────────
+SAMPLES_DF = pd.read_csv("samples.tsv", sep="\t").set_index("sample")
+SAMPLES     = SAMPLES_DF.index.tolist()
+CELL_LINES  = SAMPLES_DF["cell_line"].unique().tolist()
+BIOTYPES    = ["rRNA", "miRNA", "tRNA", "snoRNA", "snRNA", "piRNA", "lncRNA", "other"]
 
-SAMPLES = pd.read_csv(samples_path, sep="\t", dtype=str)
-SAMPLES = SAMPLES.set_index("sample", drop=False)
+# ── Directory layout (from config) ───────────────────────────────────────────
+OUTDIR      = Path(config["project"]["outdir"])
+QC_DIR      = OUTDIR / config["output"]["fastqc"]
+TRIM_DIR    = OUTDIR / config["output"]["trimmed"]
+GENOME_DIR  = OUTDIR / config["output"]["genome"]
+ALIGN_DIR   = OUTDIR / config["output"]["aligned"]
+BIOTYPE_DIR = OUTDIR / config["output"]["biotypes"]
+SNP_DIR     = OUTDIR / config["output"]["snp"]
+CALLS_DIR   = OUTDIR / config["output"]["calls"]
+BENCH_DIR   = OUTDIR / config["output"]["benchmark"]
+COMPARE_DIR = OUTDIR / config["output"]["compare"]
+LOG_DIR     = OUTDIR / config["output"]["logs"]
 
-SAMPLE_NAMES  = SAMPLES["sample"].tolist()
-CELL_LINES    = SAMPLES["cell_line"].unique().tolist()
-CONDITIONS    = SAMPLES["condition"].unique().tolist()
-BIOTYPES      = ["rRNA", "miRNA", "tRNA", "snoRNA", "snRNA", "piRNA", "lncRNA", "other"]
-BENCHMARK     = config.get("run_benchmark", False)
+# ── Helper: cell line from sample name ───────────────────────────────────────
+def get_cell_line(sample):
+    return SAMPLES_DF.loc[sample, "cell_line"]
 
-# ── Output directory shortcuts ────────────────────────────────────────────────
-QC_DIR       = OUTDIR / config["output"]["fastqc"]
-TRIM_DIR     = OUTDIR / config["output"]["trimmed"]
-GENOME_DIR   = OUTDIR / config["output"]["genome"]
-ALIGN_DIR    = OUTDIR / config["output"]["aligned"]
-BIOTYPE_DIR  = OUTDIR / config["output"]["biotypes"]
-SNP_DIR      = OUTDIR / config["output"]["snp"]
-CALLS_DIR    = OUTDIR / config["output"]["calls"]
-BENCH_DIR    = OUTDIR / config["output"]["benchmark"]
-COMPARE_DIR  = OUTDIR / config["output"]["compare"]
-LOG_DIR      = OUTDIR / config["output"]["logs"]
-REPORT_DIR   = OUTDIR / config["output"]["report"]
+def get_condition(sample):
+    return SAMPLES_DF.loc[sample, "condition"]
 
-# ── Include rule modules ──────────────────────────────────────────────────────
+def get_notreat_bams(wc):
+    notreat = SAMPLES_DF[
+        (SAMPLES_DF["condition"] == "no-treat") &
+        (SAMPLES_DF["cell_line"] == wc.cell_line)
+    ].index.tolist()
+    return [str(ALIGN_DIR / f"{s}.sorted.bam") for s in notreat]
+
+def get_snp_bed(wc):
+    cl = get_cell_line(wc.sample)
+    return str(SNP_DIR / f"sample_snps_{cl}.bed")
+
+def get_min_cov(wc):
+    return {
+        "rRNA": 10, "miRNA": 3, "tRNA": 3,
+        "snoRNA": 3, "snRNA": 5, "piRNA": 5,
+        "lncRNA": 5, "other": 5,
+    }.get(wc.biotype, 5)
+
+# ── Include rules ─────────────────────────────────────────────────────────────
 include: "rules/qc.smk"
+include: "rules/trim.smk"
 include: "rules/align.smk"
 include: "rules/biotype.smk"
 include: "rules/snp.smk"
 include: "rules/call.smk"
 include: "rules/benchmark.smk"
 include: "rules/compare.smk"
+include: "rules/multiqc.smk"
 include: "rules/report.smk"
 
-
-# ══════════════════════════════════════════════════════════════════════════════
-# Target rules
-# ══════════════════════════════════════════════════════════════════════════════
-
+# ── Target rules ──────────────────────────────────────────────────────────────
 rule all:
     """Full pipeline without benchmarking."""
     input:
-        # QC reports
-        expand(str(QC_DIR / "pre_trim" / "{sample}_fastqc.html"), sample=SAMPLE_NAMES),
-        expand(str(QC_DIR / "post_trim" / "{sample}_trimmed_fastqc.html"), sample=SAMPLE_NAMES),
-        # Alignment
-        expand(str(ALIGN_DIR / "{sample}.sorted.bam"), sample=SAMPLE_NAMES),
-        # Biotype split
+        # FastQC pre/post trim
+        expand(str(QC_DIR / "pre_trim"  / "{sample}_fastqc.html"), sample=SAMPLES),
+        expand(str(QC_DIR / "post_trim" / "{sample}_trimmed_fastqc.html"), sample=SAMPLES),
+        # Aligned BAMs
+        expand(str(ALIGN_DIR / "{sample}.sorted.bam"), sample=SAMPLES),
+        # Biotype BAMs
         expand(str(BIOTYPE_DIR / "{biotype}" / "{sample}_{biotype}.sorted.bam"),
-               sample=SAMPLE_NAMES, biotype=BIOTYPES),
-        # SNP blacklist
+               sample=SAMPLES, biotype=BIOTYPES),
+        # SNP resources
         expand(str(SNP_DIR / "sample_snps_{cell_line}.bed"), cell_line=CELL_LINES),
         # TAPS calls
         expand(str(CALLS_DIR / "{biotype}" / "{sample}_{biotype}_taps.tsv"),
-               sample=SAMPLE_NAMES, biotype=BIOTYPES),
-        # MultiQC report
-        str(REPORT_DIR / "multiqc_report.html"),
-
+               sample=SAMPLES, biotype=BIOTYPES),
+        # MultiQC
+        str(OUTDIR / "report" / "multiqc_report.html"),
+        # R figure reports (per stage)
+        str(OUTDIR / "report" / "figures" / ".report_qc.done"),
+        str(OUTDIR / "report" / "figures" / ".report_biotype.done"),
+        str(OUTDIR / "report" / "figures" / ".report_modification.done"),
+        str(OUTDIR / "report" / "figures" / ".report_seqlogos.done"),
 
 rule all_benchmark:
     """Full pipeline including benchmarking and comparison."""
     input:
         rules.all.input,
-        # Benchmarking
-        expand(str(BENCH_DIR / "rastair" / "all" / "{sample}" / "{sample}.bed.gz"), sample=SAMPLE_NAMES),
-        expand(str(BENCH_DIR / "astair"  / "{biotype}" / ".done_{sample}"),
-               sample=SAMPLE_NAMES, biotype=BIOTYPES),
-        expand(str(BENCH_DIR / "bismark" / "{sample}" / ".done"), sample=SAMPLE_NAMES),
+        # rastair
+        expand(str(BENCH_DIR / "rastair" / "all"  / "{sample}" / "{sample}.bed.gz"), sample=SAMPLES),
+        expand(str(BENCH_DIR / "rastair" / "cpg"  / "{sample}" / "{sample}.bed.gz"), sample=SAMPLES),
+        # asTair
+        expand(str(BENCH_DIR / "astair" / "{biotype}" / ".done_{sample}"),
+               sample=SAMPLES, biotype=BIOTYPES),
+        # Bismark
+        expand(str(BENCH_DIR / "bismark" / "{sample}" / ".done"), sample=SAMPLES),
         # Comparison
         str(COMPARE_DIR / "concordance_summary.tsv"),
         str(COMPARE_DIR / "correlation_summary.tsv"),
-
-
-# Named targets for module mode
-rule rule_fastqc:
-    input:
-        expand(str(QC_DIR / "pre_trim"  / "{sample}_fastqc.html"), sample=SAMPLE_NAMES),
-        expand(str(QC_DIR / "post_trim" / "{sample}_trimmed_fastqc.html"), sample=SAMPLE_NAMES),
-
-rule rule_trim:
-    input:
-        expand(str(TRIM_DIR / "{sample}_trimmed.fq.gz"), sample=SAMPLE_NAMES),
-
-rule rule_index:
-    input:
-        str(GENOME_DIR / ".bowtie1_index_complete"),
-
-rule rule_align:
-    input:
-        expand(str(ALIGN_DIR / "{sample}.sorted.bam"), sample=SAMPLE_NAMES),
-
-rule rule_biotype:
-    input:
-        expand(str(BIOTYPE_DIR / "{biotype}" / "{sample}_{biotype}.sorted.bam"),
-               sample=SAMPLE_NAMES, biotype=BIOTYPES),
-
-rule rule_snp:
-    input:
-        expand(str(SNP_DIR / "sample_snps_{cell_line}.bed"), cell_line=CELL_LINES),
-
-rule rule_call:
-    input:
-        expand(str(CALLS_DIR / "{biotype}" / "{sample}_{biotype}_taps.tsv"),
-               sample=SAMPLE_NAMES, biotype=BIOTYPES),
-
-rule rule_benchmark:
-    input:
-        expand(str(BENCH_DIR / "rastair" / "all" / "{sample}" / "{sample}.bed.gz"), sample=SAMPLE_NAMES),
-        expand(str(BENCH_DIR / "astair"  / "{biotype}" / ".done_{sample}"),
-               sample=SAMPLE_NAMES, biotype=BIOTYPES),
-        expand(str(BENCH_DIR / "bismark" / "{sample}" / ".done"), sample=SAMPLE_NAMES),
-
-rule rule_compare:
-    input:
-        str(COMPARE_DIR / "concordance_summary.tsv"),
-        str(COMPARE_DIR / "correlation_summary.tsv"),
+        # Benchmark R figures
+        str(OUTDIR / "report" / "figures" / ".report_benchmark.done"),
