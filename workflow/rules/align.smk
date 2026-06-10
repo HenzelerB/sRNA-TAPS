@@ -1,34 +1,106 @@
 # =============================================================================
-# rules/align.smk — Bowtie1 genome index and alignment
+# rules/align.smk — Genome setup + Bowtie1 index + alignment
+#
+# For new users, the pipeline downloads and indexes the genome automatically.
+# Existing users with a genome already in place: set the paths in config.yaml
+# and the download steps will be skipped (Snakemake sees outputs already exist).
+#
+# Ensembl release is set in config["reference"]["ensembl_release"] (default 112).
 # =============================================================================
 
-rule bowtie1_index:
-    """
-    Build Bowtie1 genome index from reference FASTA.
+ENSEMBL_RELEASE = config["reference"].get("ensembl_release", 112)
+ENSEMBL_FA_URL  = (
+    f"https://ftp.ensembl.org/pub/release-{ENSEMBL_RELEASE}/fasta/homo_sapiens/dna/"
+    f"Homo_sapiens.GRCh38.dna.toplevel.fa.gz"
+)
+ENSEMBL_GTF_URL = (
+    f"https://ftp.ensembl.org/pub/release-{ENSEMBL_RELEASE}/gtf/homo_sapiens/"
+    f"Homo_sapiens.GRCh38.{ENSEMBL_RELEASE}.gtf.gz"
+)
 
-    Why Bowtie1 for small RNA:
-        - Reads are 18-50 nt — too short for bwa-mem2 minimum seed length
-        - -v mode tolerates total mismatches without quality weighting,
-          correctly handling TAPS C→T at modified sites as real signal
-        - Splice-awareness (STAR/HISAT2) adds no value for non-spliced small RNA
+
+rule download_genome_fa:
+    """
+    Download Ensembl GRCh38 unmasked FASTA.
+    Unmasked (dna.toplevel) is required for TAPS — the repeat-masked version
+    soft-masks cytosines, which would suppress genuine C→T modification signal.
+    Skipped automatically if the FASTA already exists.
+    """
+    output:
+        fa = config["reference"]["genome_fa"],
+    params:
+        url    = ENSEMBL_FA_URL,
+        fa_gz  = config["reference"]["genome_fa"] + ".gz",
+        outdir = str(GENOME_DIR),
+    log:
+        str(LOG_DIR / "align" / "download_genome_fa.log"),
+    shell:
+        """
+        mkdir -p {params.outdir}
+        echo "Downloading genome FASTA from Ensembl release {ENSEMBL_RELEASE}..." > {log}
+        wget -q --show-progress -O {params.fa_gz} {params.url} >> {log} 2>&1
+        echo "Decompressing..." >> {log}
+        gunzip -f {params.fa_gz} >> {log} 2>&1
+        echo "Done: {output.fa}" >> {log}
+        """
+
+
+rule download_gtf:
+    """
+    Download Ensembl GRCh38 GTF annotation.
+    Used for biotype-split annotation.
+    Skipped automatically if the GTF already exists.
+    """
+    output:
+        gtf = config["reference"]["gtf"],
+    params:
+        url     = ENSEMBL_GTF_URL,
+        gtf_gz  = config["reference"]["gtf"] + ".gz",
+        outdir  = str(GENOME_DIR),
+    log:
+        str(LOG_DIR / "align" / "download_gtf.log"),
+    shell:
+        """
+        mkdir -p {params.outdir}
+        echo "Downloading GTF from Ensembl release {ENSEMBL_RELEASE}..." > {log}
+        wget -q --show-progress -O {params.gtf_gz} {params.url} >> {log} 2>&1
+        echo "Decompressing..." >> {log}
+        gunzip -f {params.gtf_gz} >> {log} 2>&1
+        echo "Done: {output.gtf}" >> {log}
+        """
+
+
+rule index_genome_fa:
+    """
+    samtools faidx — required by caller.py for random FASTA access.
     """
     input:
         fa = config["reference"]["genome_fa"],
     output:
-        done  = str(GENOME_DIR / ".bowtie1_index_complete"),
-        index = str(GENOME_DIR / "genome.1.ebwt"),
-    params:
-        outdir = str(GENOME_DIR),
-        prefix = str(GENOME_DIR / "genome"),
+        fai = config["reference"]["genome_fa"] + ".fai",
     log:
-        str(LOG_DIR / "align" / "bowtie1_index.log"),
-    threads: 20
-    resources:
-        mem_mb   = 64000,
-        runtime  = 720,
+        str(LOG_DIR / "align" / "index_genome_fa.log"),
     shell:
         """
-        mkdir -p {params.outdir}
+        samtools faidx {input.fa} > {log} 2>&1
+        """
+
+
+rule bowtie1_index:
+    """
+    Build Bowtie1 genome index — run once.
+    Unmasked FASTA is required (see download_genome_fa rationale).
+    """
+    input:
+        fa = config["reference"]["genome_fa"],
+    output:
+        done = str(GENOME_DIR / ".bowtie1_index_complete"),
+    params:
+        prefix = config["reference"]["bowtie1_index"],
+    log:
+        str(LOG_DIR / "align" / "bowtie1_index.log"),
+    shell:
+        """
         bowtie-build --threads {threads} {input.fa} {params.prefix} > {log} 2>&1
         touch {output.done}
         """
@@ -36,54 +108,42 @@ rule bowtie1_index:
 
 rule bowtie1_align:
     """
-    Bowtie1 alignment of trimmed small RNA reads.
-
-    Parameter rationale:
-        -v 2         : up to 2 total mismatches (TAPS C→T are genuine mismatches)
-        --norc       : strand-specific (TruSeq small RNA = sense strand only)
-                       prevents false G→A calls on reverse complement
-        -k 10        : report up to 10 alignments (tRNA ~600 near-identical copies)
-        --best       : report alignments in the best-scoring stratum only
-        --strata     : prevents mixing 0- and 2-mismatch hits in XA count
-        -m 100       : discard reads mapping to >100 loci (uninterpretable repeats)
-        --sam        : SAM output required for XA:i:N tag (multi-mapper weighting)
+    Bowtie1 alignment — TAPS-aware, small RNA.
+    -v 2            : allow 2 mismatches (tolerates genuine C→T TAPS signal)
+    --norc          : strand-specific TruSeq small RNA libraries
+    -k 10           : report up to 10 alignments (tRNA multi-mappers + XA tag)
+    --best --strata : report only best-stratum hits
+    -m 100          : discard reads with >100 valid alignments (repetitive elements)
     """
     input:
-        fq    = str(TRIM_DIR / "{sample}_trimmed.fq.gz"),
-        index = str(GENOME_DIR / ".bowtie1_index_complete"),
+        fq   = str(TRIM_DIR / "{sample}_trimmed.fq.gz"),
+        done = str(GENOME_DIR / ".bowtie1_index_complete"),
     output:
-        bam   = str(ALIGN_DIR / "{sample}.sorted.bam"),
-        bai   = str(ALIGN_DIR / "{sample}.sorted.bam.bai"),
+        bam = str(ALIGN_DIR / "{sample}.sorted.bam"),
+        bai = str(ALIGN_DIR / "{sample}.sorted.bam.bai"),
     params:
-        prefix    = str(GENOME_DIR / "genome"),
-        mm        = config["alignment"]["mismatches"],
-        multi     = config["alignment"]["multimappers"],
-        max_multi = config["alignment"]["max_multimappers"],
+        index = config["reference"]["bowtie1_index"],
     log:
-        bowtie  = str(LOG_DIR / "align" / "{sample}_bowtie.log"),
-        flagstat= str(LOG_DIR / "align" / "{sample}_flagstat.log"),
-    threads: 8
-    resources:
-        mem_mb   = 40000,
-        runtime  = 2880,
+        bowtie   = str(LOG_DIR / "align" / "{sample}_bowtie.log"),
+        flagstat = str(LOG_DIR / "align" / "{sample}_flagstat.log"),
     shell:
         """
         mkdir -p {ALIGN_DIR}
         bowtie \
-            -v {params.mm} \
+            -v 2 \
             --norc \
-            -k {params.multi} \
+            -k 10 \
             --best \
             --strata \
-            -m {params.max_multi} \
+            -m 100 \
             -p {threads} \
             --sam \
-            {params.prefix} \
+            {params.index} \
             {input.fq} \
             2> {log.bowtie} \
         | samtools view -bS -F 4 - \
         | samtools sort -@ 4 -o {output.bam}
 
-        samtools index {output.bam}
+        samtools index {output.bam} {output.bai}
         samtools flagstat {output.bam} > {log.flagstat}
         """
