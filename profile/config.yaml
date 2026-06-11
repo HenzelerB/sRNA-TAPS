@@ -141,7 +141,6 @@ set-resources:
   bismark_index:
     mem_mb: 64000
     runtime: 720
-    slurm_extra: "\"--export=ALL,TMPDIR={output_dir}\""
 
   bismark_align:
     mem_mb: 48000
