@@ -29,7 +29,6 @@ rule annotate_taps_calls:
     resources:
         mem_mb        = 8000,
         runtime       = 30,
-        slurm_account = config["slurm"]["account"],
         slurm_extra   = "",
     script:
         "../scripts/annotate_taps.py"
