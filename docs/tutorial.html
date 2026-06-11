@@ -48,6 +48,8 @@
     td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text2)}
     .result-good{color:#2C5F8A;font-weight:700}
     .result-ok{color:var(--text2)}
+    ul,ol{margin:0 0 16px 20px;color:var(--text2)}
+    li{margin-bottom:6px;font-size:.925rem}
     footer{background:var(--bg2);border-top:1px solid var(--border);padding:32px 40px}
     .footer-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
     @media(max-width:700px){.page{padding:calc(var(--nav-h)+32px) 20px 60px}nav{padding:0 20px}}
@@ -58,7 +60,7 @@
   <a class="nav-logo" href="https://henzelerb.github.io/sRNA-TAPS/"><img src="sRNA-taps_logo_centre.svg" alt="sRNA-TAPS" style="height:52px;width:auto;display:block;"></a>
   <div class="nav-links">
     <a href="docs.html">Docs</a>
-    <a href="tutorial.html">Tutorial</a>
+    <a href="tutorial.html" class="active">Tutorial</a>
     <a href="benchmarking.html">Benchmarking</a>
     <a href="about.html">About</a>
     <a href="https://github.com/HenzelerB/sRNA-TAPS" target="_blank">GitHub</a>
@@ -69,187 +71,243 @@
 
 <div class="page">
   <h1>Tutorial</h1>
-  <p class="lead">A complete walkthrough using the synthetic test dataset included with sRNA-TAPS. By the end you will have run the full pipeline from raw FASTQs to called m5C sites and verified that the TAPS signal is working correctly.</p>
+  <p class="lead">A complete walkthrough using the 100-sample synthetic test dataset included with sRNA-TAPS. By the end you will have run the full Snakemake pipeline from raw FASTQs to called m5C sites, automatic R report figures, and — optionally — a three-tool benchmarking comparison.</p>
 
-  <div class="note"><strong>Before you start:</strong> You need a Bowtie1 index and Ensembl GRCh38 GTF. The test FASTQs use real hg38 coordinates and will align to a standard hg38 index.</div>
+  <div class="note"><strong>Before you start:</strong> You need a SLURM cluster with the <code>RNA_taps</code> conda environment active, R packages installed (<code>Rscript install_R_packages.R</code>), and the sRNA-TAPS repository cloned. No pre-built genome index is required — the pipeline downloads GRCh38 automatically.</div>
 
-  <!-- STEP 1 -->
+  <!-- ── STEP 1 ─────────────────────────────────────────────────────────── -->
   <div class="step-header"><div class="step-num">1</div><h2>Generate the test FASTQs</h2></div>
   <div class="step-block">
-    <p>The simulator generates 9 samples — 3 conditions × 3 replicates — with accurate TAPS chemistry. Known m5C positions are seeded into the templates so you can verify the signal end-to-end.</p>
+    <p>The simulator generates 100 samples with accurate TAPS chemistry — seeded m5C positions at 40–80% conversion in <code>treat</code> and 2–5% background in <code>no-treat</code>. Reads are 18–50 nt with the TruSeq small RNA adapter, drawn from real hg38 loci (miRNA 40%, tRNA 25%, rRNA 25%, snoRNA 10%).</p>
     <pre><code>python3 tests/simulate_taps_srna.py \
-    --outdir ~/srnataps_tutorial/fastq \
-    --reads  1000000 \
-    --seed   42</code></pre>
-    <p>You should see 9 <code>.fastq.gz</code> files and a <code>samples.tsv</code> written to the output directory.</p>
-    <div class="tip"><strong>Tip:</strong> The <code>--seed 42</code> flag makes the simulation reproducible. You will get identical results every time.</div>
+    --outdir ~/srnataps_test/fastq \
+    --samples 100 \
+    --seed 42</code></pre>
+    <p>You should see 100 <code>.fq.gz</code> files and a <code>samples.tsv</code> written to the output directory.</p>
+    <div class="tip"><strong>Tip:</strong> <code>--seed 42</code> makes the simulation fully reproducible. You will get identical results every time.</div>
   </div>
 
-  <!-- STEP 2 -->
-  <div class="step-header"><div class="step-num">2</div><h2>Adapter trimming</h2></div>
+  <!-- ── STEP 2 ─────────────────────────────────────────────────────────── -->
+  <div class="step-header"><div class="step-num">2</div><h2>Set up the project directory</h2></div>
   <div class="step-block">
-    <p>TrimGalore removes the TruSeq small RNA 3′ adapter and quality-trims the reads. The <code>--small_rna</code> flag sets the correct defaults for this library type.</p>
-    <pre><code>mkdir -p ~/srnataps_tutorial/03.trimGalore
+    <p>sRNA-TAPS needs two files in the project root: a <code>config.yaml</code> and a <code>samples.tsv</code>. The simulator writes <code>samples.tsv</code> automatically — link it to the project root and create the config.</p>
+    <pre><code>cd ~/srnataps_test
 
-for fq in ~/srnataps_tutorial/fastq/*.fastq.gz; do
-    trim_galore --small_rna \
-        --length 18 --max_length 50 \
-        --output_dir ~/srnataps_tutorial/03.trimGalore \
-        $fq
-done</code></pre>
-    <p>Each sample will produce a <code>_trimmed.fq.gz</code> file and a trimming report. Expect ~80–90% of reads to pass the length filter.</p>
+# Link the generated sample sheet
+ln -sf fastq/samples.tsv samples.tsv</code></pre>
+
+    <p>Create <code>config.yaml</code>:</p>
+    <pre><code>project:
+  name: srnataps_test
+  outdir: /home/user/srnataps_test
+
+reference:
+  genome_fa:       /home/user/srnataps_test/04a.genome/Homo_sapiens.GRCh38.dna.toplevel.fa
+  gtf:             /home/user/srnataps_test/04a.genome/Homo_sapiens.GRCh38.112.gtf
+  bowtie1_index:   /home/user/srnataps_test/04a.genome/genome
+  ensembl_release: 112
+  dbsnp_vcf: ""
+
+output:
+  fastqc:    02.fastqc
+  trimmed:   03.trimGalore
+  genome:    04a.genome
+  aligned:   04b.aligned
+  biotypes:  05.biotype_bams
+  snp:       06.snp_resources
+  calls:     07.taps_calls
+  benchmark: 08.benchmark
+  compare:   09.compare
+  logs:      logs
+
+benchmark:
+  tools:
+    astair:
+      min_depth: 5
+      min_mapq:  20
+      min_baseq: 20
+      context:   all</code></pre>
+
+    <div class="note"><strong>Genome paths:</strong> The paths under <code>reference:</code> do not need to exist yet. If the FASTA or GTF are absent, the pipeline downloads them from Ensembl release 112 and builds the Bowtie1 index automatically before any samples are processed.</div>
   </div>
 
-  <!-- STEP 3 -->
-  <div class="step-header"><div class="step-num">3</div><h2>Bowtie1 alignment</h2></div>
+  <!-- ── STEP 3 ─────────────────────────────────────────────────────────── -->
+  <div class="step-header"><div class="step-num">3</div><h2>Dry-run to verify the DAG</h2></div>
   <div class="step-block">
-    <p>Align to the hg38 genome. The <code>--norc</code> flag is critical — small RNA libraries are strand-specific and reverse complement alignment would introduce false positives.</p>
-    <pre><code>BOWTIE_IDX=/path/to/hg38_bowtie1_index
-mkdir -p ~/srnataps_tutorial/04b.aligned
+    <p>Always run a dry-run first. Snakemake prints the complete list of jobs without executing anything — a clean dry-run means your config, sample sheet, and file paths are all correct.</p>
+    <pre><code>cd ~/srnataps_test
 
-for fq in ~/srnataps_tutorial/03.trimGalore/*_trimmed.fq.gz; do
-    sample=$(basename $fq _trimmed.fq.gz)
-    bowtie -x $BOWTIE_IDX -q $fq \
-        --norc -v 2 -k 10 --best --strata -m 100 \
-        -S ~/srnataps_tutorial/04b.aligned/${sample}.sam \
-        2> ~/srnataps_tutorial/04b.aligned/${sample}.log
-    samtools sort -o ~/srnataps_tutorial/04b.aligned/${sample}.sorted.bam \
-        ~/srnataps_tutorial/04b.aligned/${sample}.sam
-    samtools index ~/srnataps_tutorial/04b.aligned/${sample}.sorted.bam
-    rm ~/srnataps_tutorial/04b.aligned/${sample}.sam
-done</code></pre>
-    <p>Check the alignment rate for one sample:</p>
-    <pre><code>cat ~/srnataps_tutorial/04b.aligned/treat_HEK_R1.log</code></pre>
-    <div class="tip"><strong>Expected:</strong> ~80% alignment rate with the synthetic data.</div>
+snakemake \
+    --snakefile /path/to/sRNA-TAPS/workflow/Snakefile \
+    --configfile config.yaml \
+    --profile    /path/to/sRNA-TAPS/profile \
+    --dry-run 2>&1 | tail -20</code></pre>
+    <p>You should see a job count table listing <code>download_genome_fa</code>, <code>download_gtf</code>, <code>bowtie1_index</code>, <code>fastqc</code>, <code>trim_galore</code>, <code>bowtie1_align</code>, <code>biotype_split</code>, <code>taps_call</code>, the four report rules, and <code>multiqc</code>. No errors means you are ready to launch.</p>
   </div>
 
-  <!-- STEP 4 -->
-  <div class="step-header"><div class="step-num">4</div><h2>Biotype annotation</h2></div>
+  <!-- ── STEP 4 ─────────────────────────────────────────────────────────── -->
+  <div class="step-header"><div class="step-num">4</div><h2>Run the pipeline</h2></div>
   <div class="step-block">
-    <p>Each read is assigned to the highest-priority overlapping biotype using the Ensembl GTF. Separate BAMs are written per biotype.</p>
-    <pre><code>GTF=/path/to/Homo_sapiens.GRCh38.112.gtf
-mkdir -p ~/srnataps_tutorial/05.biotype_bams
+    <p>Launch the pipeline via the tmux launcher (recommended for SLURM clusters) or directly in the background. The coordinator process runs on the login node and submits all jobs to SLURM automatically.</p>
 
-for bam in ~/srnataps_tutorial/04b.aligned/*.sorted.bam; do
-    sample=$(basename $bam .sorted.bam)
-    python3 05_annotate_biotype.py \
-        --bam $bam --gtf $GTF \
-        --out_dir ~/srnataps_tutorial/05.biotype_bams \
-        --sample $sample
-done
+    <h3>Option A — tmux launcher (recommended)</h3>
+    <pre><code>cd ~/srnataps_test
+bash /path/to/sRNA-TAPS/sRNA_taps.bash</code></pre>
+    <p>This opens a named tmux session. Detach at any time with <strong>Ctrl+B then D</strong> — the run continues in the background. Reattach later with <code>tmux attach -t sRNA_TAPS</code>.</p>
 
-# Summarise biotype composition
-python3 05_biotype_summarise.py \
-    --in-dir ~/srnataps_tutorial/05.biotype_bams</code></pre>
+    <h3>Option B — direct background launch</h3>
+    <pre><code>cd ~/srnataps_test
+snakemake \
+    --snakefile /path/to/sRNA-TAPS/workflow/Snakefile \
+    --configfile config.yaml \
+    --profile    /path/to/sRNA-TAPS/profile &
+disown %1</code></pre>
+    <div class="tip"><strong>disown:</strong> Running <code>disown %1</code> immediately after launch detaches the Snakemake coordinator from your terminal so it survives if you close the session.</div>
   </div>
 
-  <!-- STEP 5 -->
-  <div class="step-header"><div class="step-num">5</div><h2>Build the SNP blacklist</h2></div>
+  <!-- ── STEP 5 ─────────────────────────────────────────────────────────── -->
+  <div class="step-header"><div class="step-num">5</div><h2>Monitor progress</h2></div>
   <div class="step-block">
-    <p>Merge the three no-treat replicates and call cell-line-specific C→T variants. These positions will be excluded from TAPS calling.</p>
-    <pre><code>mkdir -p ~/srnataps_tutorial/06.snp_resources
+    <p>Check on the run at any time from a new terminal without interrupting it.</p>
 
-samtools merge ~/srnataps_tutorial/06.snp_resources/notreated_HEK_merged.bam \
-    ~/srnataps_tutorial/04b.aligned/no-treat_Ctrl_HEK_R1.sorted.bam \
-    ~/srnataps_tutorial/04b.aligned/no-treat_Ctrl_HEK_R2.sorted.bam \
-    ~/srnataps_tutorial/04b.aligned/no-treat_Ctrl_HEK_R3.sorted.bam
-samtools index ~/srnataps_tutorial/06.snp_resources/notreated_HEK_merged.bam
+    <h3>SLURM queue</h3>
+    <pre><code># Number of active jobs (subtract 1 for the header line)
+squeue -u $USER | wc -l</code></pre>
 
-python3 06_build_snp_blacklist.py \
-    --bam  ~/srnataps_tutorial/06.snp_resources/notreated_HEK_merged.bam \
-    --fasta /path/to/hg38.fa \
-    --out  ~/srnataps_tutorial/06.snp_resources/sample_snps_HEK.bed \
-    --min-af 0.20 --min-cov 5 --cell-line HEK</code></pre>
+    <h3>Snakemake log</h3>
+    <pre><code>tail -f ~/srnataps_test/.snakemake/log/$(ls -t ~/srnataps_test/.snakemake/log/ | head -1)</code></pre>
+    <p>Press <strong>Ctrl+C</strong> to stop watching the log — this does not affect the running pipeline.</p>
+
+    <h3>Output checkpoints</h3>
+    <pre><code># Alignment done?
+ls ~/srnataps_test/04b.aligned/*.sorted.bam | wc -l   # expect 100
+
+# TAPS calls done?
+ls ~/srnataps_test/07.taps_calls/miRNA/ | wc -l       # expect 100 TSVs
+
+# Report figures generated?
+ls ~/srnataps_test/report/figures/*.pdf | wc -l</code></pre>
+
+    <div class="note"><strong>Genome download first:</strong> The first stage downloads and indexes the GRCh38 genome (~3 GB). This takes 20–30 minutes and runs once. All subsequent runs in any project on the same cluster reuse the same genome files if you point <code>genome_fa</code> and <code>bowtie1_index</code> to the same paths.</div>
+
+    <p>The full 100-sample test run takes approximately 2–4 hours on a standard SLURM cluster, depending on node availability. Report figures for QC and biotype composition appear while later stages are still running.</p>
   </div>
 
-  <!-- STEP 6 -->
-  <div class="step-header"><div class="step-num">6</div><h2>TAPS modification calling</h2></div>
+  <!-- ── STEP 6 ─────────────────────────────────────────────────────────── -->
+  <div class="step-header"><div class="step-num">6</div><h2>Verify the TAPS signal</h2></div>
   <div class="step-block">
-    <p>Run the caller on each biotype BAM. SNP-flagged positions are excluded before any counting.</p>
-    <pre><code>mkdir -p ~/srnataps_tutorial/07.taps_calls/miRNA
-
-for bam in ~/srnataps_tutorial/05.biotype_bams/miRNA/*.sorted.bam; do
-    sample=$(basename $bam _miRNA.sorted.bam)
-    python3 07_taps_calling.py \
-        --bam $bam \
-        --fasta /path/to/hg38.fa \
-        --out ~/srnataps_tutorial/07.taps_calls/miRNA/${sample}_miRNA_taps.tsv \
-        --min-cov 3 --context ALL \
-        --sample-snp-bed ~/srnataps_tutorial/06.snp_resources/sample_snps_HEK.bed \
-        --cell-line HEK
-done</code></pre>
-  </div>
-
-  <!-- STEP 7 -->
-  <div class="step-header"><div class="step-num">7</div><h2>Verify the TAPS signal</h2></div>
-  <div class="step-block">
-    <p>Check the two seeded m5C positions — chr17:59841313 in hsa-miR-21-5p and chrX:66018955 in hsa-miR-223-3p:</p>
-    <pre><code>grep "^17.*59841313" \
-    ~/srnataps_tutorial/07.taps_calls/miRNA/treat_HEK_R1_miRNA_taps.tsv
-
+    <p>Once TAPS calling is complete, check the two seeded m5C positions — <strong>chr17:59841313</strong> in hsa-miR-21-5p and <strong>chrX:66018955</strong> in hsa-miR-223-3p:</p>
+    <pre><code># treat sample — expect mod_rate ~0.90
 grep "^17.*59841313" \
-    ~/srnataps_tutorial/07.taps_calls/miRNA/no-treat_Ctrl_HEK_R1_miRNA_taps.tsv</code></pre>
+    ~/srnataps_test/07.taps_calls/miRNA/treat_HEK_R1_miRNA_taps.tsv
+
+# no-treat sample — expect mod_rate ~0.02
+grep "^17.*59841313" \
+    ~/srnataps_test/07.taps_calls/miRNA/no-treat_Ctrl_HEK_R1_miRNA_taps.tsv</code></pre>
+
     <p>Expected results:</p>
     <table>
       <tr><th>Position</th><th>Gene</th><th>Condition</th><th>mod_rate</th></tr>
-      <tr><td>chr17:59841313</td><td>hsa-miR-21-5p</td><td>TET+PB</td><td class="result-good">~90.9%</td></tr>
-      <tr><td>chr17:59841313</td><td>hsa-miR-21-5p</td><td>Untreated</td><td class="result-ok">~1.7%</td></tr>
-      <tr><td>chrX:66018955</td><td>hsa-miR-223-3p</td><td>TET+PB</td><td class="result-good">~71.6%</td></tr>
+      <tr><td>chr17:59841313</td><td>hsa-miR-21-5p</td><td>TET+PB</td><td class="result-good">~90%</td></tr>
+      <tr><td>chr17:59841313</td><td>hsa-miR-21-5p</td><td>Untreated</td><td class="result-ok">~2%</td></tr>
+      <tr><td>chrX:66018955</td><td>hsa-miR-223-3p</td><td>TET+PB</td><td class="result-good">~72%</td></tr>
       <tr><td>chrX:66018955</td><td>hsa-miR-223-3p</td><td>Untreated</td><td class="result-ok">~0.2%</td></tr>
     </table>
-    <div class="tip"><strong>The &gt;40-fold enrichment confirms the pipeline is working correctly end-to-end.</strong></div>
+    <div class="tip"><strong>The &gt;40-fold enrichment between treat and no-treat confirms the pipeline is working correctly end-to-end.</strong></div>
   </div>
 
-
-  <!-- STEP 7b -->
-  <div class="step-header"><div class="step-num">7b</div><h2>Run benchmarking (optional)</h2></div>
+  <!-- ── STEP 7 ─────────────────────────────────────────────────────────── -->
+  <div class="step-header"><div class="step-num">7</div><h2>Explore the report figures</h2></div>
   <div class="step-block">
-    <p>sRNA-TAPS includes a benchmarking suite comparing calls against rastair, asTair, and Bismark. rastair is run twice — once in CpG-only mode and once in all-context mode — to demonstrate that rastair is a CpG-only caller by design.</p>
-    <pre><code># Run rastair (CpG-only and all-context)
-sbatch 08a_rastair.sl
+    <p>Report figures are generated automatically at each pipeline stage — no separate steps needed. All figures are written to <code>report/figures/</code> in PDF, PNG, and SVG format.</p>
+    <pre><code>ls ~/srnataps_test/report/figures/</code></pre>
 
-# Run asTair (all contexts)
-sbatch 08b_astair.sl
+    <table>
+      <tr><th>Figure prefix</th><th>Contents</th></tr>
+      <tr><td><code>01a_*</code></td><td>Read length distributions (raw and trimmed)</td></tr>
+      <tr><td><code>01b_*</code></td><td>Bowtie1 mapping rates per sample</td></tr>
+      <tr><td><code>02a_*</code></td><td>Biotype composition — all samples</td></tr>
+      <tr><td><code>02b_*</code></td><td>Biotype composition — mean by condition</td></tr>
+      <tr><td><code>03a_*</code></td><td>Modification rate distributions</td></tr>
+      <tr><td><code>03b_*</code></td><td>Top m5C sites by δ score</td></tr>
+      <tr><td><code>03c_*</code></td><td>Condition comparison scatter</td></tr>
+      <tr><td><code>03d_*</code></td><td>Waterfall plot of called sites</td></tr>
+      <tr><td><code>03e_*</code></td><td>Trinucleotide context of called sites</td></tr>
+      <tr><td><code>05_seqlogo_*</code></td><td>Sequence logos ±5 and ±10 nt per biotype</td></tr>
+    </table>
 
-# Run Bismark (bisulfite contrast, small RNA Bowtie2 flags)
-sbatch 08c_bismark.sl
-
-# Run comparison
-python3 09_compare.py</code></pre>
-    <p>The benchmarking produces four output directories:</p>
-    <pre><code>08.benchmark/rastair/cpg/   — rastair CpG-only calls
-08.benchmark/rastair/all/   — rastair all-context calls (identical to cpg)
-08.benchmark/astair/        — asTair all-context calls per biotype
-08.benchmark/bismark/       — Bismark bisulfite calls (chemistry inverted)</code></pre>
-    <div class="note"><strong>Key finding:</strong> rastair/cpg/ and rastair/all/ produce identical outputs, confirming rastair is a CpG-only caller regardless of flags. This demonstrates why a dedicated small RNA pipeline is needed for non-CpG m5C detection. See the <a href="benchmarking.html">Benchmarking page</a> for full details.</div>
+    <p>The aggregated MultiQC report covering FastQC, Trim Galore, and Bowtie1 is at:</p>
+    <pre><code>~/srnataps_test/report/multiqc_report.html</code></pre>
   </div>
 
-  <!-- STEP 8 -->
-  <div class="step-header"><div class="step-num">8</div><h2>Generate the report</h2></div>
+  <!-- ── STEP 8 ─────────────────────────────────────────────────────────── -->
+  <div class="step-header"><div class="step-num">8</div><h2>Run benchmarking <span style="font-weight:400;font-size:.9em;color:var(--text3)">(optional)</span></h2></div>
   <div class="step-block">
-    <p>Run the R report scripts to generate publication-ready figures.</p>
-    <pre><code>RDIR=/path/to/sRNA-TAPS/srnataps/report/R
-export SRNATAPS_R_DIR=$RDIR
+    <p>The benchmark suite compares sRNA-TAPS calls against rastair (CpG-only and all-context), asTair (all contexts per biotype), and Bismark (bisulfite contrast). It is opt-in because Bismark genome preparation and asTair on large biotypes are slow and not needed for routine analysis.</p>
 
-Rscript $RDIR/run_all.R \
-    --outdir  ~/srnataps_tutorial \
-    --figdir  ~/srnataps_tutorial/report/figures \
-    --scripts $RDIR \
-    --skip-bench --skip-logos</code></pre>
-    <p>Figures will be written to <code>~/srnataps_tutorial/report/figures/</code> in PDF, PNG, and SVG format.</p>
+    <h3>Set up the asTair environment</h3>
+    <p>asTair has dependency conflicts with Snakemake and must be installed in a separate conda environment. This is a one-time setup:</p>
+    <pre><code># Create a dedicated Python 3.9 environment
+mamba create -n astair_env -y python=3.9
+
+# Install asTair and setuptools into it
+/path/to/conda/envs/astair_env/bin/pip install astair setuptools
+
+# Verify
+/path/to/conda/envs/astair_env/bin/astair --help | head -2</code></pre>
+
+    <p>Then update <code>benchmark.smk</code> to point to your astair binary path (only needed once):</p>
+    <pre><code># In workflow/rules/benchmark.smk, the astair_call rule shell uses:
+/path/to/conda/envs/astair_env/bin/astair call \</code></pre>
+
+    <div class="note"><strong>Note:</strong> The pipeline calls asTair via its full binary path — no conda activation is needed at runtime. The path is set once in <code>benchmark.smk</code>.</div>
+
+    <h3>Launch the benchmark</h3>
+    <pre><code>cd ~/srnataps_test
+
+# Dry-run first
+snakemake \
+    --snakefile /path/to/sRNA-TAPS/workflow/Snakefile \
+    --configfile config.yaml \
+    --profile    /path/to/sRNA-TAPS/profile \
+    --dry-run \
+    all_benchmark 2>&1 | tail -15
+
+# Launch
+snakemake \
+    --snakefile /path/to/sRNA-TAPS/workflow/Snakefile \
+    --configfile config.yaml \
+    --profile    /path/to/sRNA-TAPS/profile \
+    all_benchmark &
+disown %1</code></pre>
+
+    <p>The benchmark adds rastair (36 jobs), asTair (144 jobs across 8 biotypes × 18 samples), and Bismark (18 align + 1 index). Monitor with <code>squeue -u $USER</code>. When complete, the comparison outputs and benchmark figures will be at:</p>
+    <pre><code>~/srnataps_test/09.compare/concordance_summary.tsv
+~/srnataps_test/09.compare/correlation_summary.tsv
+~/srnataps_test/report/figures/04a_concordance_heatmap.pdf
+~/srnataps_test/report/figures/04b_correlation.pdf
+~/srnataps_test/report/figures/04c_site_overlap.pdf</code></pre>
+
+    <div class="tip"><strong>Key finding:</strong> rastair produces identical outputs in CpG-only and all-context modes — confirming it is a CpG-only caller by design, regardless of flags. This is why a dedicated small RNA pipeline is needed for non-CpG m5C detection. See the <a href="benchmarking.html">Benchmarking page</a> for full results.</div>
   </div>
 
   <div class="note" style="margin-top:48px">
-    <strong>Next steps:</strong> See the <a href="docs.html" style="color:var(--accent)">full documentation</a> for running on real data, configuring SLURM job submission, and interpreting the delta (δ) score.
+    <strong>Next steps:</strong> See the <a href="docs.html" style="color:var(--accent)">full documentation</a> for running on real biological data, interpreting the delta (δ) score, and SNP filtering layers. For benchmarking results and cross-tool comparisons, see the <a href="benchmarking.html" style="color:var(--accent)">Benchmarking page</a>.
   </div>
 </div>
 
 <footer>
   <div class="footer-inner">
     <a href="https://schneider.cup.uni-muenchen.de" target="_blank"><img src="Lab_Logo.png" alt="sRNA-TAPS" style="height:28px;width:auto;"></a>
-    <div style="display:flex;gap:20px"><a href="docs.html" style="font-size:.85rem;color:var(--text2);text-decoration:none">Docs</a><a href="tutorial.html" style="font-size:.85rem;color:var(--text2);text-decoration:none">Tutorial</a><a href="about.html" style="font-size:.85rem;color:var(--text2);text-decoration:none">About</a><a href="references.html" style="font-size:.85rem;color:var(--text2);text-decoration:none">References</a>
+    <div style="display:flex;gap:20px">
+      <a href="docs.html" style="font-size:.85rem;color:var(--text2);text-decoration:none">Docs</a>
+      <a href="tutorial.html" style="font-size:.85rem;color:var(--text2);text-decoration:none">Tutorial</a>
+      <a href="benchmarking.html" style="font-size:.85rem;color:var(--text2);text-decoration:none">Benchmarking</a>
+      <a href="about.html" style="font-size:.85rem;color:var(--text2);text-decoration:none">About</a>
+      <a href="references.html" style="font-size:.85rem;color:var(--text2);text-decoration:none">References</a>
       <a href="contact.html" style="font-size:.85rem;color:var(--text2);text-decoration:none">Contact</a>
-      <a href="https://github.com/HenzelerB/sRNA-TAPS" target="_blank" style="font-size:.85rem;color:var(--text2);text-decoration:none">GitHub</a></div>
+      <a href="https://github.com/HenzelerB/sRNA-TAPS" target="_blank" style="font-size:.85rem;color:var(--text2);text-decoration:none">GitHub</a>
+    </div>
     <div style="font-size:.8rem;color:var(--text3)">© 2026 Schneider Lab, LMU Munich · MIT License</div>
   </div>
 </footer>
