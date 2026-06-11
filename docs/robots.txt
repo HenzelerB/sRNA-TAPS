@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://henzelerb.github.io/sRNA-TAPS/sitemap.xml
