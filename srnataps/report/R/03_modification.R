@@ -38,7 +38,7 @@ CALLS_DIR     <- file.path(opt$outdir, "07.taps_calls")
 # ── Load all TAPS calls ───────────────────────────────────────────────────────
 load_calls <- function(calls_dir, biotypes, min_cov) {
   all_files <- unlist(lapply(biotypes, function(bt) {
-    list.files(file.path(calls_dir, bt), pattern = "_taps\\.tsv$",
+    list.files(file.path(calls_dir, bt), pattern = "_taps_annotated\.tsv$",
                full.names = TRUE)
   }))
 
@@ -47,7 +47,7 @@ load_calls <- function(calls_dir, biotypes, min_cov) {
 
   lapply(all_files, function(f) {
     bt     <- basename(dirname(f))
-    sample <- sub(paste0("_", bt, "_taps\\.tsv$"), "", basename(f))
+    sample <- sub(paste0("_", bt, "_taps_annotated\.tsv$"), "", basename(f))
     tryCatch({
       df <- read_tsv(f, show_col_types = FALSE, col_types = cols(chrom = col_character(), start = col_integer(), end = col_integer(), mod_count = col_double(), unmod_count = col_double(), coverage = col_double(), mod_rate = col_double(), pvalue = col_double(), padj = col_double())) %>%
         dplyr::filter(coverage >= min_cov, snp_flag == "PASS") %>%
@@ -55,7 +55,8 @@ load_calls <- function(calls_dir, biotypes, min_cov) {
           biotype   = bt,
           sample    = sample,
           condition = get_condition(sample),
-          cell_line = get_cell_line(sample)
+          cell_line = get_cell_line(sample),
+          site_label = dplyr::if_else(!is.na(gene_name) & gene_name != ".", gene_name, paste0(chrom, ":", start, "-", end))
         )
       df
     }, error = function(e) NULL)
