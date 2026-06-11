@@ -247,22 +247,33 @@ benchmark:
 
 ### samples.tsv
 
-Tab-separated, one row per sample:
+Tab-separated, one row per sample. Four columns are required:
+
+| Column | Description |
+|--------|-------------|
+| `sample` | Unique sample identifier — used for all output filenames |
+| `condition` | Experimental condition — any name; must cover a `treat`, `pb_Ctrl`, and `no-treat` equivalent |
+| `cell_line` | Cell line or biological source — any name; used to group SNP blacklists and colour palettes |
+| `fastq` | Full path to the input `.fq.gz` file (single-end) |
+
+Example with two cell lines, three conditions, three replicates each:
 
 ```
 sample                  condition  cell_line  fastq
-no-treat_Ctrl_HEK_R1    no-treat   HEK        /path/to/rawfiles/no-treat_Ctrl_HEK_R1.fq.gz
-no-treat_Ctrl_HEK_R2    no-treat   HEK        /path/to/rawfiles/no-treat_Ctrl_HEK_R2.fq.gz
-no-treat_Ctrl_HEK_R3    no-treat   HEK        /path/to/rawfiles/no-treat_Ctrl_HEK_R3.fq.gz
-pb_Ctrl_HEK_R1          pb_Ctrl    HEK        /path/to/rawfiles/pb_Ctrl_HEK_R1.fq.gz
-pb_Ctrl_HEK_R2          pb_Ctrl    HEK        /path/to/rawfiles/pb_Ctrl_HEK_R2.fq.gz
-pb_Ctrl_HEK_R3          pb_Ctrl    HEK        /path/to/rawfiles/pb_Ctrl_HEK_R3.fq.gz
-treat_HEK_R1            treat      HEK        /path/to/rawfiles/treat_HEK_R1.fq.gz
-treat_HEK_R2            treat      HEK        /path/to/rawfiles/treat_HEK_R2.fq.gz
-treat_HEK_R3            treat      HEK        /path/to/rawfiles/treat_HEK_R3.fq.gz
+no-treat_Ctrl_HEK_R1    no-treat   HEK        /data/rawfiles/no-treat_Ctrl_HEK_R1.fq.gz
+no-treat_Ctrl_HEK_R2    no-treat   HEK        /data/rawfiles/no-treat_Ctrl_HEK_R2.fq.gz
+no-treat_Ctrl_HEK_R3    no-treat   HEK        /data/rawfiles/no-treat_Ctrl_HEK_R3.fq.gz
+pb_Ctrl_HEK_R1          pb_Ctrl    HEK        /data/rawfiles/pb_Ctrl_HEK_R1.fq.gz
+pb_Ctrl_HEK_R2          pb_Ctrl    HEK        /data/rawfiles/pb_Ctrl_HEK_R2.fq.gz
+pb_Ctrl_HEK_R3          pb_Ctrl    HEK        /data/rawfiles/pb_Ctrl_HEK_R3.fq.gz
+treat_HEK_R1            treat      HEK        /data/rawfiles/treat_HEK_R1.fq.gz
+treat_HEK_R2            treat      HEK        /data/rawfiles/treat_HEK_R2.fq.gz
+treat_HEK_R3            treat      HEK        /data/rawfiles/treat_HEK_R3.fq.gz
+no-treat_Ctrl_Caco2_R1  no-treat   Caco2      /data/rawfiles/no-treat_Ctrl_Caco2_R1.fq.gz
+...                     ...        ...        ...
 ```
 
-The `condition` and `cell_line` columns can use any names — the R figure scripts read directly from `samples.tsv` and adapt colour palettes, labels, and comparisons automatically.
+> **Minimum requirement:** At least 3 replicates per condition are needed for reproducibility filtering. Condition and cell line names can be anything — the R scripts auto-detect them from `samples.tsv`. Multi-cell-line datasets are fully supported.
 
 ### Running the pipeline
 

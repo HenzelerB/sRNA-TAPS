@@ -221,17 +221,28 @@ benchmark:
       context:   all</code></pre>
 
     <h3>samples.tsv</h3>
-    <p>Tab-separated, one row per sample. The <code>condition</code> and <code>cell_line</code> columns accept any names — R report scripts read from this file and adapt automatically.</p>
+    <p>Tab-separated, one row per sample. Four columns are required:</p>
+    <table>
+      <tr><th>Column</th><th>Description</th></tr>
+      <tr><td><code>sample</code></td><td>Unique sample identifier — used for all output filenames</td></tr>
+      <tr><td><code>condition</code></td><td>Experimental condition — any name; must include a <code>treat</code>, <code>pb_Ctrl</code>, and <code>no-treat</code> equivalent</td></tr>
+      <tr><td><code>cell_line</code></td><td>Cell line or biological source — any name; used to group SNP blacklists and colour palettes</td></tr>
+      <tr><td><code>fastq</code></td><td>Full path to the input <code>.fq.gz</code> file (single-end)</td></tr>
+    </table>
+    <p>Example with two cell lines, three conditions, three replicates each:</p>
     <pre><code>sample                  condition  cell_line  fastq
-no-treat_Ctrl_HEK_R1    no-treat   HEK        /path/to/rawfiles/no-treat_Ctrl_HEK_R1.fq.gz
-no-treat_Ctrl_HEK_R2    no-treat   HEK        /path/to/rawfiles/no-treat_Ctrl_HEK_R2.fq.gz
-no-treat_Ctrl_HEK_R3    no-treat   HEK        /path/to/rawfiles/no-treat_Ctrl_HEK_R3.fq.gz
-pb_Ctrl_HEK_R1          pb_Ctrl    HEK        /path/to/rawfiles/pb_Ctrl_HEK_R1.fq.gz
-pb_Ctrl_HEK_R2          pb_Ctrl    HEK        /path/to/rawfiles/pb_Ctrl_HEK_R2.fq.gz
-pb_Ctrl_HEK_R3          pb_Ctrl    HEK        /path/to/rawfiles/pb_Ctrl_HEK_R3.fq.gz
-treat_HEK_R1            treat      HEK        /path/to/rawfiles/treat_HEK_R1.fq.gz
-treat_HEK_R2            treat      HEK        /path/to/rawfiles/treat_HEK_R2.fq.gz
-treat_HEK_R3            treat      HEK        /path/to/rawfiles/treat_HEK_R3.fq.gz</code></pre>
+no-treat_Ctrl_HEK_R1    no-treat   HEK        /data/rawfiles/no-treat_Ctrl_HEK_R1.fq.gz
+no-treat_Ctrl_HEK_R2    no-treat   HEK        /data/rawfiles/no-treat_Ctrl_HEK_R2.fq.gz
+no-treat_Ctrl_HEK_R3    no-treat   HEK        /data/rawfiles/no-treat_Ctrl_HEK_R3.fq.gz
+pb_Ctrl_HEK_R1          pb_Ctrl    HEK        /data/rawfiles/pb_Ctrl_HEK_R1.fq.gz
+pb_Ctrl_HEK_R2          pb_Ctrl    HEK        /data/rawfiles/pb_Ctrl_HEK_R2.fq.gz
+pb_Ctrl_HEK_R3          pb_Ctrl    HEK        /data/rawfiles/pb_Ctrl_HEK_R3.fq.gz
+treat_HEK_R1            treat      HEK        /data/rawfiles/treat_HEK_R1.fq.gz
+treat_HEK_R2            treat      HEK        /data/rawfiles/treat_HEK_R2.fq.gz
+treat_HEK_R3            treat      HEK        /data/rawfiles/treat_HEK_R3.fq.gz
+no-treat_Ctrl_Caco2_R1  no-treat   Caco2      /data/rawfiles/no-treat_Ctrl_Caco2_R1.fq.gz
+...                     ...        ...        ...</code></pre>
+    <div class="note"><strong>Minimum requirement:</strong> At least 3 replicates per condition are required for reproducibility filtering. The three condition types (<code>treat</code>, <code>pb_Ctrl</code>, <code>no-treat</code>) can use any names — the R scripts auto-detect them from the data. Multi-cell-line datasets are fully supported.</div>
 
     <!-- ── REQUIREMENTS ────────────────────────────────────────────────── -->
     <h2 id="requirements">Requirements</h2>
