@@ -88,7 +88,7 @@ rule all:
         # SNP resources
         expand(str(SNP_DIR / "sample_snps_{cell_line}.bed"), cell_line=CELL_LINES),
         # TAPS calls
-        expand(str(CALLS_DIR / "{biotype}" / "{sample}_{biotype}_taps.tsv"),
+        expand(str(CALLS_DIR / "{biotype}" / "{sample}_{biotype}_taps_annotated.tsv"),
                sample=SAMPLES, biotype=BIOTYPES),
         # MultiQC
         str(OUTDIR / "report" / "multiqc_report.html"),
