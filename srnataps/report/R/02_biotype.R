@@ -48,7 +48,7 @@ bio <- read_tsv(biotype_file, show_col_types = FALSE) %>%
   dplyr::mutate(
     condition = factor(condition, levels = names(CONDITION_COLOURS)),
     biotype   = factor(biotype,   levels = names(BIOTYPE_COLOURS)),
-    cell_line = factor(cell_line, levels = c("HEK", "Caco2"))
+    cell_line = factor(cell_line, levels = CELL_LINES)
   )
 
 
