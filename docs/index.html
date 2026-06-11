@@ -208,7 +208,7 @@
 
 <div class="hero">
   <img src="sRNA-taps_logo.svg" alt="sRNA-TAPS logo" class="hero-logo">
-  <div class="hero-badge">🧬 New · v0.2.2 released</div>
+  <div class="hero-badge">🧬 New · v0.2.3 released</div>
   <h1 id="hero-h1" style="min-height:2.4em"></h1>
   <p class="hero-desc" id="hero-desc" style="opacity:0;transition:opacity 0.6s ease;min-height:3em">sRNA-TAPS detects 5-methylcytosine and 5-hydroxymethylcytosine in miRNA, tRNA, rRNA, snoRNA and more, using TET-assisted pyridine borane sequencing on human samples (GRCh38).</p>
 <script>
@@ -278,6 +278,7 @@
     <a href="https://github.com/HenzelerB/sRNA-TAPS" target="_blank" class="btn btn-ghost">GitHub ↗</a>
   </div>
   <div class="tools-float">
+    <div class="tool-badge highlight"><span class="tool-step">00</span> Snakemake 9</div>
     <div class="tool-badge highlight"><span class="tool-step">01</span> FastQC</div>
     <div class="tool-badge highlight"><span class="tool-step">02</span> Trim Galore</div>
     <div class="tool-badge highlight"><span class="tool-step">03</span> Bowtie1</div>
@@ -418,10 +419,11 @@
       <div class="feature-card"><div class="feature-icon">🎯</div><h3>7 RNA biotypes</h3><p>miRNA, tRNA, rRNA, snoRNA, snRNA, piRNA, lncRNA — each processed separately with biotype-appropriate coverage thresholds.</p></div>
       <div class="feature-card"><div class="feature-icon">🛡️</div><h3>3-layer SNP filtering</h3><p>dbSNP variants, cell-line-specific SNPs from no-treat BAMs, and heterozygosity detection — all applied before any C→T counting.</p></div>
       <div class="feature-card"><div class="feature-icon">⚖️</div><h3>Multi-mapper weighting</h3><p>Reads with XA:i:N tags contribute 1/N to each locus, preventing inflation at tRNA gene copies and rRNA repeats.</p></div>
-      <div class="feature-card"><div class="feature-icon">📊</div><h3>75 publication figures</h3><p>R-generated PDF, PNG, and SVG figures at 300 dpi — QC, biotype composition, modification rates, benchmarking, and sequence logos.</p></div>
+      <div class="feature-card"><div class="feature-icon">📊</div><h3>75 publication figures</h3><p>R-generated PDF, PNG, and SVG figures at 300 dpi — generated automatically at each pipeline stage. QC, biotype composition, modification rates, benchmarking, and sequence logos.</p></div>
       <div class="feature-card"><div class="feature-icon">🔄</div><h3>Benchmarking suite</h3><p>Built-in comparison against rastair, asTair, and Bismark with concordance heatmaps and Pearson correlation at shared sites.</p></div>
       <div class="feature-card"><div class="feature-icon">🧪</div><h3>CpG vs non-CpG proof</h3><p>rastair is run in both CpG-only and all-context mode — producing identical results, proving it cannot detect the non-CpG m5C sites that dominate tRNA, rRNA, and miRNA biology.</p></div>
-      <div class="feature-card"><div class="feature-icon">🧬</div><h3>Synthetic test dataset</h3><p>FASTQ simulator with accurate TAPS chemistry — 9 samples, 4 biotypes, seeded m5C positions for end-to-end pipeline validation.</p></div>
+      <div class="feature-card"><div class="feature-icon">⬇️</div><h3>Genome auto-download</h3><p>No pre-built index needed. The pipeline downloads GRCh38 from Ensembl and builds the Bowtie1 index automatically on first run — skipped when files already exist.</p></div>
+      <div class="feature-card"><div class="feature-icon">🧬</div><h3>Synthetic test dataset</h3><p>FASTQ simulator with accurate TAPS chemistry — 100 samples, 4 biotypes, seeded m5C positions for end-to-end pipeline validation at scale.</p></div>
     </div>
     <div class="stats-row">
       <div class="stat-card"><div class="stat-num">7</div><div class="stat-label">RNA biotypes</div></div>
