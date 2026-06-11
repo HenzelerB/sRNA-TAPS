@@ -293,7 +293,7 @@
 
 <div class="badges">
   <div class="badge"><div class="dot dot-green"></div> MIT License</div>
-  <div class="badge"><div class="dot dot-blue"></div> Python 3.10+</div>
+  <div class="badge"><div class="dot dot-blue"></div> Python 3.11+</div>
   <div class="badge"><div class="dot dot-blue"></div> GRCh38</div>
   <div class="badge"><div class="dot dot-orange"></div> In Development</div>
   <div class="badge"><div class="dot dot-green"></div> 66/66 tests passing</div>
@@ -310,19 +310,19 @@
         <div class="chem-steps">
           <div class="chem-step">
             <div class="chem-icon">🧫</div>
-            <div><h4>Step 1 — TET oxidation</h4><p>TET enzymes oxidise 5mC and 5hmC to 5-carboxylcytosine (5caC), marking modified bases for conversion.</p></div>
+            <div><h4>Step 1 — TET oxidation</h4><p>TET enzymes oxidise m5C and hm5C to 5-carboxylcytosine (ca5C), marking modified bases for conversion.</p></div>
           </div>
           <div class="chem-step">
             <div class="chem-icon">⚗️</div>
-            <div><h4>Step 2 — Pyridine borane reduction</h4><p>Pyridine borane reduces 5caC to dihydrouracil (DHU), which is read as T during PCR amplification.</p></div>
+            <div><h4>Step 2 — Pyridine borane reduction</h4><p>Pyridine borane reduces ca5C to dihydrouracil (DHU), which is read as T during PCR amplification.</p></div>
           </div>
           <div class="chem-step">
             <div class="chem-icon">🔬</div>
-            <div><h4>Result — C→T at modified sites</h4><p>Unmodified cytosines remain as C. Only 5mC and 5hmC appear as T in the sequencing reads.</p></div>
+            <div><h4>Result — C→T at modified sites</h4><p>Unmodified cytosines remain as C. Only m5C and hm5C appear as T in the sequencing reads.</p></div>
           </div>
         </div>
         <div class="chem-callout">
-          <p><strong>Inverse of bisulfite sequencing.</strong> In bisulfite, unmodified C converts to T and 5mC is protected. In TAPS, modified C converts to T and unmodified C is protected — making short RNA reads far easier to align.</p>
+          <p><strong>Inverse of bisulfite sequencing.</strong> In bisulfite, unmodified C converts to T and m5C is protected. In TAPS, modified C converts to T and unmodified C is protected — making short RNA reads far easier to align.</p>
         </div>
       </div>
       <div>
@@ -351,7 +351,7 @@
 </style>
 <svg width="100%" viewBox="0 0 660 240" role="img">
 <title>TAPS chemistry</title>
-<desc>m5C and hm5C oxidised by TET to 5caC, reduced by pyridine borane to DHU, read as T in PCR</desc>
+<desc>m5C and hm5C oxidised by TET to ca5C, reduced by pyridine borane to DHU, read as T in PCR</desc>
 <defs>
   
   
@@ -366,7 +366,7 @@
 <g class="b1" filter="url(#shadow)"><circle cx="100" cy="100" r="44" fill="url(#g1)"/><circle cx="100" cy="100" r="44" fill="url(#shine)"/><text x="100" y="91" text-anchor="middle" dominant-baseline="middle" fill="white" font-size="14" font-weight="700" font-family="Outfit,sans-serif">m&#x2075;C</text><text x="100" y="104" text-anchor="middle" dominant-baseline="middle" fill="#8ab8d4" font-size="12" font-family="Outfit,sans-serif">/</text><text x="100" y="117" text-anchor="middle" dominant-baseline="middle" fill="white" font-size="13" font-weight="700" font-family="Outfit,sans-serif">hm&#x2075;C</text></g>
 <g class="cn1"><text x="100" y="156" text-anchor="middle" dominant-baseline="middle" fill="#888" font-size="10" font-family="Outfit,sans-serif">5-methyl /</text><text x="100" y="168" text-anchor="middle" dominant-baseline="middle" fill="#888" font-size="10" font-family="Outfit,sans-serif">5-hydroxymethyl</text></g>
 <g class="cl1"><line x1="153" y1="100" x2="184" y2="100" stroke="#2C5F8A" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="41" stroke-dashoffset="41"><animate attributeName="stroke-dashoffset" from="41" to="0" dur="0.4s" begin="1.0s" fill="freeze"/></line><polygon points="184,94 194,100 184,106" fill="#2C5F8A" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.1s" begin="1.4s" fill="freeze"/></polygon><text x="176" y="85" text-anchor="middle" dominant-baseline="middle" fill="#2C5F8A" font-size="11" font-weight="600" font-family="Outfit,sans-serif">TET</text><text x="176" y="73" text-anchor="middle" dominant-baseline="middle" fill="#2C5F8A" font-size="10" font-family="Outfit,sans-serif">oxidation</text></g>
-<g class="b2" filter="url(#shadow)"><circle cx="253" cy="100" r="44" fill="url(#g2)"/><circle cx="253" cy="100" r="44" fill="url(#shine)"/><text x="253" y="100" text-anchor="middle" dominant-baseline="middle" fill="white" font-size="16" font-weight="700" font-family="Outfit,sans-serif">5caC</text></g>
+<g class="b2" filter="url(#shadow)"><circle cx="253" cy="100" r="44" fill="url(#g2)"/><circle cx="253" cy="100" r="44" fill="url(#shine)"/><text x="253" y="100" text-anchor="middle" dominant-baseline="middle" fill="white" font-size="16" font-weight="700" font-family="Outfit,sans-serif">ca5C</text></g>
 <g class="cn2"><text x="253" y="156" text-anchor="middle" dominant-baseline="middle" fill="#888" font-size="10" font-family="Outfit,sans-serif">5-carboxyl-</text><text x="253" y="168" text-anchor="middle" dominant-baseline="middle" fill="#888" font-size="10" font-family="Outfit,sans-serif">cytosine</text></g>
 <g class="cl2"><line x1="307" y1="100" x2="340" y2="100" stroke="#00d4aa" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="36" stroke-dashoffset="36"><animate attributeName="stroke-dashoffset" from="36" to="0" dur="0.4s" begin="2.3s" fill="freeze"/></line><polygon points="340,94 350,100 340,106" fill="#00d4aa" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.1s" begin="2.7s" fill="freeze"/></polygon><text x="330" y="85" text-anchor="middle" dominant-baseline="middle" fill="#00d4aa" font-size="11" font-weight="600" font-family="Outfit,sans-serif">Pyridine</text><text x="330" y="73" text-anchor="middle" dominant-baseline="middle" fill="#00d4aa" font-size="10" font-family="Outfit,sans-serif">borane</text></g>
 <g class="b3" filter="url(#shadow)"><circle cx="407" cy="100" r="44" fill="url(#g3)"/><circle cx="407" cy="100" r="44" fill="url(#shine)"/><text x="407" y="100" text-anchor="middle" dominant-baseline="middle" fill="white" font-size="16" font-weight="700" font-family="Outfit,sans-serif">DHU</text></g>
@@ -398,7 +398,7 @@
             <div class="chem-col-head">TAPS</div>
             <div class="chem-col-head">Bisulfite</div>
           </div>
-          <div class="chem-row"><div class="chem-cell good">5mC → T ✓</div><div class="chem-cell bad">5mC protected ✗</div></div>
+          <div class="chem-row"><div class="chem-cell good">m5C → T ✓</div><div class="chem-cell bad">m5C protected ✗</div></div>
           <div class="chem-row"><div class="chem-cell good">Unmod C stays as C ✓</div><div class="chem-cell bad">Unmod C → T ✗</div></div>
           <div class="chem-row"><div class="chem-cell good">Mild chemistry ✓</div><div class="chem-cell bad">Harsh — degrades short RNA ✗</div></div>
           <div class="chem-row"><div class="chem-cell good">High alignment rate ✓</div><div class="chem-cell bad">Low complexity → poor alignment ✗</div></div>
@@ -438,7 +438,7 @@
     <h2 class="section-title">Three-condition framework</h2>
     <p class="section-desc">Three sample conditions are required to separate genuine m5C signal from chemistry background and sequencing noise.</p>
     <div class="conditions-grid">
-      <div class="condition-card treat"><div class="condition-tag">treat</div><h3>TET + Pyridine Borane + PCR</h3><p>Full TAPS chemistry. Both 5mC and 5hmC are oxidised by TET to 5-carboxylcytosine (5caC), reduced to dihydrouracil (DHU) by pyridine borane, and subsequently read as T during PCR amplification. This is your signal condition.</p></div>
+      <div class="condition-card treat"><div class="condition-tag">treat</div><h3>TET + Pyridine Borane + PCR</h3><p>Full TAPS chemistry. Both m5C and hm5C are oxidised by TET to 5-carboxylcytosine (ca5C), reduced to dihydrouracil (DHU) by pyridine borane, and subsequently read as T during PCR amplification. This is your signal condition.</p></div>
       <div class="condition-card pb"><div class="condition-tag">pb_Ctrl</div><h3>Pyridine Borane + PCR</h3><p>No TET oxidation. Pyridine borane converts unprotected cytosines non-specifically, and any C→T signal in these samples represents chemistry background. Used for δ score calculation.</p></div>
       <div class="condition-card notx"><div class="condition-tag">no-treat</div><h3>PCR only (No treatment)</h3><p>Untreated baseline. C→T at this level reflects sequencing errors and SNPs. Used to build the cell-line SNP blacklist.</p></div>
     </div>

@@ -160,7 +160,7 @@
         </div>
         <div class="faq-answer">
           <div class="faq-answer-inner">
-            <p>The pipeline requires a <code>pb_Ctrl</code> condition for background correction. Without it, the delta (δ) score cannot be calculated, and genuine 5mC signal cannot be distinguished from pyridine borane chemistry noise (~8–9% background C→T). We strongly recommend including at least two <code>pb_Ctrl</code> replicates per cell line in your experimental design.</p>
+            <p>The pipeline requires a <code>pb_Ctrl</code> condition for background correction. Without it, the delta (δ) score cannot be calculated, and genuine m5C signal cannot be distinguished from pyridine borane chemistry noise (~8–9% background C→T). We strongly recommend including at least two <code>pb_Ctrl</code> replicates per cell line in your experimental design.</p>
           </div>
         </div>
       </div>
@@ -222,7 +222,7 @@
         </div>
         <div class="faq-answer">
           <div class="faq-answer-inner">
-            <p>Benchmarking figures require the <code>09.compare/</code> directory to be populated, which in turn requires the benchmarking tools (rastair, asTair, Bismark) to have been run in step 08. If you ran the pipeline without the <code>--benchmark</code> flag, these steps are skipped. Re-run with <code>srnataps run --configfile config.yaml --slurm --benchmark</code> to include benchmarking.</p>
+            <p>Benchmarking figures require the <code>09.compare/</code> directory to be populated, which in turn requires the benchmarking tools (rastair, asTair, Bismark) to have been run in step 08. If you ran the pipeline without the <code>--benchmark</code> flag, these steps are skipped. Re-run Snakemake with the <code>all_benchmark</code> target to include benchmarking — see the <a href="tutorial.html">Tutorial</a> for the full command.</p>
           </div>
         </div>
       </div>
