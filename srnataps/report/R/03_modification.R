@@ -74,7 +74,7 @@ message("  Total PASS sites loaded: ", nrow(calls))
 # ── Figure 3a: Modification rate distribution (violin + boxplot) ──────────────
 
 p_dist <- calls %>%
-  dplyr::filter(condition %in% c("no_treat", "pb_ctrl", "treat")) %>%
+  dplyr::filter(condition %in% CONDITIONS) %>%
   ggplot(aes(x = condition, y = mod_rate, fill = condition)) +
     geom_violin(trim = TRUE, alpha = 0.7, linewidth = 0.3) +
     geom_boxplot(width = 0.12, outlier.shape = NA, fill = "white",
@@ -104,7 +104,7 @@ message("Figure 3a: Modification rate distribution — done")
 
 # ── Figure 3b: Top 30 modified sites ─────────────────────────────────────────
 top_sites <- calls %>%
-  dplyr::filter(condition == "treat") %>%
+  dplyr::filter(condition == TREAT_COND) %>%
   dplyr::mutate(site_id = paste0(chrom, ":", start)) %>%
   dplyr::group_by(biotype, site_id, cell_line) %>%
   dplyr::summarise(
@@ -127,7 +127,7 @@ if (nrow(top_sites) > 0) {
       scale_size_continuous(name = "log10(coverage)", range = c(1, 5)) +
       scale_x_continuous(labels = percent_format(accuracy = 1), limits = c(0, 1)) +
       labs(
-        title    = "Top 30 modified sites per biotype (TET+PB)",
+        title    = paste0("Top 30 modified sites per biotype (", CONDITION_LABELS[TREAT_COND], ")"),
         subtitle = "Ranked by median modification rate across replicates",
         x        = "Modification rate",
         y        = "Genomic site"
@@ -142,21 +142,21 @@ if (nrow(top_sites) > 0) {
 
 # ── Figure 3c: Condition comparison scatter (site level) ─────────────────────
 cond_wide <- calls %>%
-  dplyr::filter(condition %in% c("pb_ctrl", "treat")) %>%
+  dplyr::filter(condition %in% c(CTRL_COND, TREAT_COND)) %>%
   dplyr::mutate(site_id = paste0(chrom, ":", start)) %>%
   dplyr::group_by(biotype, site_id, cell_line, condition) %>%
   dplyr::summarise(mod_rate = median(mod_rate), .groups = "drop") %>%
   tidyr::pivot_wider(names_from = condition, values_from = mod_rate) %>%
-  dplyr::filter(!is.na(pb_ctrl), !is.na(treat))
+  dplyr::filter(!is.na(.data[[CTRL_COND]]), !is.na(.data[[TREAT_COND]]))
 
 if (nrow(cond_wide) > 0) {
   p_scatter <- ggplot(cond_wide,
-                      aes(x = pb_ctrl, y = treat, colour = biotype)) +
+                      aes(x = .data[[CTRL_COND]], y = .data[[TREAT_COND]], colour = biotype)) +
     geom_abline(slope = 1, intercept = 0, linetype = "dashed",
                 colour = "grey60", linewidth = 0.4) +
     geom_point(alpha = 0.5, size = 0.8) +
     geom_text_repel(
-      data      = dplyr::filter(cond_wide, treat > 0.5 & pb_ctrl < 0.2),
+      data      = dplyr::filter(cond_wide, .data[[TREAT_COND]] > 0.5 & .data[[CTRL_COND]] < 0.2),
       aes(label = site_id),
       size = 2.0, max.overlaps = 10, segment.colour = "grey70"
     ) +
@@ -166,9 +166,9 @@ if (nrow(cond_wide) > 0) {
     scale_y_continuous(labels = percent_format(accuracy = 1), limits = c(0, 1)) +
     labs(
       title    = "Condition comparison: PB-only vs TET+PB",
-      subtitle = "Sites above diagonal = TET-enriched (genuine m5C/5hmC)",
-      x        = "PB-only mod rate",
-      y        = "TET+PB mod rate",
+      subtitle = paste0("Sites above diagonal = ", CONDITION_LABELS[TREAT_COND], "-enriched (genuine m5C/5hmC)"),
+      x        = paste0(CONDITION_LABELS[CTRL_COND],  " mod rate"),
+      y        = paste0(CONDITION_LABELS[TREAT_COND], " mod rate"),
       caption  = "Labelled: TET-specific sites (treat > 0.5, pb_ctrl < 0.2)"
     ) +
     theme_srnataps()
@@ -180,7 +180,7 @@ if (nrow(cond_wide) > 0) {
 # ── Figure 3d: Waterfall plot (sites ranked by mod_rate) ─────────────────────
 
 waterfall_data <- calls %>%
-  dplyr::filter(condition == "treat") %>%
+  dplyr::filter(condition == TREAT_COND) %>%
   dplyr::arrange(desc(mod_rate)) %>%
   dplyr::mutate(rank = row_number())
 
@@ -192,7 +192,7 @@ if (nrow(waterfall_data) > 0) {
       scale_colour_manual(values = BIOTYPE_COLOURS, name = "Biotype") +
       scale_y_continuous(labels = percent_format(accuracy = 1)) +
       labs(
-        title    = "Top 500 modification sites (TET+PB)",
+        title    = paste0("Top 500 modification sites (", CONDITION_LABELS[TREAT_COND], ")"),
         subtitle = "Ranked by modification rate, coloured by RNA biotype",
         x        = "Rank",
         y        = "Modification rate"

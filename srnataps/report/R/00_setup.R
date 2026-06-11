@@ -291,3 +291,34 @@ save_figure <- function(plot, filename, width = 8, height = 6, dpi = 300) {
 message("sRNA-TAPS theme loaded (Arial 8pt).")
 message("  Conditions : ", paste(CONDITIONS,  collapse = ", "))
 message("  Cell lines : ", paste(CELL_LINES,  collapse = ", "))
+# ── Auto-detect TAPS condition roles ─────────────────────────────────────────
+# Matches standard TAPS naming (treat / pb* / no_treat).
+# Override via env vars: SRNATAPS_TREAT_COND, SRNATAPS_CTRL_COND, SRNATAPS_UNTR_COND
+.ev_treat <- Sys.getenv("SRNATAPS_TREAT_COND", unset = "")
+.ev_ctrl  <- Sys.getenv("SRNATAPS_CTRL_COND",  unset = "")
+.ev_untr  <- Sys.getenv("SRNATAPS_UNTR_COND",  unset = "")
+
+TREAT_COND <- if (nchar(.ev_treat) > 0) .ev_treat else {
+  c1 <- CONDITIONS[CONDITIONS == "treat"][1]
+  if (!is.na(c1)) c1 else
+    CONDITIONS[grepl("treat", CONDITIONS) & !grepl("^no", CONDITIONS)][1]
+}
+CTRL_COND <- if (nchar(.ev_ctrl) > 0) .ev_ctrl else {
+  c1 <- CONDITIONS[grepl("^pb", CONDITIONS) & !grepl("treat", CONDITIONS)][1]
+  if (!is.na(c1)) c1 else
+    CONDITIONS[grepl("ctrl|control", CONDITIONS, ignore.case=TRUE) & !grepl("treat", CONDITIONS)][1]
+}
+UNTR_COND <- if (nchar(.ev_untr) > 0) .ev_untr else {
+  c1 <- CONDITIONS[grepl("^no_?treat|^untr", CONDITIONS)][1]
+  if (!is.na(c1)) c1 else CONDITIONS[!CONDITIONS %in% c(TREAT_COND, CTRL_COND)][1]
+}
+
+# Final fallback
+if (is.na(TREAT_COND)) TREAT_COND <- CONDITIONS[length(CONDITIONS)]
+if (is.na(CTRL_COND))  CTRL_COND  <- CONDITIONS[min(2, length(CONDITIONS))]
+if (is.na(UNTR_COND))  UNTR_COND  <- CONDITIONS[1]
+
+message("  Treat cond : ", TREAT_COND)
+message("  Ctrl cond  : ", CTRL_COND)
+message("  Untr cond  : ", UNTR_COND)
+
