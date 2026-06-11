@@ -83,7 +83,10 @@ def load_custom(condition, biotype):
         return None
     dfs = []
     for f in files:
-        df = pd.read_csv(f, sep="\t")
+        try:
+            df = pd.read_csv(f, sep="\t")
+        except pd.errors.EmptyDataError:
+            continue
         dfs.append(df)
     combined = pd.concat(dfs, ignore_index=True)
     # Keep PASS sites only
