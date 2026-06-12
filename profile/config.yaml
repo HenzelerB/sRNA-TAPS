@@ -127,23 +127,23 @@ set-resources:
     runtime: 60
 
   rastair_cpg:
-    mem_mb: 32000
+    mem_mb: 4000
     runtime: 240
 
   rastair_all:
-    mem_mb: 32000
+    mem_mb: 4000
     runtime: 240
 
   astair_call:
-    mem_mb: 120000        # 120GB — required for snRNA/snoRNA genome-wide pileup
+    mem_mb: 40000
     runtime: 720
 
   bismark_index:
-    mem_mb: 64000
+    mem_mb: 24000
     runtime: 720
 
   bismark_align:
-    mem_mb: 48000
+    mem_mb: 28000
     runtime: 480
 
   bismark_extract:

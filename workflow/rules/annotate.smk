@@ -27,7 +27,7 @@ rule annotate_taps_calls:
     log:
         str(LOG_DIR / "annotate" / "{sample}_{biotype}.log"),
     resources:
-        mem_mb        = 8000,
+        mem_mb        = 2000,
         runtime       = 30,
         slurm_extra   = "",
     script:
