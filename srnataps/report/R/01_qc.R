@@ -182,7 +182,8 @@ if (!is.null(map_data) && nrow(map_data) > 0) {
       caption  = "Error bars: ± 1 SD (n = 3 biological replicates). Dashed line: 60% threshold."
     ) +
     theme_srnataps() +
-    theme(axis.text.x = element_text(angle = 30, hjust = 1))
+    theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
+    guides(fill = "none")
 
   save_figure(p_map, file.path(opt$figdir, "01b_mapping_rates.pdf"),
               width = 10, height = 5)
