@@ -38,7 +38,7 @@ CALLS_DIR     <- file.path(opt$outdir, "07.taps_calls")
 # ── Load all TAPS calls ───────────────────────────────────────────────────────
 load_calls <- function(calls_dir, biotypes, min_cov) {
   all_files <- unlist(lapply(biotypes, function(bt) {
-    list.files(file.path(calls_dir, bt), pattern = "_taps_annotated\.tsv$",
+    list.files(file.path(calls_dir, bt), pattern = "_taps_annotated\\.tsv$",
                full.names = TRUE)
   }))
 
@@ -47,7 +47,7 @@ load_calls <- function(calls_dir, biotypes, min_cov) {
 
   lapply(all_files, function(f) {
     bt     <- basename(dirname(f))
-    sample <- sub(paste0("_", bt, "_taps_annotated\.tsv$"), "", basename(f))
+    sample <- sub(paste0("_", bt, "_taps_annotated\\.tsv$"), "", basename(f))
     tryCatch({
       df <- read_tsv(f, show_col_types = FALSE, col_types = cols(chrom = col_character(), start = col_integer(), end = col_integer(), mod_count = col_double(), unmod_count = col_double(), coverage = col_double(), mod_rate = col_double(), pvalue = col_double(), padj = col_double(), snp_flag = col_character(), gene_name = col_character(), gene_id = col_character(), gene_biotype = col_character())) %>%
         dplyr::filter(coverage >= min_cov, snp_flag == "PASS") %>%
@@ -76,55 +76,40 @@ message("  Total PASS sites loaded: ", nrow(calls))
 
 calls_dist <- calls %>% dplyr::filter(condition %in% CONDITIONS)
 
-# Option A — Density overlay
-p_density <- ggplot(calls_dist,
-                    aes(x = mod_rate, colour = condition, fill = condition)) +
-  geom_density(alpha = 0.15, linewidth = 0.6) +
+# Histogram — field standard for m5C stoichiometry distributions (binwidth=5%, log10 y)
+HIST_COLOURS <- c("treat"    = "#D55E00",   # vermillion — TET+PB
+                  "pb_ctrl"  = "#0072B2",   # blue       — PB
+                  "no_treat" = "#999999")   # grey       — UNTREATED
+
+p_hist <- ggplot(calls_dist,
+                 aes(x = mod_rate, fill = condition, colour = condition)) +
+  geom_histogram(binwidth = 0.05, boundary = 0,
+                 position = "identity", alpha = 0.5, linewidth = 0.2) +
   facet_wrap(~ biotype, nrow = 1, scales = "free_y") +
-  scale_colour_manual(values = CONDITION_COLOURS, labels = CONDITION_LABELS,
-                      name = "Condition") +
-  scale_fill_manual(values = CONDITION_COLOURS, labels = CONDITION_LABELS,
+  scale_fill_manual(values = HIST_COLOURS, labels = CONDITION_LABELS,
                     name = "Condition") +
+  scale_colour_manual(values = HIST_COLOURS, labels = CONDITION_LABELS,
+                      name = "Condition") +
   scale_x_continuous(labels = percent_format(accuracy = 1),
-                     limits = c(0, 1), breaks = seq(0, 1, 0.25)) +
+                     breaks = seq(0, 1, 0.2), limits = c(0, 1)) +
+  scale_y_continuous(trans  = "log10",
+                     breaks = 10^(0:6),
+                     labels = label_comma(),
+                     minor_breaks = rep(1:9, 6) * rep(10^(0:5), each = 9)) +
+  annotation_logticks(sides = "l") +
   labs(
-    title    = "TAPS modification rate — density distribution",
+    title    = "TAPS m5C modification rate distribution",
     subtitle = "Per-site mod_rate at PASS positions (SNP-filtered, BH-corrected)",
     x        = "Modification rate",
-    y        = "Density",
-    caption  = paste0("Min coverage: ", opt$`min-cov`, "x | SNP_flag == PASS only")
+    y        = "Number of sites (log10)",
+    caption  = paste0("Bin width: 5% | Min coverage: ", opt$`min-cov`,
+                      "x | SNP_flag == PASS only")
   ) +
   theme_srnataps()
 
-save_figure(p_density, file.path(opt$figdir, "03a_density.pdf"),
+save_figure(p_hist, file.path(opt$figdir, "03a_modrate_distribution.pdf"),
             width = 12, height = 5)
-message("Figure 3a (density): done")
-
-# Option B — ECDF
-p_ecdf <- ggplot(calls_dist,
-                 aes(x = mod_rate, colour = condition)) +
-  stat_ecdf(linewidth = 0.7, pad = FALSE) +
-  facet_wrap(~ biotype, nrow = 1) +
-  scale_colour_manual(values = CONDITION_COLOURS, labels = CONDITION_LABELS,
-                      name = "Condition") +
-  scale_x_continuous(labels = percent_format(accuracy = 1),
-                     limits = c(0, 1), breaks = seq(0, 1, 0.25)) +
-  scale_y_continuous(labels = percent_format(accuracy = 1),
-                     breaks = seq(0, 1, 0.1)) +
-  geom_vline(xintercept = 0.1, linetype = "dashed",
-             colour = "grey50", linewidth = 0.3) +
-  labs(
-    title    = "TAPS modification rate — cumulative distribution",
-    subtitle = "Fraction of PASS sites with mod_rate ≤ x",
-    x        = "Modification rate",
-    y        = "Cumulative fraction of sites",
-    caption  = paste0("Dashed line: 10% threshold | Min coverage: ", opt$`min-cov`, "x")
-  ) +
-  theme_srnataps()
-
-save_figure(p_ecdf, file.path(opt$figdir, "03a_ecdf.pdf"),
-            width = 12, height = 5)
-message("Figure 3a (ECDF): done")
+message("Figure 3a: Modification rate distribution — done")
 
 # ── Figure 3b: Top 10 modified sites ─────────────────────────────────────────
 top_sites <- calls %>%
