@@ -236,14 +236,21 @@ context_data <- calls %>%
   dplyr::filter(n_sites >= 5)
 
 if (nrow(context_data) > 0) {
+  context_data <- context_data %>%
+    dplyr::mutate(text_col = ifelse(mean_mod > 0.35, "white", "black"))
+
   p_ctx <- ggplot(context_data,
                   aes(x = ctx_up, y = ctx_down, fill = mean_mod)) +
-    geom_tile(colour = "white", linewidth = 0.3) +
-    geom_text(aes(label = n_sites), size = 2.5, colour = "grey20") +
+    geom_tile(colour = "white", linewidth = 0.4) +
+    geom_text(aes(label = n_sites, colour = text_col), size = 2.8) +
+    scale_colour_identity() +
     facet_wrap(~ biotype, nrow = 2) +
-    scale_fill_viridis_c(name = "Mean\nmod rate",
-                         labels = percent_format(accuracy = 1),
-                         option = "plasma") +
+    scale_fill_gradient(
+      low    = "#FFFFFF",
+      high   = "#0072B2",
+      name   = "Mean\nmod rate",
+      labels = percent_format(accuracy = 1)
+    ) +
     labs(
       title    = "Trinucleotide context of modified cytosines",
       subtitle = "TET+PB condition | numbers = site count | NpCpN context",
@@ -252,9 +259,8 @@ if (nrow(context_data) > 0) {
     ) +
     theme_srnataps() +
     theme(panel.grid = element_blank())
-
   save_figure(p_ctx, file.path(opt$figdir, "03e_trinucleotide_context.pdf"),
-              width = 12, height = 6)
+              width = 9, height = 4.5)
   message("Figure 3e: Trinucleotide context — done")
 }
 
