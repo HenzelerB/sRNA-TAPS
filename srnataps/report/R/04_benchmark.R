@@ -2,7 +2,7 @@
 # 04_benchmark.R — Benchmarking comparison figures
 # =============================================================================
 suppressPackageStartupMessages(library(optparse))
-source(file.path(Sys.getenv("SRNATAPS_R_DIR", "."), "00_setup.R"))
+source(file.path(Sys.getenv("SRNATAPS_R_DIR", "/mnt/nfs/home/bhenzeler/projects/RNA_TAPS/sRNA-TAPS/srnataps/report/R"), "00_setup.R"))
 
 option_list <- list(
   make_option("--outdir", type = "character"),
@@ -37,25 +37,70 @@ if (file.exists(conc_file)) {
     dplyr::group_by(biotype, tool) %>%
     dplyr::summarise(jaccard = mean(jaccard, na.rm = TRUE), .groups = "drop") %>%
     dplyr::mutate(
-      biotype = factor(biotype, levels = BIOTYPE_ORDER),
-      tool    = factor(tool,    levels = TOOL_ORDER)
+      biotype        = factor(biotype, levels = BIOTYPE_ORDER),
+      tool           = factor(tool,    levels = TOOL_ORDER),
+      signed_jaccard = ifelse(tool == "bismark", -jaccard, jaccard)
     ) %>%
     dplyr::filter(!is.na(biotype), !is.na(tool))
 
-  p_conc <- ggplot(conc, aes(x = tool, y = biotype, fill = jaccard)) +
-    geom_tile(colour = "white", linewidth = 0.5) +
-    geom_text(aes(label = sprintf("%.2f", jaccard),
-                colour = ifelse(jaccard > 0.5, "white", "grey10")), size = 3) +
-    scale_colour_identity() +
-    scale_fill_distiller(palette = "YlOrRd", direction = 1,
-                         name = "Jaccard\nindex", limits = c(0, 1)) +
-    scale_x_discrete(labels = TOOL_LABS) +
-    labs(title    = "Site-level concordance: custom pipeline vs benchmarks",
-         subtitle = "TET+PB condition | Jaccard index at called sites",
-         x = NULL, y = "RNA biotype",
-         caption = "Bismark chemistry inverted before comparison") +
+  # Add sRNA-TAPS as self-reference row (Jaccard = 1.0)
+  srnataps_row <- conc %>%
+    dplyr::distinct(biotype) %>%
+    dplyr::mutate(tool           = factor("sRNA-TAPS", levels = TOOL_ORDER),
+                  jaccard        = 1.0,
+                  signed_jaccard = 1.0)
+  # Build complete grid — fill missing combinations with NA
+  all_combos <- tidyr::expand_grid(
+    biotype = factor(levels(conc$biotype), levels = BIOTYPE_ORDER),
+    tool    = factor(TOOL_ORDER,           levels = TOOL_ORDER)
+  )
+  conc_full <- dplyr::bind_rows(conc, srnataps_row) %>%
+    dplyr::right_join(all_combos, by = c("biotype", "tool")) %>%
+    dplyr::mutate(
+      text_col  = dplyr::case_when(
+        is.na(jaccard)  ~ "grey50",
+        jaccard > 0.4   ~ "white",
+        TRUE            ~ "grey10"
+      ),
+      tile_label = dplyr::case_when(
+        is.na(jaccard) ~ "N/A",
+        jaccard < 0.001 ~ "< 0.001",
+        TRUE           ~ sprintf("%.3f", jaccard)
+      )
+    )
+
+  # Update tool colours — Okabe-Ito consistent
+  TOOL_COLS <- c("sRNA-TAPS" = "#D55E00",
+                 "rastair"   = "#0072B2",
+                 "astair"    = "#009E73",
+                 "bismark"   = "#999999")
+
+  p_conc <- ggplot(
+    conc_full %>% dplyr::filter(!is.na(jaccard)),
+    aes(x = biotype, y = signed_jaccard, colour = tool, group = tool)
+  ) +
+    geom_hline(yintercept = 0, linetype = "dashed",
+               colour = "grey50", linewidth = 0.4) +
+    geom_linerange(aes(ymin = 0, ymax = signed_jaccard),
+                   position = position_dodge(width = 0.6),
+                   linewidth = 0.4) +
+    geom_point(shape = 21, colour = "white",
+               aes(fill = tool),
+               position = position_dodge(width = 0.6),
+               size = 3, stroke = 0.3) +
+    scale_colour_manual(values = TOOL_COLS, labels = TOOL_LABS,
+                        name = "Tool", aesthetics = c("colour", "fill")) +
+    scale_y_continuous(limits = c(-0.1, 1), breaks = seq(-0.1, 1, 0.1),
+                       labels = function(x) sprintf("%.1f", x)) +
+    annotate("text", x = Inf, y = -0.05, label = "← Bismark (inverted chemistry)",
+             hjust = 1.05, size = 2.5, colour = "grey50", fontface = "italic") +
+    labs(title    = "Site-level concordance: sRNA-TAPS vs benchmark tools",
+         subtitle = "TET+PB condition | Signed Jaccard index per biotype",
+         x        = "RNA biotype",
+         y        = "Jaccard index (negative = chemistry-inverted)",
+         caption  = "Bismark values negated: chemistry inversion means anti-concordant sites.") +
     theme_srnataps() +
-    theme(panel.grid = element_blank())
+    theme(axis.text.x = element_text(angle = 30, hjust = 1))
 
   save_figure(p_conc, file.path(opt$figdir, "04a_concordance_heatmap.pdf"),
               width = 7, height = 5)
@@ -81,7 +126,7 @@ if (file.exists(corr_file)) {
   p_corr <- ggplot(corr, aes(x = biotype, y = pearson_r,
                               colour = tool, group = tool, shape = tool)) +
     geom_line(linewidth = 0.6, alpha = 0.8) +
-    geom_point(size = 3) +
+    geom_point(size = 5) +
     geom_text(aes(label = sprintf("%.2f", pearson_r)),
               size = 2.5, vjust = -0.8, family = "Arial") +
     geom_hline(yintercept = 0, linetype = "dashed",
