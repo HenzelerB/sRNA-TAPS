@@ -156,6 +156,7 @@ srnataps_palette <- function(n) {
 .KNOWN_LABELS <- c(
   "treat"    = "TET+PB",
   "pb_ctrl"  = "PB",
+  "pb"       = "PB",
   "no_treat" = "Untreated",
   "no-treat" = "Untreated",
   "old"      = "Old HEK"
