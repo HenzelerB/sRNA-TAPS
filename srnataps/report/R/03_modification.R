@@ -195,13 +195,19 @@ waterfall_data <- calls %>%
 if (nrow(waterfall_data) > 0) {
   p_waterfall <- waterfall_data %>%
     dplyr::slice_head(n = 500) %>%   # top 500 sites for clarity
-    ggplot(aes(x = rank, y = mod_rate, colour = biotype)) +
-      geom_point(size = 0.8, alpha = 0.7) +
+    ggplot(aes(x = rank, y = mod_rate, colour = biotype, shape = biotype)) +
+      geom_point(size = 1.2, alpha = 0.8) +
       scale_colour_manual(values = BIOTYPE_COLOURS, name = "Biotype") +
-      scale_y_continuous(labels = percent_format(accuracy = 1)) +
+      scale_shape_manual(values = c(16, 17, 15, 18, 8, 3, 4, 1),
+                         name = "Biotype") +
+      scale_y_continuous(
+        breaks = seq(0, 1, by = 0.1),
+        labels = percent_format(accuracy = 1)
+      ) +
+      scale_x_continuous(breaks = seq(0, 500, by = 50)) +
       labs(
         title    = paste0("Top 500 modification sites (", CONDITION_LABELS[TREAT_COND], ")"),
-        subtitle = "Ranked by modification rate, coloured by RNA biotype",
+        subtitle = "Ranked by modification rate, coloured and shaped by RNA biotype",
         x        = "Rank",
         y        = "Modification rate"
       ) +
