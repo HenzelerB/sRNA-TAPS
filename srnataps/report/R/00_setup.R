@@ -154,8 +154,8 @@ srnataps_palette <- function(n) {
 # Add your own by setting SRNATAPS_CONDITION_LABELS env var as
 # "cond1=Label 1,cond2=Label 2"
 .KNOWN_LABELS <- c(
-  "treat"    = "TET + PB",
-  "pb_ctrl"  = "PB only",
+  "treat"    = "TET+PB",
+  "pb_ctrl"  = "PB",
   "no_treat" = "Untreated",
   "no-treat" = "Untreated",
   "old"      = "Old HEK"

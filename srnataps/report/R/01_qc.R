@@ -72,14 +72,33 @@ if (dir.exists(pre_dir)) {
       trim      = factor(trim, levels = c("Pre-trim", "Post-trim"))
     )
 
+  # sRNA size class annotation bands
+  size_classes <- data.frame(
+    rna_class = factor(c("miRNA", "piRNA", "tRNA fragments"),
+                       levels = c("miRNA", "piRNA", "tRNA fragments")),
+    xmin = c(18, 26, 33),
+    xmax = c(25, 32, 40)
+  )
+  SIZE_CLASS_COLOURS <- c(
+    "miRNA"          = "#FF9999",
+    "piRNA"          = "#99CCFF",
+    "tRNA fragments" = "#99DD99"
+  )
+
   p_len <- ggplot(len_data, aes(x = length, y = count,
                                 colour = condition, group = sample)) +
+    geom_rect(data = size_classes,
+              aes(xmin = xmin, xmax = xmax, ymin = -Inf, ymax = Inf,
+                  fill = rna_class),
+              alpha = 0.12, inherit.aes = FALSE) +
     geom_line(alpha = 0.6, linewidth = 0.4) +
     facet_grid(cell_line ~ trim) +
     scale_colour_manual(values = CONDITION_COLOURS, labels = CONDITION_LABELS,
                         name = "Condition") +
-    scale_y_log10(labels = label_comma()) +
-    scale_x_continuous(breaks = c(15, 20, 25, 30, 40, 50)) +
+    scale_fill_manual(values = SIZE_CLASS_COLOURS,
+                      name  = "sRNA size class") +
+    scale_y_log10(labels = label_comma(), breaks = 10^(1:6), minor_breaks = rep(1:9, 6) * rep(10^(0:5), each = 9)) +
+    scale_x_continuous(breaks = seq(15, 75, by = 5)) +
     labs(
       title    = "Read length distribution",
       subtitle = "Per sample, pre- and post-adapter trimming",
@@ -87,7 +106,8 @@ if (dir.exists(pre_dir)) {
       y        = "Read count (log10)",
       caption  = "TruSeq small RNA adapter trimmed with Trim Galore --small_rna"
     ) +
-    theme_srnataps()
+    theme_srnataps() +
+    annotation_logticks(sides = "l")
 
   save_figure(p_len, file.path(opt$figdir, "01a_read_length_distribution.pdf"),
               width = 9, height = 6)
