@@ -208,15 +208,16 @@ CELL_SHAPES <- setNames(
 # 7. Fixed palettes (biotypes + benchmark tools — pipeline-defined, not dynamic)
 # =============================================================================
 
+# Okabe-Ito colorblind-safe palette (8 colours)
 BIOTYPE_COLOURS <- c(
-  "miRNA"  = "#1C4062",
-  "tRNA"   = "#3B7DB6",
-  "rRNA"   = "#3683AF",
-  "snoRNA" = "#3898BD",
-  "snRNA"  = "#7CBBD4",
-  "piRNA"  = "#A8CADA",
-  "lncRNA" = "#5B8FA8",
-  "other"  = "#8DAFC0"
+  "miRNA"  = "#56B4E9",   # sky blue
+  "tRNA"   = "#009E73",   # bluish green
+  "rRNA"   = "#D55E00",   # vermillion
+  "snoRNA" = "#E69F00",   # orange
+  "snRNA"  = "#CC79A7",   # reddish purple
+  "piRNA"  = "#F0E442",   # yellow
+  "lncRNA" = "#0072B2",   # blue
+  "other"  = "#999999"    # grey
 )
 
 TOOL_COLOURS_BENCH <- c(

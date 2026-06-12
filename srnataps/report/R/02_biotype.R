@@ -91,20 +91,27 @@ message("Figure 2a: Biotype composition (all samples) — done")
 
 bio_mean <- bio %>%
   dplyr::group_by(biotype, condition, cell_line) %>%
-  dplyr::summarise(mean_pct = mean(percent, na.rm = TRUE),
-                   sd_pct   = sd(percent,   na.rm = TRUE),
-                   .groups  = "drop")
+  dplyr::summarise(
+    mean_pct = mean(percent, na.rm = TRUE),
+    sd_pct   = sd(percent,   na.rm = TRUE),
+    n        = dplyr::n(),
+    .groups  = "drop"
+  )
 
 p_bio_mean <- ggplot(bio_mean,
                      aes(x = condition, y = mean_pct, fill = biotype)) +
-  geom_col(width = 0.8, colour = "white", linewidth = 0.2) +
+  geom_col(width = 0.7, colour = "white", linewidth = 0.15,
+           position = position_dodge(width = 0.8)) +
+  geom_errorbar(aes(ymin = mean_pct - sd_pct, ymax = mean_pct + sd_pct),
+                position = position_dodge(width = 0.8),
+                width = 0.25, colour = "grey30", linewidth = 0.4) +
   facet_wrap(~ cell_line) +
   scale_fill_manual(values = BIOTYPE_COLOURS, name = "RNA biotype") +
   scale_x_discrete(labels = CONDITION_LABELS) +
   scale_y_continuous(expand = c(0, 0), labels = function(x) paste0(x, "%")) +
   labs(
-    title    = "Mean biotype composition by condition",
-    subtitle = "Averaged across replicates per condition and cell line",
+    title    = "Biotype composition by condition",
+    subtitle = "Mean ± SD across biological replicates (n = 3)",
     x        = "Condition",
     y        = "Mean % of mapped reads"
   ) +
