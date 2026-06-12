@@ -28,7 +28,7 @@ add_condition_group <- function(df) {
   ))
 }
 
-# ── Figure 4a: Concordance heatmap ───────────────────────────────────────────
+# ── Figure 4a: Concordance lollipop ───────────────────────────────────────────
 conc_file <- file.path(COMPARE_DIR, "concordance_summary.tsv")
 if (file.exists(conc_file)) {
   conc <- read_tsv(conc_file, show_col_types = FALSE) %>%
@@ -102,9 +102,9 @@ if (file.exists(conc_file)) {
     theme_srnataps() +
     theme(axis.text.x = element_text(angle = 30, hjust = 1))
 
-  save_figure(p_conc, file.path(opt$figdir, "04a_concordance_heatmap.pdf"),
+  save_figure(p_conc, file.path(opt$figdir, "04a_concordance_lollipop.pdf"),
               width = 7, height = 5)
-  message("Figure 4a: Concordance heatmap — done")
+  message("Figure 4a: Concordance lollipop — done")
 }
 
 # ── Figure 4b: Pearson correlation ────────────────────────────────────────────
