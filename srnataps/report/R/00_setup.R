@@ -157,8 +157,8 @@ srnataps_palette <- function(n) {
   "treat"    = "TET+PB",
   "pb_ctrl"  = "PB",
   "pb"       = "PB",
-  "no_treat" = "Untreated",
-  "no-treat" = "Untreated",
+  "no_treat" = "UNTREATED",
+  "no-treat" = "UNTREATED",
   "old"      = "Old HEK"
 )
 
