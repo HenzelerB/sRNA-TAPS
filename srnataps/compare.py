@@ -88,6 +88,8 @@ def load_custom(condition, biotype):
         except pd.errors.EmptyDataError:
             continue
         dfs.append(df)
+    if not dfs:
+        return None
     combined = pd.concat(dfs, ignore_index=True)
     # Keep PASS sites only
     if "snp_flag" in combined.columns:
