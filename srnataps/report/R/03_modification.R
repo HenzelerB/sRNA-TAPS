@@ -72,36 +72,59 @@ calls <- load_calls(CALLS_DIR, BIOTYPES_PLOT, opt$`min-cov`)
 message("  Total PASS sites loaded: ", nrow(calls))
 
 
-# ── Figure 3a: Modification rate distribution (violin + boxplot) ──────────────
+# ── Figure 3a: Modification rate distribution ────────────────────────────────
 
-p_dist <- calls %>%
-  dplyr::filter(condition %in% CONDITIONS) %>%
-  ggplot(aes(x = condition, y = mod_rate, fill = condition)) +
-    geom_violin(trim = TRUE, alpha = 0.7, linewidth = 0.3) +
-    geom_boxplot(width = 0.12, outlier.shape = NA, fill = "white",
-                 linewidth = 0.4, colour = "grey20") +
-    facet_wrap(~ biotype, nrow = 1) +
-    scale_fill_manual(values = CONDITION_COLOURS, labels = CONDITION_LABELS,
+calls_dist <- calls %>% dplyr::filter(condition %in% CONDITIONS)
+
+# Option A — Density overlay
+p_density <- ggplot(calls_dist,
+                    aes(x = mod_rate, colour = condition, fill = condition)) +
+  geom_density(alpha = 0.15, linewidth = 0.6) +
+  facet_wrap(~ biotype, nrow = 1, scales = "free_y") +
+  scale_colour_manual(values = CONDITION_COLOURS, labels = CONDITION_LABELS,
                       name = "Condition") +
-    scale_x_discrete(labels = CONDITION_LABELS) +
-    scale_y_continuous(labels = percent_format(accuracy = 1),
-                       limits = c(0, 1)) +
-    labs(
-      title    = "TAPS modification rate distribution",
-      subtitle = "Per-site mod_rate at PASS positions (SNP-filtered, BH-corrected)",
-      x        = NULL,
-      y        = "Modification rate",
-      caption  = paste0("Min coverage: ", opt$`min-cov`, "x | SNP_flag == PASS only")
-    ) +
-    theme_srnataps() +
-    theme(
-      axis.text.x  = element_text(angle = 30, hjust = 1),
-      legend.position = "none"
-    )
+  scale_fill_manual(values = CONDITION_COLOURS, labels = CONDITION_LABELS,
+                    name = "Condition") +
+  scale_x_continuous(labels = percent_format(accuracy = 1),
+                     limits = c(0, 1), breaks = seq(0, 1, 0.25)) +
+  labs(
+    title    = "TAPS modification rate — density distribution",
+    subtitle = "Per-site mod_rate at PASS positions (SNP-filtered, BH-corrected)",
+    x        = "Modification rate",
+    y        = "Density",
+    caption  = paste0("Min coverage: ", opt$`min-cov`, "x | SNP_flag == PASS only")
+  ) +
+  theme_srnataps()
 
-save_figure(p_dist, file.path(opt$figdir, "03a_modrate_distribution.pdf"),
+save_figure(p_density, file.path(opt$figdir, "03a_density.pdf"),
             width = 12, height = 5)
-message("Figure 3a: Modification rate distribution — done")
+message("Figure 3a (density): done")
+
+# Option B — ECDF
+p_ecdf <- ggplot(calls_dist,
+                 aes(x = mod_rate, colour = condition)) +
+  stat_ecdf(linewidth = 0.7, pad = FALSE) +
+  facet_wrap(~ biotype, nrow = 1) +
+  scale_colour_manual(values = CONDITION_COLOURS, labels = CONDITION_LABELS,
+                      name = "Condition") +
+  scale_x_continuous(labels = percent_format(accuracy = 1),
+                     limits = c(0, 1), breaks = seq(0, 1, 0.25)) +
+  scale_y_continuous(labels = percent_format(accuracy = 1),
+                     breaks = seq(0, 1, 0.1)) +
+  geom_vline(xintercept = 0.1, linetype = "dashed",
+             colour = "grey50", linewidth = 0.3) +
+  labs(
+    title    = "TAPS modification rate — cumulative distribution",
+    subtitle = "Fraction of PASS sites with mod_rate ≤ x",
+    x        = "Modification rate",
+    y        = "Cumulative fraction of sites",
+    caption  = paste0("Dashed line: 10% threshold | Min coverage: ", opt$`min-cov`, "x")
+  ) +
+  theme_srnataps()
+
+save_figure(p_ecdf, file.path(opt$figdir, "03a_ecdf.pdf"),
+            width = 12, height = 5)
+message("Figure 3a (ECDF): done")
 
 # ── Figure 3b: Top 10 modified sites ─────────────────────────────────────────
 top_sites <- calls %>%
