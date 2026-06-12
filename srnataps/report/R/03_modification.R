@@ -103,24 +103,24 @@ save_figure(p_dist, file.path(opt$figdir, "03a_modrate_distribution.pdf"),
             width = 12, height = 5)
 message("Figure 3a: Modification rate distribution — done")
 
-# ── Figure 3b: Top 30 modified sites ─────────────────────────────────────────
+# ── Figure 3b: Top 10 modified sites ─────────────────────────────────────────
 top_sites <- calls %>%
   dplyr::filter(condition == TREAT_COND) %>%
   dplyr::mutate(site_id = paste0(chrom, ":", start)) %>%
-  dplyr::group_by(biotype, site_id, cell_line) %>%
+  dplyr::group_by(biotype, site_id, site_label, cell_line) %>%
   dplyr::summarise(
     median_mod = median(mod_rate),
     mean_cov   = mean(coverage),
     .groups    = "drop"
   ) %>%
   dplyr::group_by(biotype, cell_line) %>%
-  dplyr::slice_max(median_mod, n = 30) %>%
+  dplyr::slice_max(median_mod, n = 10) %>%
   dplyr::ungroup()
 
 if (nrow(top_sites) > 0) {
   p_top <- top_sites %>%
-    dplyr::mutate(site_id = reorder(site_id, median_mod)) %>%
-    ggplot(aes(x = median_mod, y = site_id,
+    dplyr::mutate(site_label = reorder(site_label, median_mod)) %>%
+    ggplot(aes(x = median_mod, y = site_label,
                size = log10(mean_cov + 1), colour = biotype)) +
       geom_point(alpha = 0.8) +
       facet_grid(biotype ~ cell_line, scales = "free_y", space = "free_y") +
@@ -128,13 +128,13 @@ if (nrow(top_sites) > 0) {
       scale_size_continuous(name = "log10(coverage)", range = c(1, 5)) +
       scale_x_continuous(labels = percent_format(accuracy = 1), limits = c(0, 1)) +
       labs(
-        title    = paste0("Top 30 modified sites per biotype (", CONDITION_LABELS[TREAT_COND], ")"),
+        title    = paste0("Top 10 modified sites per biotype (", CONDITION_LABELS[TREAT_COND], ")"),
         subtitle = "Ranked by median modification rate across replicates",
         x        = "Modification rate",
-        y        = "Genomic site"
+        y        = "Gene"
       ) +
       theme_srnataps() +
-      theme(axis.text.y = element_text(size = 5))
+      theme(axis.text.y = element_text(size = 7))
   save_figure(p_top, file.path(opt$figdir, "03b_top_sites.pdf"),
               width = 10, height = 12)
   message("Figure 3b: Top modified sites — done")
@@ -145,20 +145,27 @@ if (nrow(top_sites) > 0) {
 cond_wide <- calls %>%
   dplyr::filter(condition %in% c(CTRL_COND, TREAT_COND)) %>%
   dplyr::mutate(site_id = paste0(chrom, ":", start)) %>%
-  dplyr::group_by(biotype, site_id, cell_line, condition) %>%
+  dplyr::group_by(biotype, site_id, site_label, cell_line, condition) %>%
   dplyr::summarise(mod_rate = median(mod_rate), .groups = "drop") %>%
   tidyr::pivot_wider(names_from = condition, values_from = mod_rate) %>%
   dplyr::filter(!is.na(.data[[CTRL_COND]]), !is.na(.data[[TREAT_COND]]))
 
 if (nrow(cond_wide) > 0) {
+  # Flag sites above the diagonal (TET-enriched genuine m5C)
+  cond_wide <- cond_wide %>%
+    dplyr::mutate(above_diag = .data[[TREAT_COND]] > .data[[CTRL_COND]])
+
   p_scatter <- ggplot(cond_wide,
-                      aes(x = .data[[CTRL_COND]], y = .data[[TREAT_COND]], colour = biotype)) +
+                      aes(x = .data[[CTRL_COND]], y = .data[[TREAT_COND]])) +
     geom_abline(slope = 1, intercept = 0, linetype = "dashed",
                 colour = "grey60", linewidth = 0.4) +
-    geom_point(alpha = 0.5, size = 0.8) +
+    geom_point(data = dplyr::filter(cond_wide, !above_diag),
+               colour = "grey80", alpha = 0.4, size = 0.6) +
+    geom_point(data = dplyr::filter(cond_wide,  above_diag),
+               aes(colour = biotype), alpha = 0.8, size = 0.9) +
     geom_text_repel(
       data      = dplyr::filter(cond_wide, .data[[TREAT_COND]] > 0.5 & .data[[CTRL_COND]] < 0.2),
-      aes(label = site_id),
+      aes(label = site_label),
       size = 2.0, max.overlaps = 10, segment.colour = "grey70"
     ) +
     facet_grid(biotype ~ cell_line) +
