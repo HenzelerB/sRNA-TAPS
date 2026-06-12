@@ -123,6 +123,12 @@ rule bowtie1_align:
         bai = str(ALIGN_DIR / "{sample}.sorted.bam.bai"),
     params:
         index = config["reference"]["bowtie1_index"],
+    resources:
+        mem_mb  = lambda wc, input: est_mem(
+            8000, input.fq,
+            scale=8, floor_mb=12000, ceil_mb=64000
+        ),
+        runtime = 2880,
     log:
         bowtie   = str(LOG_DIR / "align" / "{sample}_bowtie.log"),
         flagstat = str(LOG_DIR / "align" / "{sample}_flagstat.log"),

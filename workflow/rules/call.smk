@@ -1,66 +1,37 @@
 # =============================================================================
-# rules/call.smk — TAPS m5C modification calling
+# rules/call.smk — TAPS m5C modification calling per biotype per sample
 # =============================================================================
-
-def get_snp_bed(wc):
-    """Return the SNP blacklist BED for the cell line of this sample."""
-    cell_line = SAMPLES.loc[wc.sample, "cell_line"]
-    return str(SNP_DIR / f"sample_snps_{cell_line}.bed")
-
-
-def get_min_cov(wc):
-    """Return per-biotype minimum coverage threshold."""
-    return config["calling"]["min_coverage"].get(wc.biotype, 5)
-
 
 rule taps_call:
     """
-    TAPS m5C modification calling per biotype per sample.
-
-    Chemistry:
-        TAPS: m5C and 5hmC → T (TET oxidation + pyridine borane reduction)
-        Unmodified C stays as C.
-        C→T in reads at a reference-C = modification (opposite of bisulfite).
-        Reverse strand: G→A = modification at minus-strand C.
-
-    SNP filtering (three layers, applied BEFORE counting):
-        Layer 1: dbSNP common C→T/G→A variants (AF >= 0.01)
-        Layer 2: Cell-line-specific SNPs from no-treat BAMs
-        Layer 3: Heterozygosity flag (no-treat C→T rate >= het_threshold)
-        SNP sites are EXCLUDED before pileup counting, ensuring the
-        BH FDR correction pool contains only genuine modification candidates.
-
-    Multi-mapper weighting:
-        Bowtie1 writes XA:i:N (number of alignments).
-        Reads mapping to N loci each contribute weight = 1/N.
-        Essential for tRNA (600+ near-identical copies in hg38).
-
-    Output columns:
-        chrom, start, end, context, mod_count, unmod_count, coverage,
-        mod_rate, pvalue, padj, snp_flag
+    TAPS m5C calling per biotype per sample.
+    Three-layer SNP filtering: dbSNP + cell-line-specific + heterozygosity.
+    Multi-mapper weighting via XA:i:N tag (essential for tRNA).
+    Skips biotypes with < 50 reads (writes empty TSV).
     """
     input:
         bam     = str(BIOTYPE_DIR / "{biotype}" / "{sample}_{biotype}.sorted.bam"),
         fasta   = config["reference"]["genome_fa"],
         snp_bed = get_snp_bed,
-        snp_idx = lambda wc: str(SNP_DIR / f"sample_snps_{SAMPLES.loc[wc.sample, 'cell_line']}.bed"),
     output:
         tsv = str(CALLS_DIR / "{biotype}" / "{sample}_{biotype}_taps.tsv"),
     params:
-        script      = str(Path(workflow.basedir).parent / "srnataps" / "caller.py"),
-        min_cov     = get_min_cov,
-        min_qual    = config["calling"]["min_base_quality"],
-        min_mapq    = config["calling"]["min_mapping_quality"],
-        bg_rate     = config["calling"]["background_rate"],
-        het_thresh  = config["snp"]["het_threshold"],
-        dbsnp       = config["reference"].get("dbsnp_vcf", ""),
-        cell_line   = lambda wc: SAMPLES.loc[wc.sample, "cell_line"],
+        script    = str(SRNATAPS_SCRIPTS / "caller.py"),
+        min_cov   = get_min_cov,
+        min_qual  = config["calling"]["min_base_quality"],
+        min_mapq  = config["calling"]["min_mapping_quality"],
+        bg_rate   = config["calling"]["background_rate"],
+        het_thresh = config["snp"]["het_threshold"],
+        cell_line = lambda wc: get_cell_line(wc.sample),
+        dbsnp     = config["reference"].get("dbsnp_vcf", ""),
+    resources:
+        mem_mb  = lambda wc, input: est_mem(
+            6000, input.bam,
+            scale=12, floor_mb=8000, ceil_mb=64000
+        ),
+        runtime = 480,
     log:
         str(LOG_DIR / "call" / "{sample}_{biotype}.log"),
-    threads: 4
-    resources:
-        mem_mb   = 40000,
-        runtime  = 480,
     shell:
         """
         mkdir -p {CALLS_DIR}/{wildcards.biotype}

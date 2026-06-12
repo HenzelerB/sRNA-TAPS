@@ -12,6 +12,35 @@
 # =============================================================================
 
 import pandas as pd
+
+import os
+
+# ── Dynamic memory estimation ──────────────────────────────────────────────────
+def est_mem(base_mb, *input_paths, scale=10, floor_mb=2000, ceil_mb=128000):
+    """
+    Estimate SLURM memory (MB) from input file sizes.
+
+    base_mb      : fixed tool overhead (index loading, Python runtime, etc.)
+    *input_paths : one or more input file paths to measure
+    scale        : additional MB per MB of input data
+    floor_mb     : minimum memory — never request less than this
+    ceil_mb      : hard cap — protects against unexpectedly large files
+
+    Users tune globally in config.yaml:
+        resources:
+          mem_scale_factor: 1.5   # request 50% more memory on restrictive clusters
+    """
+    user_factor = float(config.get("resources", {}).get("mem_scale_factor", 1.0))
+    total_mb = 0.0
+    for p in input_paths:
+        try:
+            total_mb += os.path.getsize(str(p)) / (1024 * 1024)
+        except (OSError, TypeError, ValueError):
+            pass
+    estimated = int((base_mb + total_mb * scale) * user_factor)
+    return max(floor_mb, min(ceil_mb, estimated))
+# ──────────────────────────────────────────────────────────────────────────────
+
 from pathlib import Path
 
 configfile: "config.yaml"

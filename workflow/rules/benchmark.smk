@@ -88,6 +88,12 @@ rule astair_call:
         min_mapq  = config["benchmark"]["tools"]["astair"]["min_mapq"],
         min_baseq = config["benchmark"]["tools"]["astair"]["min_baseq"],
         context   = config["benchmark"]["tools"]["astair"]["context"],
+    resources:
+        mem_mb  = lambda wc, input: est_mem(
+            10000, input.bam,
+            scale=15, floor_mb=12000, ceil_mb=80000
+        ),
+        runtime = 720,
     log:
         str(LOG_DIR / "benchmark" / "astair_{sample}_{biotype}.log"),
     shell:
@@ -158,6 +164,12 @@ rule bismark_align:
         index_dir = str(BENCH_DIR / "bismark_index"),
         min_mapq  = config["benchmark"]["tools"]["bismark"]["min_mapq"],
         min_baseq = config["benchmark"]["tools"]["bismark"]["min_baseq"],
+    resources:
+        mem_mb  = lambda wc, input: est_mem(
+            14000, input.fq,
+            scale=15, floor_mb=16000, ceil_mb=60000
+        ),
+        runtime = 480,
     log:
         align   = str(LOG_DIR / "benchmark" / "bismark_align_{sample}.log"),
         extract = str(LOG_DIR / "benchmark" / "bismark_extract_{sample}.log"),
