@@ -152,30 +152,37 @@ log_dir  <- file.path(opt$outdir, "logs", "align")
 map_data <- parse_bowtie_logs(log_dir)
 
 if (!is.null(map_data) && nrow(map_data) > 0) {
-  map_data <- map_data %>%
-    dplyr::arrange(condition, cell_line, sample) %>%
-    dplyr::mutate(
-      sample    = factor(sample, levels = unique(sample)),
-      condition = factor(condition, levels = names(CONDITION_COLOURS))
+  # Summarise to mean ± SD per condition per cell line
+  map_mean <- map_data %>%
+    dplyr::mutate(condition = factor(condition, levels = names(CONDITION_COLOURS))) %>%
+    dplyr::group_by(condition, cell_line) %>%
+    dplyr::summarise(
+      mean_rate = mean(mapping_rate, na.rm = TRUE),
+      sd_rate   = sd(mapping_rate,   na.rm = TRUE),
+      n         = dplyr::n(),
+      .groups   = "drop"
     )
 
-  p_map <- ggplot(map_data, aes(x = sample, y = mapping_rate, fill = condition)) +
+  p_map <- ggplot(map_mean, aes(x = condition, y = mean_rate, fill = condition)) +
     geom_col(width = 0.7, colour = "grey30", linewidth = 0.2) +
+    geom_errorbar(aes(ymin = mean_rate - sd_rate, ymax = mean_rate + sd_rate),
+                  width = 0.2, colour = "grey30", linewidth = 0.5) +
     geom_hline(yintercept = 60, linetype = "dashed", colour = "grey50", linewidth = 0.4) +
-    facet_wrap(~ cell_line, scales = "free_x") +
+    facet_wrap(~ cell_line) +
     scale_fill_manual(values = CONDITION_COLOURS, labels = CONDITION_LABELS,
                       name = "Condition") +
+    scale_x_discrete(labels = CONDITION_LABELS) +
     scale_y_continuous(limits = c(0, 100), expand = c(0, 0),
                        labels = function(x) paste0(x, "%")) +
     labs(
       title    = "Bowtie1 alignment rates",
-      subtitle = "Percentage of trimmed reads aligning to hg38",
-      x        = NULL,
+      subtitle = "Mean ± SD across biological replicates aligned to GRCh38",
+      x        = "Condition",
       y        = "Alignment rate (%)",
-      caption  = "Dashed line: 60% reference threshold. Parameters: -v2 --norc -k10 --best --strata -m100"
+      caption  = "Error bars: ± 1 SD (n = 3 biological replicates). Dashed line: 60% threshold."
     ) +
     theme_srnataps() +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 7))
+    theme(axis.text.x = element_text(angle = 30, hjust = 1))
 
   save_figure(p_map, file.path(opt$figdir, "01b_mapping_rates.pdf"),
               width = 10, height = 5)
