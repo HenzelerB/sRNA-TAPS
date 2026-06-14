@@ -10,6 +10,7 @@
 # =============================================================================
 
 suppressPackageStartupMessages(library(optparse))
+suppressPackageStartupMessages(library(ggdist))
 source(file.path(Sys.getenv("SRNATAPS_R_DIR", "/mnt/nfs/home/bhenzeler/projects/RNA_TAPS/sRNA-TAPS/srnataps/report/R"), "00_setup.R"))
 
 option_list <- list(
@@ -52,73 +53,42 @@ bio <- read_tsv(biotype_file, show_col_types = FALSE) %>%
   )
 
 
-# ── Figure 2a: All samples stacked bar ───────────────────────────────────────
-
-sample_order <- bio %>%
-  dplyr::arrange(cell_line, condition, sample) %>%
-  dplyr::pull(sample) %>%
-  unique()
-
-p_bio_all <- bio %>%
-  dplyr::mutate(sample = factor(sample, levels = sample_order)) %>%
-  ggplot(aes(x = sample, y = percent, fill = biotype)) +
-    geom_col(width = 0.85, colour = "white", linewidth = 0.15) +
-    facet_grid(~ cell_line + condition,
-               scales = "free_x", space = "free_x",
-               labeller = labeller(condition = CONDITION_LABELS)) +
-    scale_fill_manual(values = BIOTYPE_COLOURS, name = "RNA biotype") +
-    scale_y_continuous(expand = c(0, 0), labels = function(x) paste0(x, "%")) +
-    labs(
-      title    = "RNA biotype composition",
-      subtitle = "Percentage of mapped reads per biotype across all samples",
-      x        = NULL,
-      y        = "% of mapped reads",
-      caption  = "Biotype priority: miRNA > tRNA > piRNA > snoRNA > snRNA > rRNA > lncRNA > other"
-    ) +
-    theme_srnataps() +
-    theme(
-      axis.text.x      = element_text(angle = 45, hjust = 1, size = 6.5),
-      legend.key.size  = unit(0.4, "cm"),
-      strip.text       = element_text(size = 7)
-    )
-
-save_figure(p_bio_all, file.path(opt$figdir, "02a_biotype_composition_all.pdf"),
-            width = 14, height = 5)
-message("Figure 2a: Biotype composition (all samples) — done")
-
-
-# ── Figure 2b: Mean per condition per cell line ───────────────────────────────
+# ── Figure 2: Biotype composition — one panel per biotype ───────────────────
 
 bio_mean <- bio %>%
   dplyr::group_by(biotype, condition, cell_line) %>%
   dplyr::summarise(
     mean_pct = mean(percent, na.rm = TRUE),
     sd_pct   = sd(percent,   na.rm = TRUE),
-    n        = dplyr::n(),
     .groups  = "drop"
   )
 
-p_bio_mean <- ggplot(bio_mean,
-                     aes(x = condition, y = mean_pct, fill = biotype)) +
-  geom_col(width = 0.7, colour = "white", linewidth = 0.15,
-           position = position_dodge(width = 0.8)) +
-  geom_errorbar(aes(ymin = mean_pct - sd_pct, ymax = mean_pct + sd_pct),
-                position = position_dodge(width = 0.8),
-                width = 0.25, colour = "grey30", linewidth = 0.4) +
+bio_indiv <- bio %>%
+  dplyr::mutate(condition = factor(condition, levels = names(CONDITION_COLOURS)))
+
+p_bio <- ggplot(bio_mean,
+               aes(x = condition, y = mean_pct, fill = biotype)) +
+  geom_col(width = 0.75, colour = "white", linewidth = 0.2) +
   facet_wrap(~ cell_line) +
   scale_fill_manual(values = BIOTYPE_COLOURS, name = "RNA biotype") +
   scale_x_discrete(labels = CONDITION_LABELS) +
-  scale_y_continuous(expand = c(0, 0), labels = function(x) paste0(x, "%")) +
+  scale_y_continuous(breaks = seq(0, 100, by = 10),
+                     expand = c(0, 0),
+                     labels = function(x) paste0(x, "%")) +
   labs(
-    title    = "Biotype composition by condition",
-    subtitle = "Mean ± SD across biological replicates (n = 3)",
-    x        = "Condition",
-    y        = "Mean % of mapped reads"
+    title    = "RNA biotype composition by condition",
+    subtitle = "Mean percentage of mapped reads per biotype",
+    x        = NULL,
+    y        = "% of mapped reads",
+    caption  = "Biotype priority: miRNA > tRNA > piRNA > snoRNA > snRNA > rRNA > lncRNA > other"
   ) +
   theme_srnataps() +
-  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+  theme(
+    legend.position = "bottom",
+    axis.text.x     = element_text(angle = 30, hjust = 1)
+  )
 
-save_figure(p_bio_mean, file.path(opt$figdir, "02b_biotype_composition_mean.pdf"),
-            width = 8, height = 5)
-message("Figure 2b: Biotype composition (mean) — done")
+save_figure(p_bio, file.path(opt$figdir, "02_biotype_composition.pdf"),
+            width = 5, height = 5)
+message("Figure 2: Biotype composition — done")
 message("02_biotype.R complete.")
