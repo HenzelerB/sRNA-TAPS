@@ -46,7 +46,7 @@ parse_fastqc_length <- function(fastqc_dir, trim_status) {
     block <- lines[(start[1]+2):(end-1)]
 
     tryCatch({
-      df <- read.table(text = block, sep = "\t", header = FALSE,
+      df <- read.table(text = block, sep = "\t", header = FALSE, colClasses = c("character", "numeric"),
                        col.names = c("length_range", "count"))
       df$length    <- as.numeric(sub("-.*", "", df$length_range))
       df$sample    <- sample
