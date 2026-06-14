@@ -154,12 +154,10 @@ srnataps_palette <- function(n) {
 # Add your own by setting SRNATAPS_CONDITION_LABELS env var as
 # "cond1=Label 1,cond2=Label 2"
 .KNOWN_LABELS <- c(
-  "treat"    = "TET+PB",
-  "pb_ctrl"  = "PB",
-  "pb"       = "PB",
-  "no_treat" = "UNTREATED",
-  "no-treat" = "UNTREATED",
-  "old"      = "Old HEK"
+  "treat"    = "PB⁺ & TET⁺",
+  "pb_ctrl"  = "PB⁺",
+  "no_treat" = "PB⁻ & TET⁻",
+  "no-treat" = "PB⁻ & TET⁻"
 )
 
 # Parse any user-supplied overrides from environment
@@ -174,8 +172,17 @@ if (nchar(.env_labels) > 0) {
 }
 
 # Build condition colours: palette steps assigned in the order conditions appear
+# Use distinct Okabe-Ito colours for known TAPS conditions;
+# fall back to srnataps_palette for custom condition sets
+.KNOWN_CONDITION_COLOURS <- c(
+  "treat"    = "#FFD166",   # warm gold  — TET+PB
+  "pb_ctrl"  = "#118AB2",   # ocean blue — PB
+  "no_treat" = "#06D6A0"    # neon mint  — UNTREATED
+)
 CONDITION_COLOURS <- setNames(
-  srnataps_palette(length(CONDITIONS)),
+  ifelse(CONDITIONS %in% names(.KNOWN_CONDITION_COLOURS),
+         .KNOWN_CONDITION_COLOURS[CONDITIONS],
+         srnataps_palette(length(CONDITIONS))),
   CONDITIONS
 )
 

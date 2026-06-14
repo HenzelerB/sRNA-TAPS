@@ -32,6 +32,10 @@ dir.create(opt$figdir, recursive = TRUE, showWarnings = FALSE)
 parse_fastqc_length <- function(fastqc_dir, trim_status) {
   files <- list.files(fastqc_dir, pattern = "fastqc_data.txt",
                       recursive = TRUE, full.names = TRUE)
+  # Exclude post_trim subdirectory only when scanning pre-trim parent directory
+  if (!grepl("post_trim", fastqc_dir)) {
+    files <- files[!grepl("/post_trim/", files)]
+  }
   all_data <- lapply(files, function(f) {
     sample <- basename(dirname(f))
     sample <- sub("_fastqc$", "", sample)
@@ -67,6 +71,7 @@ if (dir.exists(pre_dir)) {
   pre  <- parse_fastqc_length(pre_dir, "Pre-trim")
   post <- if (dir.exists(post_dir)) parse_fastqc_length(post_dir, "Post-trim") else data.frame()
   len_data <- dplyr::bind_rows(pre, post) %>%
+    dplyr::filter(trim == "Post-trim") %>%
     dplyr::mutate(
       condition = factor(condition, levels = names(CONDITION_COLOURS)),
       trim      = factor(trim, levels = c("Pre-trim", "Post-trim"))
@@ -75,18 +80,24 @@ if (dir.exists(pre_dir)) {
   # sRNA size class annotation bands
   p_len <- ggplot(len_data, aes(x = length, y = count,
                                 colour = condition, group = sample)) +
+    geom_vline(xintercept = 178, linetype = "dashed",
+               colour = "grey40", linewidth = 0.4) +
     geom_line(alpha = 0.6, linewidth = 0.4) +
-    facet_grid(cell_line ~ trim) +
+    facet_wrap(~ cell_line) +
     scale_colour_manual(values = CONDITION_COLOURS, labels = CONDITION_LABELS,
                         name = "Condition") +
     scale_y_log10(labels = label_comma(),
-                  limits = c(1e4, NA),
-                  breaks = 10^(4:8),
+                  breaks = 10^seq(floor(log10(min(len_data$count[len_data$count > 0]))),
+                                  ceiling(log10(max(len_data$count)))),
                   minor_breaks = NULL) +
-    scale_x_continuous(breaks = seq(15, 75, by = 10), minor_breaks = seq(15, 75, by = 5), limits = c(15, 75)) +
+    coord_cartesian(ylim = c(
+      10^floor(log10(quantile(len_data$count[len_data$count > 0], 0.05))),
+      10^ceiling(log10(max(len_data$count)))
+    )) +
+    scale_x_continuous(breaks = scales::breaks_pretty(n = 8)) +
     labs(
       title    = "Read length distribution",
-      subtitle = "Per sample, pre- and post-adapter trimming",
+      subtitle = "Per sample, post-adapter trimming",
       x        = "Read length (nt)",
       y        = "Read count (log10)",
       caption  = "TruSeq small RNA adapter trimmed with Trim Galore --small_rna"
@@ -94,7 +105,7 @@ if (dir.exists(pre_dir)) {
     theme_srnataps()
 
   save_figure(p_len, file.path(opt$figdir, "01a_read_length_distribution.pdf"),
-              width = 9, height = 6)
+              width = 9, height = 3)
   message("Figure 1a: Read length distribution — done")
 } else {
   message("WARNING: FastQC directories not found — skipping Figure 1a")
@@ -147,16 +158,23 @@ if (!is.null(map_data) && nrow(map_data) > 0) {
       .groups   = "drop"
     )
 
+  map_data <- map_data %>%
+    dplyr::mutate(condition = factor(condition, levels = names(CONDITION_COLOURS)))
+
   p_map <- ggplot(map_mean, aes(x = condition, y = mean_rate, fill = condition)) +
     geom_col(width = 0.7, colour = "grey30", linewidth = 0.2) +
     geom_errorbar(aes(ymin = mean_rate - sd_rate, ymax = mean_rate + sd_rate),
                   width = 0.2, colour = "grey30", linewidth = 0.5) +
+    geom_jitter(data = map_data, aes(x = condition, y = mapping_rate),
+                width = 0.1, size = 1.5, shape = 21,
+                fill = "white", colour = "grey20", inherit.aes = FALSE) +
     geom_hline(yintercept = 60, linetype = "dashed", colour = "grey50", linewidth = 0.4) +
     facet_wrap(~ cell_line) +
     scale_fill_manual(values = CONDITION_COLOURS, labels = CONDITION_LABELS,
                       name = "Condition") +
     scale_x_discrete(labels = CONDITION_LABELS) +
     scale_y_continuous(limits = c(0, 100), expand = c(0, 0),
+                       breaks = seq(0, 100, by = 10),
                        labels = function(x) paste0(x, "%")) +
     labs(
       title    = "Bowtie1 alignment rates",
@@ -170,7 +188,7 @@ if (!is.null(map_data) && nrow(map_data) > 0) {
     guides(fill = "none")
 
   save_figure(p_map, file.path(opt$figdir, "01b_mapping_rates.pdf"),
-              width = 10, height = 5)
+              width = 4.5, height = 5)
   message("Figure 1b: Mapping rates — done")
 } else {
   message("WARNING: Bowtie logs not found — skipping Figure 1b")
