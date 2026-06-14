@@ -180,9 +180,10 @@ if (nchar(.env_labels) > 0) {
   "no_treat" = "#06D6A0"    # neon mint  — UNTREATED
 )
 CONDITION_COLOURS <- setNames(
-  ifelse(CONDITIONS %in% names(.KNOWN_CONDITION_COLOURS),
-         .KNOWN_CONDITION_COLOURS[CONDITIONS],
-         srnataps_palette(length(CONDITIONS))),
+  sapply(CONDITIONS, function(c) {
+    if (c %in% names(.KNOWN_CONDITION_COLOURS)) .KNOWN_CONDITION_COLOURS[[c]]
+    else srnataps_palette(length(CONDITIONS))[which(CONDITIONS == c)]
+  }),
   CONDITIONS
 )
 
@@ -217,15 +218,10 @@ CELL_SHAPES <- setNames(
 # =============================================================================
 
 # Okabe-Ito colorblind-safe palette (8 colours)
-BIOTYPE_COLOURS <- c(
-  "miRNA"  = "#56B4E9",   # sky blue
-  "tRNA"   = "#009E73",   # bluish green
-  "rRNA"   = "#D55E00",   # vermillion
-  "snoRNA" = "#E69F00",   # orange
-  "snRNA"  = "#CC79A7",   # reddish purple
-  "piRNA"  = "#F0E442",   # yellow
-  "lncRNA" = "#0072B2",   # blue
-  "other"  = "#999999"    # grey
+# Biotype colours: spectrum derived from Aurora Borealis condition palette
+BIOTYPE_COLOURS <- setNames(
+  colorRampPalette(c("#FFD166", "#118AB2", "#06D6A0"))(8),
+  c("miRNA", "tRNA", "rRNA", "snoRNA", "snRNA", "piRNA", "lncRNA", "other")
 )
 
 TOOL_COLOURS_BENCH <- c(

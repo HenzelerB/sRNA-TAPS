@@ -77,20 +77,16 @@ message("  Total PASS sites loaded: ", nrow(calls))
 calls_dist <- calls %>% dplyr::filter(condition %in% CONDITIONS)
 
 # Histogram — field standard for m5C stoichiometry distributions (binwidth=5%, log10 y)
-HIST_COLOURS <- c("treat"    = "#D55E00",   # vermillion — TET+PB
-                  "pb_ctrl"  = "#0072B2",   # blue       — PB
-                  "no_treat" = "#999999")   # grey       — UNTREATED
-
 p_hist <- ggplot(calls_dist,
                  aes(x = mod_rate, fill = condition, colour = condition)) +
   geom_histogram(binwidth = 0.05, boundary = 0,
-                 position = "identity", alpha = 0.5, linewidth = 0.2) +
-  facet_wrap(~ biotype, nrow = 1, scales = "free_y") +
-  scale_fill_manual(values = HIST_COLOURS, labels = CONDITION_LABELS,
+                 position = "identity", alpha = 0.6, colour = NA) +
+  facet_wrap(~ biotype, nrow = 1) +
+  scale_fill_manual(values = CONDITION_COLOURS, labels = CONDITION_LABELS,
                     name = "Condition") +
-  scale_colour_manual(values = HIST_COLOURS, labels = CONDITION_LABELS,
+  scale_colour_manual(values = CONDITION_COLOURS, labels = CONDITION_LABELS,
                       name = "Condition") +
-  scale_x_continuous(labels = percent_format(accuracy = 1),
+  scale_x_continuous(labels = function(x) x * 100,
                      breaks = seq(0, 1, 0.2), limits = c(0, 1)) +
   scale_y_continuous(trans  = "log10",
                      breaks = 10^(0:6),
@@ -100,7 +96,7 @@ p_hist <- ggplot(calls_dist,
   labs(
     title    = "TAPS m5C modification rate distribution",
     subtitle = "Per-site mod_rate at PASS positions (SNP-filtered, BH-corrected)",
-    x        = "Modification rate",
+    x        = "Modification rate (%)",
     y        = "Number of sites (log10)",
     caption  = paste0("Bin width: 5% | Min coverage: ", opt$`min-cov`,
                       "x | SNP_flag == PASS only")
@@ -108,7 +104,8 @@ p_hist <- ggplot(calls_dist,
   theme_srnataps()
 
 save_figure(p_hist, file.path(opt$figdir, "03a_modrate_distribution.pdf"),
-            width = 12, height = 5)
+            width = 12, height = 4)
+
 message("Figure 3a: Modification rate distribution — done")
 
 # ── Figure 3b: Top 10 modified sites ─────────────────────────────────────────
@@ -138,7 +135,7 @@ if (nrow(top_sites) > 0) {
       labs(
         title    = paste0("Top 10 modified sites per biotype (", CONDITION_LABELS[TREAT_COND], ")"),
         subtitle = "Ranked by median modification rate across replicates",
-        x        = "Modification rate",
+        x        = "Modification rate (%)",
         y        = "Gene"
       ) +
       theme_srnataps() +
@@ -255,7 +252,7 @@ if (nrow(context_data) > 0) {
     facet_wrap(~ biotype, nrow = 2) +
     scale_fill_gradient(
       low    = "#FFFFFF",
-      high   = "#0072B2",
+      high   = "#118AB2",
       name   = "Mean\nmod rate",
       labels = percent_format(accuracy = 1)
     ) +
