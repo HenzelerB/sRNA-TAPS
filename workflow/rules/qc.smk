@@ -25,7 +25,7 @@ rule fastqc_pretrim:
 
 rule fastqc_posttrim:
     input:
-        fq = str(TRIM_DIR / "{sample}_trimmed.fq.gz"),
+        fq = ancient(str(TRIM_DIR / "{sample}_trimmed.fq.gz")),
     output:
         html = str(QC_DIR / "post_trim" / "{sample}_trimmed_fastqc.html"),
         zip  = str(QC_DIR / "post_trim" / "{sample}_trimmed_fastqc.zip"),

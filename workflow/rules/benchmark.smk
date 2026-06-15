@@ -154,7 +154,7 @@ rule bismark_index:
 rule bismark_align:
     """Bismark alignment + methylation extraction per sample."""
     input:
-        fq   = str(TRIM_DIR / "{sample}_trimmed.fq.gz"),
+        fq   = ancient(str(TRIM_DIR / "{sample}_trimmed.fq.gz")),
         done = str(BENCH_DIR / "bismark_index" / ".index_complete"),
         fasta = config["reference"]["genome_fa"],
     output:
