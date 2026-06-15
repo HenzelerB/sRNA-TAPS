@@ -89,10 +89,9 @@ p_hist <- ggplot(calls_dist,
   scale_x_continuous(labels = function(x) x * 100,
                      breaks = seq(0, 1, 0.2), limits = c(0, 1)) +
   scale_y_continuous(trans  = "log10",
-                     breaks = 10^(0:6),
+                     breaks = c(1, 5, 10, 50, 100, 500, 1000, 5000, 10000),
                      labels = label_comma(),
-                     minor_breaks = rep(1:9, 6) * rep(10^(0:5), each = 9)) +
-  annotation_logticks(sides = "l") +
+                     minor_breaks = NULL) +
   labs(
     title    = "TAPS m5C modification rate distribution",
     subtitle = "Per-site mod_rate at PASS positions (SNP-filtered, BH-corrected)",
@@ -109,39 +108,76 @@ save_figure(p_hist, file.path(opt$figdir, "03a_modrate_distribution.pdf"),
 message("Figure 3a: Modification rate distribution — done")
 
 # ── Figure 3b: Top 10 modified sites ─────────────────────────────────────────
+# Get top 10 sites per biotype pooled across cell lines
+top_site_ids <- calls %>%
+  dplyr::filter(condition == TREAT_COND) %>%
+  dplyr::mutate(site_id = paste0(chrom, ":", start)) %>%
+  dplyr::group_by(biotype, site_id, site_label) %>%
+  dplyr::summarise(median_mod = median(mod_rate), .groups = "drop") %>%
+  dplyr::group_by(biotype) %>%
+  dplyr::slice_max(median_mod, n = 10, with_ties = FALSE) %>%
+  dplyr::ungroup() %>%
+  # Make labels unique at this stage
+  dplyr::group_by(biotype, site_label) %>%
+  dplyr::mutate(
+    n_pos = dplyr::n_distinct(site_id),
+    site_label_uniq = ifelse(n_pos > 1,
+                             paste0(site_label, " (", site_id, ")"),
+                             site_label)
+  ) %>%
+  dplyr::ungroup() %>%
+  dplyr::distinct(biotype, site_id, site_label, site_label_uniq)
+
+# Get per-cell-line stats for those top 10 sites
 top_sites <- calls %>%
   dplyr::filter(condition == TREAT_COND) %>%
   dplyr::mutate(site_id = paste0(chrom, ":", start)) %>%
-  dplyr::group_by(biotype, site_id, site_label, cell_line) %>%
+  dplyr::inner_join(top_site_ids, by = c("biotype", "site_id", "site_label")) %>%
+  dplyr::group_by(biotype, site_id, site_label, site_label_uniq, cell_line) %>%
   dplyr::summarise(
     median_mod = median(mod_rate),
     mean_cov   = mean(coverage),
     .groups    = "drop"
-  ) %>%
-  dplyr::group_by(biotype, cell_line) %>%
-  dplyr::slice_max(median_mod, n = 10) %>%
-  dplyr::ungroup()
+  )
 
 if (nrow(top_sites) > 0) {
-  p_top <- top_sites %>%
-    dplyr::mutate(site_label = reorder(site_label, median_mod)) %>%
-    ggplot(aes(x = median_mod, y = site_label,
-               size = log10(mean_cov + 1), colour = biotype)) +
-      geom_point(alpha = 0.8) +
-      facet_grid(biotype ~ cell_line, scales = "free_y", space = "free_y") +
-      scale_colour_manual(values = BIOTYPE_COLOURS, guide = "none") +
-      scale_size_continuous(name = "log10(coverage)", range = c(1, 5)) +
-      scale_x_continuous(labels = percent_format(accuracy = 1), limits = c(0, 1)) +
-      labs(
-        title    = paste0("Top 10 modified sites per biotype (", CONDITION_LABELS[TREAT_COND], ")"),
-        subtitle = "Ranked by median modification rate across replicates",
-        x        = "Modification rate (%)",
-        y        = "Gene"
-      ) +
-      theme_srnataps() +
-      theme(axis.text.y = element_text(size = 7))
+  # 2x2 matrix layout: miRNA+tRNA on left, rRNA+snoRNA on right
+  top_matrix <- top_sites %>%
+    dplyr::filter(biotype %in% c("miRNA", "tRNA", "rRNA", "snoRNA")) %>%
+    dplyr::mutate(
+      col_group = ifelse(biotype %in% c("miRNA", "tRNA"), "miRNA & tRNA", "rRNA & snoRNA"),
+      col_group = factor(col_group, levels = c("miRNA & tRNA", "rRNA & snoRNA")),
+      biotype   = factor(biotype, levels = c("miRNA", "tRNA", "rRNA", "snoRNA")),
+      site_label_uniq = reorder(site_label_uniq, median_mod)
+    )
+
+  p_top <- ggplot(top_matrix,
+                  aes(x = median_mod * 100, y = site_label_uniq,
+                      size = log10(mean_cov + 1),
+                      colour = biotype, shape = cell_line)) +
+    geom_segment(aes(x = 0, xend = median_mod * 100,
+                     y = site_label_uniq, yend = site_label_uniq),
+                 colour = "grey85", linewidth = 0.3) +
+    geom_point(alpha = 0.85) +
+    facet_wrap(~ biotype, ncol = 2, scales = "free_y") +
+    scale_colour_manual(values = BIOTYPE_COLOURS, guide = "none") +
+    scale_shape_manual(values = c("Caco2" = 16, "HEK" = 17), name = "Cell line") +
+    scale_size_continuous(name = "log10(coverage)", range = c(1, 5)) +
+    scale_x_continuous(breaks = seq(0, 100, by = 20), limits = c(0, 100)) +
+    labs(
+      title    = paste0("Top 10 modified sites per biotype (", CONDITION_LABELS[TREAT_COND], ")"),
+      subtitle = "Caco2 (circle) and HEK (triangle) — ranked by median modification rate",
+      x        = "Modification rate (%)",
+      y        = NULL
+    ) +
+    theme_srnataps() +
+    theme(
+      axis.text.y     = element_text(size = 7),
+      legend.position = "bottom"
+    )
+
   save_figure(p_top, file.path(opt$figdir, "03b_top_sites.pdf"),
-              width = 10, height = 12)
+              width = 8, height = 4.8)
   message("Figure 3b: Top modified sites — done")
 }
 
