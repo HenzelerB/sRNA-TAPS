@@ -13,13 +13,11 @@ rule trim_galore:
     params:
         adapter    = config["trimming"]["adapter"],
         min_length = config["trimming"]["min_length"],
-        max_length = config["trimming"]["max_length"],
     shell:
         """
         mkdir -p {TRIM_DIR}
         trim_galore \
             --small_rna \
-            --max_length {params.max_length} \
             --length {params.min_length} \
             --cores {threads} \
             -o {TRIM_DIR} \
