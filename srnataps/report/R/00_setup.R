@@ -172,8 +172,10 @@ if (nchar(.env_labels) > 0) {
 }
 
 # Build condition colours: palette steps assigned in the order conditions appear
-# Use distinct Okabe-Ito colours for known TAPS conditions;
-# fall back to srnataps_palette for custom condition sets
+# ── CANONICAL FIGURE PALETTE (Aurora Borealis, brightened) ───────────────────
+# Single source of truth for all report figures. Condition colours below;
+# biotype spectrum (BIOTYPE_COLOURS) is interpolated from the same three anchors.
+# Known TAPS conditions get fixed colours; custom sets fall back to srnataps_palette.
 .KNOWN_CONDITION_COLOURS <- c(
   "treat"    = "#FFD680",   # light gold  — TET+PB
   "pb_ctrl"  = "#5BAFD0",   # light blue  — PB
