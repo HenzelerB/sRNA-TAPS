@@ -81,7 +81,7 @@ p_hist <- ggplot(calls_dist,
                  aes(x = mod_rate, fill = condition, colour = condition)) +
   geom_histogram(binwidth = 0.05, boundary = 0,
                  position = "identity", alpha = 0.6, colour = NA) +
-  facet_wrap(~ biotype, nrow = 1) +
+  facet_grid(cell_line ~ biotype) +
   scale_fill_manual(values = CONDITION_COLOURS, labels = CONDITION_LABELS,
                     name = "Condition") +
   scale_colour_manual(values = CONDITION_COLOURS, labels = CONDITION_LABELS,
@@ -103,7 +103,7 @@ p_hist <- ggplot(calls_dist,
   theme_srnataps()
 
 save_figure(p_hist, file.path(opt$figdir, "03a_modrate_distribution.pdf"),
-            width = 12, height = 4)
+            width = 12, height = 7)
 
 message("Figure 3a: Modification rate distribution — done")
 
@@ -192,117 +192,118 @@ cond_wide <- calls %>%
   dplyr::filter(!is.na(.data[[CTRL_COND]]), !is.na(.data[[TREAT_COND]]))
 
 if (nrow(cond_wide) > 0) {
-  # Flag sites above the diagonal (TET-enriched genuine m5C)
   cond_wide <- cond_wide %>%
     dplyr::mutate(above_diag = .data[[TREAT_COND]] > .data[[CTRL_COND]])
+
+  # Cell line colours from Aurora Borealis palette (mint + blue, like fig 3a)
+  CL_COLOURS <- c("Caco2" = "#06D6A0", "HEK" = "#FFD166")
 
   p_scatter <- ggplot(cond_wide,
                       aes(x = .data[[CTRL_COND]], y = .data[[TREAT_COND]])) +
     geom_abline(slope = 1, intercept = 0, linetype = "dashed",
                 colour = "grey60", linewidth = 0.4) +
     geom_point(data = dplyr::filter(cond_wide, !above_diag),
-               colour = "grey80", alpha = 0.4, size = 0.6) +
+               colour = "grey80", alpha = 0.25, size = 0.8, shape = 16) +
     geom_point(data = dplyr::filter(cond_wide,  above_diag),
-               aes(colour = biotype), alpha = 0.8, size = 0.9) +
-    geom_text_repel(
-      data      = dplyr::filter(cond_wide, .data[[TREAT_COND]] > 0.5 & .data[[CTRL_COND]] < 0.2),
-      aes(label = site_label),
-      size = 2.0, max.overlaps = 10, segment.colour = "grey70"
-    ) +
-    facet_grid(biotype ~ cell_line) +
-    scale_colour_manual(values = BIOTYPE_COLOURS, guide = "none") +
-    scale_x_continuous(labels = percent_format(accuracy = 1), limits = c(0, 1)) +
-    scale_y_continuous(labels = percent_format(accuracy = 1), limits = c(0, 1)) +
+               aes(colour = cell_line),
+               alpha = 0.35, size = 1.1, shape = 16) +
+    facet_wrap(~ biotype, nrow = 2) +
+    scale_colour_manual(values = CL_COLOURS, name = "Cell line") +
+    scale_x_continuous(labels = function(x) x * 100, limits = c(0, 1),
+                       breaks = seq(0, 1, by = 0.2)) +
+    scale_y_continuous(labels = function(x) x * 100, limits = c(0, 1),
+                       breaks = seq(0, 1, by = 0.2)) +
     labs(
       title    = "Condition comparison: PB-only vs TET+PB",
-      subtitle = paste0("Sites above diagonal = ", CONDITION_LABELS[TREAT_COND], "-enriched (genuine m5C/5hmC)"),
-      x        = paste0(CONDITION_LABELS[CTRL_COND],  " mod rate"),
-      y        = paste0(CONDITION_LABELS[TREAT_COND], " mod rate"),
-      caption  = "Labelled: TET-specific sites (treat > 0.5, pb_ctrl < 0.2)"
+      subtitle = "Caco2 (mint) and HEK (gold) | above diagonal = TET-enriched",
+      x        = paste0(CONDITION_LABELS[CTRL_COND],  " mod rate (%)"),
+      y        = paste0(CONDITION_LABELS[TREAT_COND], " mod rate (%)"),
+      caption  = "Dashed line = identity"
     ) +
-    theme_srnataps()
+    guides(colour = guide_legend(override.aes = list(alpha = 1, size = 2))) +
+    theme_srnataps() +
+    theme(legend.position = "bottom")
   save_figure(p_scatter, file.path(opt$figdir, "03c_condition_comparison.pdf"),
-              width = 8, height = 10)
+              width = 7, height = 5)
   message("Figure 3c: Condition comparison scatter — done")
 }
 
 # ── Figure 3d: Waterfall plot (sites ranked by mod_rate) ─────────────────────
-
 waterfall_data <- calls %>%
   dplyr::filter(condition == TREAT_COND) %>%
-  dplyr::arrange(desc(mod_rate)) %>%
-  dplyr::mutate(rank = row_number())
+  dplyr::group_by(cell_line) %>%
+  dplyr::arrange(desc(mod_rate), .by_group = TRUE) %>%
+  dplyr::mutate(rank = row_number()) %>%
+  dplyr::ungroup() %>%
+  dplyr::group_by(cell_line) %>%
+  dplyr::slice_head(n = 500) %>%
+  dplyr::ungroup() %>%
+  dplyr::mutate(biotype = factor(biotype, levels = names(BIOTYPE_COLOURS)))
 
 if (nrow(waterfall_data) > 0) {
-  p_waterfall <- waterfall_data %>%
-    dplyr::slice_head(n = 500) %>%   # top 500 sites for clarity
-    ggplot(aes(x = rank, y = mod_rate, colour = biotype, shape = biotype)) +
-      geom_point(size = 1.2, alpha = 0.8) +
-      scale_colour_manual(values = BIOTYPE_COLOURS, name = "Biotype") +
-      scale_shape_manual(values = c(16, 17, 15, 18, 8, 3, 4, 1),
-                         name = "Biotype") +
-      scale_y_continuous(
-        breaks = seq(0, 1, by = 0.1),
-        labels = percent_format(accuracy = 1)
-      ) +
-      scale_x_continuous(breaks = seq(0, 500, by = 50)) +
-      labs(
-        title    = paste0("Top 500 modification sites (", CONDITION_LABELS[TREAT_COND], ")"),
-        subtitle = "Ranked by modification rate, coloured and shaped by RNA biotype",
-        x        = "Rank",
-        y        = "Modification rate"
-      ) +
-      theme_srnataps()
-
+  p_waterfall <- ggplot(waterfall_data,
+                        aes(x = rank, y = mod_rate * 100,
+                            colour = biotype, shape = biotype)) +
+    geom_point(size = 1.5, alpha = 0.85) +
+    facet_wrap(~ cell_line) +
+    scale_colour_manual(values = BIOTYPE_COLOURS, name = "Biotype") +
+    scale_shape_manual(values = c(16, 17, 15, 18, 8, 3, 4, 1), name = "Biotype") +
+    scale_y_continuous(breaks = seq(0, 100, by = 10)) +
+    scale_x_continuous(breaks = seq(0, 500, by = 100)) +
+    labs(
+      title    = paste0("Top 500 modified sites (", CONDITION_LABELS[TREAT_COND], ")"),
+      subtitle = "Sites ranked by modification rate | coloured by RNA biotype",
+      x        = "Rank",
+      y        = "Modification rate (%)"
+    ) +
+    theme_srnataps() +
+    theme(legend.position = "bottom")
   save_figure(p_waterfall, file.path(opt$figdir, "03d_waterfall.pdf"),
               width = 9, height = 5)
   message("Figure 3d: Waterfall plot — done")
 }
 
-
 # ── Figure 3e: Trinucleotide context heatmap ─────────────────────────────────
 
 context_data <- calls %>%
-  dplyr::filter(condition == "treat", nchar(context) == 3) %>%
+  dplyr::filter(condition == TREAT_COND, nchar(context) == 3) %>%
   dplyr::mutate(
     ctx_up   = substr(context, 1, 1),
     ctx_down = substr(context, 3, 3)
   ) %>%
-  dplyr::group_by(biotype, ctx_up, ctx_down) %>%
+  dplyr::group_by(biotype, cell_line, ctx_up, ctx_down) %>%
   dplyr::summarise(
-    mean_mod  = mean(mod_rate),
-    n_sites   = n(),
-    .groups   = "drop"
+    mean_mod = mean(mod_rate),
+    n_sites  = n(),
+    .groups  = "drop"
   ) %>%
   dplyr::filter(n_sites >= 5)
 
 if (nrow(context_data) > 0) {
   context_data <- context_data %>%
     dplyr::mutate(text_col = ifelse(mean_mod > 0.35, "white", "black"))
-
   p_ctx <- ggplot(context_data,
                   aes(x = ctx_up, y = ctx_down, fill = mean_mod)) +
     geom_tile(colour = "white", linewidth = 0.4) +
-    geom_text(aes(label = n_sites, colour = text_col), size = 2.8) +
+    geom_text(aes(label = n_sites, colour = text_col), size = 2.5) +
     scale_colour_identity() +
-    facet_wrap(~ biotype, nrow = 2) +
+    facet_grid(cell_line ~ biotype) +
     scale_fill_gradient(
       low    = "#FFFFFF",
-      high   = "#118AB2",
+      high   = CONDITION_COLOURS[TREAT_COND],
       name   = "Mean\nmod rate",
-      labels = percent_format(accuracy = 1)
+      labels = function(x) paste0(round(x * 100), "%")
     ) +
     labs(
       title    = "Trinucleotide context of modified cytosines",
-      subtitle = "TET+PB condition | numbers = site count | NpCpN context",
+      subtitle = paste0(CONDITION_LABELS[TREAT_COND], " | numbers = site count | NpCpN context"),
       x        = "5' nucleotide (upstream of C)",
       y        = "3' nucleotide (downstream of C)"
     ) +
     theme_srnataps() +
     theme(panel.grid = element_blank())
   save_figure(p_ctx, file.path(opt$figdir, "03e_trinucleotide_context.pdf"),
-              width = 9, height = 4.5)
+              width = 10, height = 6)
   message("Figure 3e: Trinucleotide context — done")
 }
-
 message("03_modification.R complete.")

@@ -175,9 +175,9 @@ if (nchar(.env_labels) > 0) {
 # Use distinct Okabe-Ito colours for known TAPS conditions;
 # fall back to srnataps_palette for custom condition sets
 .KNOWN_CONDITION_COLOURS <- c(
-  "treat"    = "#FFD166",   # warm gold  — TET+PB
-  "pb_ctrl"  = "#118AB2",   # ocean blue — PB
-  "no_treat" = "#06D6A0"    # neon mint  — UNTREATED
+  "treat"    = "#FFD680",   # light gold  — TET+PB
+  "pb_ctrl"  = "#5BAFD0",   # light blue  — PB
+  "no_treat" = "#4DDEB8"    # light mint  — UNTREATED
 )
 CONDITION_COLOURS <- setNames(
   sapply(CONDITIONS, function(c) {
@@ -220,7 +220,7 @@ CELL_SHAPES <- setNames(
 # Okabe-Ito colorblind-safe palette (8 colours)
 # Biotype colours: spectrum derived from Aurora Borealis condition palette
 BIOTYPE_COLOURS <- setNames(
-  colorRampPalette(c("#FFD166", "#118AB2", "#06D6A0"))(8),
+  colorRampPalette(c("#FFD680", "#5BAFD0", "#4DDEB8"))(8),
   c("miRNA", "tRNA", "rRNA", "snoRNA", "snRNA", "piRNA", "lncRNA", "other")
 )
 
