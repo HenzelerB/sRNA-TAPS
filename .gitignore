@@ -16,7 +16,7 @@ htmlcov/
 *.fq
 *.gz
 *.tsv
-!config/samples.tsv
+!srnataps/config/samples.tsv
 bioconda-recipes/
 bioconda-recipes/
 
