@@ -199,7 +199,7 @@ def run(configfile, slurm, benchmark, cores, jobs, dryrun, until, rerun_incomple
         dryrun=dryrun,
         until=until,
         rerun_incomplete=rerun_incomplete,
-        extra_config={"benchmark": benchmark},
+        extra_config={},  # benchmark on/off is set by target (all vs all_benchmark)
         snakemake_args=snakemake_args,
     )
 
