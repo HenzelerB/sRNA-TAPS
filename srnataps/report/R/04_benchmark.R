@@ -2,7 +2,14 @@
 # 04_benchmark.R — Benchmarking comparison figures
 # =============================================================================
 suppressPackageStartupMessages(library(optparse))
-source(file.path(Sys.getenv("SRNATAPS_R_DIR", "/mnt/nfs/home/bhenzeler/projects/RNA_TAPS/sRNA-TAPS/srnataps/report/R"), "00_setup.R"))
+# Locate 00_setup.R: env var SRNATAPS_R_DIR wins (set by the pipeline); otherwise
+# fall back to this script's own directory so manual runs work on any machine.
+.srnataps_r_dir <- tryCatch({
+  .a <- commandArgs(FALSE)
+  .f <- sub("^--file=", "", .a[grep("^--file=", .a)])
+  if (length(.f) > 0) dirname(normalizePath(.f[1])) else getwd()
+}, error = function(e) getwd())
+source(file.path(Sys.getenv("SRNATAPS_R_DIR", .srnataps_r_dir), "00_setup.R"))
 
 option_list <- list(
   make_option("--outdir", type = "character"),
@@ -15,7 +22,7 @@ dir.create(opt$figdir, recursive = TRUE, showWarnings = FALSE)
 COMPARE_DIR   <- file.path(opt$outdir, "09.compare")
 BIOTYPE_ORDER <- c("miRNA","tRNA","rRNA","snoRNA","snRNA","lncRNA","other")
 TOOL_ORDER    <- c("sRNA-TAPS","rastair","astair","bismark")
-TOOL_COLS_FIX <- c("sRNA-TAPS"="#1C4062","rastair"="#E07B39","astair"="#6AAB6E","bismark"="#9B6BB5")
+TOOL_COLS_FIX <- TOOL_COLOURS_BENCH   # single source of truth (00_setup.R)
 TOOL_SHAPES   <- c("sRNA-TAPS"=18,"rastair"=16,"astair"=17,"bismark"=15)
 TOOL_LABS     <- c("sRNA-TAPS"="sRNA-TAPS","rastair"="rastair","astair"="asTair","bismark"="Bismark")
 
@@ -69,11 +76,8 @@ if (file.exists(conc_file)) {
       )
     )
 
-  # Update tool colours — Okabe-Ito consistent
-  TOOL_COLS <- c("sRNA-TAPS" = "#D55E00",
-                 "rastair"   = "#0072B2",
-                 "astair"    = "#009E73",
-                 "bismark"   = "#999999")
+  # Tool colours: single source of truth (00_setup.R)
+  TOOL_COLS <- TOOL_COLOURS_BENCH
 
   p_conc <- ggplot(
     conc_full %>% dplyr::filter(!is.na(jaccard)),
@@ -150,10 +154,18 @@ if (file.exists(corr_file)) {
                              full.names = TRUE)
   if (length(shared_files) > 0) {
     shared_data <- lapply(shared_files, function(f) {
-      bn    <- basename(f)
-      parts <- strsplit(sub("\\.tsv$", "", bn), "_")[[1]]
-      tool    <- parts[length(parts)]
-      biotype <- parts[length(parts) - 1]
+      bn   <- sub("\\.tsv$", "", basename(f))
+      # Match tool by longest known suffix first so 'rastair_all' is not
+      # mis-split into tool='all', biotype='rastair'. Filenames are
+      # shared_<condition>_<biotype>_<tool>.
+      known_tools <- c("rastair_all", "rastair", "astair", "bismark")
+      tool <- NA_character_
+      for (kt in known_tools) {
+        if (grepl(paste0("_", kt, "$"), bn)) { tool <- kt; break }
+      }
+      stem    <- sub(paste0("_", tool, "$"), "", bn)   # drop _<tool>
+      parts   <- strsplit(stem, "_")[[1]]
+      biotype <- parts[length(parts)]                   # token before tool
       df <- read_tsv(f, show_col_types = FALSE,
                      col_types = cols(site_key = col_character()))
       df$tool    <- tool

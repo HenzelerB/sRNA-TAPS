@@ -17,7 +17,14 @@ suppressPackageStartupMessages({
   library(stringr)
   library(ggridges)
 })
-source(file.path(Sys.getenv("SRNATAPS_R_DIR", "/mnt/nfs/home/bhenzeler/projects/RNA_TAPS/sRNA-TAPS/srnataps/report/R"), "00_setup.R"))
+# Locate 00_setup.R: env var SRNATAPS_R_DIR wins (set by the pipeline); otherwise
+# fall back to this script's own directory so manual runs work on any machine.
+.srnataps_r_dir <- tryCatch({
+  .a <- commandArgs(FALSE)
+  .f <- sub("^--file=", "", .a[grep("^--file=", .a)])
+  if (length(.f) > 0) dirname(normalizePath(.f[1])) else getwd()
+}, error = function(e) getwd())
+source(file.path(Sys.getenv("SRNATAPS_R_DIR", .srnataps_r_dir), "00_setup.R"))
 
 option_list <- list(
   make_option("--outdir",   type = "character"),
@@ -195,9 +202,6 @@ if (nrow(cond_wide) > 0) {
   cond_wide <- cond_wide %>%
     dplyr::mutate(above_diag = .data[[TREAT_COND]] > .data[[CTRL_COND]])
 
-  # Cell line colours from Aurora Borealis palette (mint + blue, like fig 3a)
-  CL_COLOURS <- c("Caco2" = "#06D6A0", "HEK" = "#FFD166")
-
   p_scatter <- ggplot(cond_wide,
                       aes(x = .data[[CTRL_COND]], y = .data[[TREAT_COND]])) +
     geom_abline(slope = 1, intercept = 0, linetype = "dashed",
@@ -208,7 +212,7 @@ if (nrow(cond_wide) > 0) {
                aes(colour = cell_line),
                alpha = 0.35, size = 1.1, shape = 16) +
     facet_wrap(~ biotype, nrow = 2) +
-    scale_colour_manual(values = CL_COLOURS, name = "Cell line") +
+    scale_colour_manual(values = CELL_COLOURS, name = "Cell line") +
     scale_x_continuous(labels = function(x) x * 100, limits = c(0, 1),
                        breaks = seq(0, 1, by = 0.2)) +
     scale_y_continuous(labels = function(x) x * 100, limits = c(0, 1),

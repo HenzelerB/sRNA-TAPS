@@ -28,51 +28,42 @@ from plotly.subplots import make_subplots
 import plotly.io as pio
 from jinja2 import Environment, BaseLoader
 
+from srnataps.utils import (
+    detect_condition as get_condition,
+    detect_cell_line as get_cell_line,
+)
+
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(message)s",
                     datefmt="%H:%M:%S")
 
 # ── Colour schemes (matching R scripts) ──────────────────────────────────────
 CONDITION_COLOURS = {
-    "no_treat": "#9ECAE1",
-    "pb_ctrl":  "#FDAE6B",
-    "treat":    "#E31A1C",
-    "old":      "#BDBDBD",
+    "treat":    "#FFD680",  # Aurora gold  — TET + PB
+    "pb_ctrl":  "#5BAFD0",  # Aurora blue  — PB only
+    "no_treat": "#4DDEB8",  # Aurora mint  — untreated
 }
 CONDITION_LABELS = {
     "no_treat": "Untreated",
     "pb_ctrl":  "PB only",
     "treat":    "TET + PB",
-    "old":      "Old HEK",
 }
 BIOTYPE_COLOURS = {
-    "miRNA":  "#E41A1C",
-    "tRNA":   "#377EB8",
-    "rRNA":   "#4DAF4A",
-    "snoRNA": "#984EA3",
-    "snRNA":  "#FF7F00",
-    "piRNA":  "#A65628",
-    "lncRNA": "#F781BF",
-    "other":  "#999999",
+    "miRNA":  "#FFD680",  # Aurora spectrum (R colorRampPalette, matches 00_setup.R)
+    "tRNA":   "#D0CA96",
+    "rRNA":   "#A1BFAD",
+    "snoRNA": "#72B4C4",
+    "snRNA":  "#59B5CC",
+    "piRNA":  "#55C3C5",
+    "lncRNA": "#51D0BE",
+    "other":  "#4DDEB8",
 }
 TOOL_COLOURS = {
-    "rastair": "#2196F3",
-    "astair":  "#4CAF50",
-    "bismark": "#FF9800",
+    "sRNA-TAPS": "#1C4062",  # brand navy
+    "rastair":   "#CC79A7",  # Okabe-Ito reddish-purple
+    "astair":    "#009E73",  # Okabe-Ito bluish-green
+    "bismark":   "#E69F00",  # Okabe-Ito orange
 }
-
-
-def get_condition(sample: str) -> str:
-    if "pb_Ctrl"  in sample: return "pb_ctrl"
-    if "no-treat" in sample: return "no_treat"
-    if "treat"    in sample: return "treat"
-    if "old"      in sample: return "old"
-    return "unknown"
-
-def get_cell_line(sample: str) -> str:
-    if "HEK"   in sample: return "HEK"
-    if "Caco2" in sample: return "Caco2"
-    return "unknown"
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -679,13 +670,26 @@ def main():
     env      = Environment(loader=BaseLoader())
     template = env.from_string(HTML_TEMPLATE)
 
+    # Sample / condition / cell-line counts from the sample sheet (authoritative,
+    # matches 00_setup.R). Falls back to "N/A" if the sheet is absent.
+    n_samples = n_conditions = n_cell_lines = "N/A"
+    samples_tsv = Path(outdir) / "samples.tsv"
+    if samples_tsv.exists():
+        try:
+            _sdf = pd.read_csv(samples_tsv, sep="\t")
+            n_samples    = str(len(_sdf))
+            n_conditions = str(_sdf["condition"].nunique())
+            n_cell_lines = str(_sdf["cell_line"].nunique())
+        except Exception:
+            pass
+
     html = template.render(
         project_name    = project,
         timestamp       = datetime.now().strftime("%Y-%m-%d %H:%M"),
         version         = __version__,
-        n_samples       = "21",
-        n_conditions    = "3",
-        n_cell_lines    = "2",
+        n_samples       = n_samples,
+        n_conditions    = n_conditions,
+        n_cell_lines    = n_cell_lines,
         n_sites_total   = n_sites_total,
         n_sites_treat   = n_sites_treat,
         biotype_fig     = biotype_fig,

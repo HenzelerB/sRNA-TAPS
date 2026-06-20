@@ -271,11 +271,18 @@ def concordance(df_a, df_b, name_a, name_b, condition, biotype, tool):
 
 
 def correlation(df_a, df_b, name_a, name_b, condition, biotype, tool):
-    merged = df_a[["site_key", "mod_rate"]].merge(
-        df_b[["site_key", "mod_rate"]], on="site_key",
+    # Aggregate to one row per site_key (mean mod_rate across replicates)
+    # before merging. site_key is NOT unique per dataframe (one row per
+    # replicate, all replicates concatenated in load_*), so merging on
+    # site_key alone causes an N x M cartesian explosion at every shared
+    # site (N = custom replicates, M = tool replicates at that site).
+    agg_a = df_a.groupby("site_key", as_index=False)["mod_rate"].mean()
+    agg_b = df_b.groupby("site_key", as_index=False)["mod_rate"].mean()
+
+    merged = agg_a.merge(
+        agg_b, on="site_key",
         suffixes=("_custom", f"_{name_b}")
     ).dropna()
-
     result = {
         "condition":          condition,
         "biotype":            biotype,
@@ -283,7 +290,6 @@ def correlation(df_a, df_b, name_a, name_b, condition, biotype, tool):
         "n_shared":           len(merged),
         "chemistry_inverted": INVERT_CHEMISTRY.get(tool, False),
     }
-
     if len(merged) >= 5:
         a = merged["mod_rate_custom"]
         b = merged[f"mod_rate_{name_b}"]
@@ -302,10 +308,6 @@ def correlation(df_a, df_b, name_a, name_b, condition, biotype, tool):
         })
     return result, merged
 
-
-# ════════════════════════════════════════════════════════════════════════════
-# Main
-# ════════════════════════════════════════════════════════════════════════════
 
 def parse_args():
     p = argparse.ArgumentParser(description=__doc__,
@@ -407,7 +409,7 @@ def main():
     os.makedirs(mq_out, exist_ok=True)
     cmd = (f"multiqc {mq_dirs} --outdir {mq_out} "
            f"--filename multiqc_pipeline_compare "
-           f"--title 'akschneider TAPS-RNA: rastair vs asTair vs Bismark'")
+           f"--title 'sRNA-TAPS: rastair vs asTair vs Bismark'")
     log.info("Running MultiQC...")
     subprocess.run(cmd, shell=True, check=False)
 

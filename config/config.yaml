@@ -29,7 +29,6 @@ reference:
 trimming:
   adapter: "TGGAATTCTCGGGTGCCAAGG"    # TruSeq small RNA 3' adapter
   min_length: 18                       # discard reads shorter than this after trimming
-  max_length: 50                       # discard reads longer (likely adapter artefacts)
 
 # ── Alignment (Bowtie1) ───────────────────────────────────────────────────────
 # TAPS chemistry note: do NOT use bisulfite alignment mode.
@@ -96,6 +95,10 @@ benchmark:
       min_mapq: 10
       min_baseq: 20
       context: all
+      # Path to a separate conda env for asTair (its deps can conflict with the
+      # main env). Leave blank to use `astair` from the active env / PATH.
+      # Example: astair_env: "/path/to/conda/envs/astair_env"
+      astair_env: ""
     bismark:
       bismark_index: ""    # leave blank to auto-build into outdir/benchmark/bismark_index/
 

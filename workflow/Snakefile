@@ -48,6 +48,22 @@ configfile: "config.yaml"
 # ── Sample sheet ──────────────────────────────────────────────────────────────
 SAMPLES_DF = pd.read_csv("samples.tsv", sep="\t").set_index("sample")
 SAMPLES     = SAMPLES_DF.index.tolist()
+
+# Optional sample filter (set by `srnataps module --sample a,b,c`). Subsets
+# SAMPLES before any expand() so every downstream target restricts to the
+# named samples. Errors clearly if a requested sample isn't in the sheet.
+_sample_filter = config.get("sample_filter")
+if _sample_filter:
+    _wanted  = [s.strip() for s in str(_sample_filter).split(",") if s.strip()]
+    _missing = [s for s in _wanted if s not in SAMPLES]
+    if _missing:
+        raise ValueError(
+            "--sample: not in samples.tsv: " + ", ".join(_missing) +
+            "\n  Available samples: " + ", ".join(SAMPLES)
+        )
+    SAMPLES = _wanted
+    print(f"[srnataps] sample filter active — running {len(SAMPLES)} sample(s): "
+          + ", ".join(SAMPLES))
 CELL_LINES  = SAMPLES_DF["cell_line"].unique().tolist()
 BIOTYPES    = ["rRNA", "miRNA", "tRNA", "snoRNA", "snRNA", "piRNA", "lncRNA", "other"]
 
@@ -144,3 +160,62 @@ rule all_benchmark:
         str(COMPARE_DIR / "correlation_summary.tsv"),
         # Benchmark R figures
         str(OUTDIR / "report" / "figures" / ".report_benchmark.done"),
+
+
+# ── Per-module aggregator targets (used by `srnataps module <name>`) ──────────
+# Each requests the output file set for one pipeline stage, letting Snakemake
+# resolve the underlying rules. Names match the rule_map in srnataps/cli.py.
+
+rule module_fastqc:
+    """Stage target: FastQC (pre + post trim) for all samples."""
+    input:
+        expand(str(QC_DIR / "pre_trim"  / "{sample}_fastqc.html"), sample=SAMPLES),
+        expand(str(QC_DIR / "post_trim" / "{sample}_trimmed_fastqc.html"), sample=SAMPLES),
+
+rule module_trim:
+    """Stage target: adapter-trimmed FASTQs for all samples."""
+    input:
+        expand(str(TRIM_DIR / "{sample}_trimmed.fq.gz"), sample=SAMPLES),
+
+rule module_index:
+    """Stage target: genome FASTA index + Bowtie1 index."""
+    input:
+        config["reference"]["genome_fa"] + ".fai",
+        str(GENOME_DIR / ".bowtie1_index_complete"),
+
+rule module_align:
+    """Stage target: sorted BAMs for all samples."""
+    input:
+        expand(str(ALIGN_DIR / "{sample}.sorted.bam"), sample=SAMPLES),
+
+rule module_biotype:
+    """Stage target: per-biotype split BAMs for all samples."""
+    input:
+        expand(str(BIOTYPE_DIR / "{biotype}" / "{sample}_{biotype}.sorted.bam"),
+               sample=SAMPLES, biotype=BIOTYPES),
+
+rule module_snp:
+    """Stage target: per-cell-line SNP blacklists."""
+    input:
+        expand(str(SNP_DIR / "sample_snps_{cell_line}.bed"), cell_line=CELL_LINES),
+
+rule module_call:
+    """Stage target: annotated TAPS calls for all samples/biotypes."""
+    input:
+        expand(str(CALLS_DIR / "{biotype}" / "{sample}_{biotype}_taps_annotated.tsv"),
+               sample=SAMPLES, biotype=BIOTYPES),
+
+rule module_benchmark:
+    """Stage target: rastair (all+cpg), asTair, and Bismark outputs."""
+    input:
+        expand(str(BENCH_DIR / "rastair" / "all" / "{sample}" / "{sample}.bed.gz"), sample=SAMPLES),
+        expand(str(BENCH_DIR / "rastair" / "cpg" / "{sample}" / "{sample}.bed.gz"), sample=SAMPLES),
+        expand(str(BENCH_DIR / "astair" / "{biotype}" / ".done_{sample}"),
+               sample=SAMPLES, biotype=BIOTYPES),
+        expand(str(BENCH_DIR / "bismark" / "{sample}" / ".done"), sample=SAMPLES),
+
+rule module_compare:
+    """Stage target: concordance + correlation summaries."""
+    input:
+        str(COMPARE_DIR / "concordance_summary.tsv"),
+        str(COMPARE_DIR / "correlation_summary.tsv"),

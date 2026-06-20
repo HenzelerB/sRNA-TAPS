@@ -111,7 +111,7 @@ def init(outdir, genome, gtf, fastq_dir, force):
             "project":   {"name": "my_taps_project", "outdir": ""},
             "input":     {"fastq_dir": "", "samples_tsv": "samples.tsv"},
             "reference": {"genome_fa": "", "gtf": "", "bowtie1_index": "", "dbsnp_vcf": ""},
-            "trimming":  {"adapter": "TGGAATTCTCGGGTGCCAAGG", "min_length": 18, "max_length": 50},
+            "trimming":  {"adapter": "TGGAATTCTCGGGTGCCAAGG", "min_length": 18},
             "alignment": {"mismatches": 2, "multimappers": 10, "max_multimappers": 100, "threads": 8},
             "biotype":   {"priority": ["miRNA","tRNA","piRNA","snoRNA","snRNA","rRNA","lncRNA","other"]},
             "snp":       {"min_af": 0.20, "min_cov": 10, "het_threshold": 0.40},
@@ -123,7 +123,7 @@ def init(outdir, genome, gtf, fastq_dir, force):
             },
             "benchmark": {"enabled": False, "tools": {
                 "rastair": {"min_depth":5,"min_mapq":10,"min_baseq":20},
-                "astair":  {"min_depth":3,"min_mapq":10,"min_baseq":20,"context":"all"},
+                "astair":  {"min_depth":3,"min_mapq":10,"min_baseq":20,"context":"all","astair_env":""},
                 "bismark": {"bismark_index":""},
             }},
             "slurm": {"partition":"compute","account":"","mail_user":"",
@@ -238,15 +238,15 @@ def module(module_name, configfile, slurm, cores, jobs, dryrun, sample, snakemak
     """
     # Map module name to Snakemake target rule
     rule_map = {
-        "fastqc":   "rule_fastqc",
-        "trim":     "rule_trim",
-        "index":    "rule_index",
-        "align":    "rule_align",
-        "biotype":  "rule_biotype",
-        "snp":      "rule_snp",
-        "call":     "rule_call",
-        "benchmark":"rule_benchmark",
-        "compare":  "rule_compare",
+        "fastqc":    "module_fastqc",
+        "trim":      "module_trim",
+        "index":     "module_index",
+        "align":     "module_align",
+        "biotype":   "module_biotype",
+        "snp":       "module_snp",
+        "call":      "module_call",
+        "benchmark": "module_benchmark",
+        "compare":   "module_compare",
     }
     target = rule_map[module_name]
     extra  = {"sample_filter": sample} if sample else {}
@@ -370,6 +370,29 @@ def check(configfile):
     else:
         warnings.append(f"samples.tsv not found: {samples_path}")
 
+    # ── SLURM profile check (account / partition) ─────────────────────────────
+    prof_cfg = SLURM_PROF / "config.yaml"
+    if prof_cfg.exists():
+        try:
+            with open(prof_cfg) as _pf:
+                _prof = yaml.safe_load(_pf) or {}
+            _dr   = (_prof.get("default-resources") or {})
+            _acct = str(_dr.get("slurm_account", "")).strip()
+            _part = str(_dr.get("slurm_partition", "")).strip()
+            if not _acct:
+                warnings.append(
+                    f"SLURM profile: slurm_account is blank in {prof_cfg} — many "
+                    "clusters reject jobs without an account. Set it before "
+                    "'srnataps run --slurm'."
+                )
+            if _part == "compute":
+                warnings.append(
+                    f"SLURM profile: slurm_partition is still the default 'compute' "
+                    f"in {prof_cfg} — confirm this partition exists on your cluster."
+                )
+        except Exception as _e:
+            warnings.append(f"Could not parse SLURM profile {prof_cfg}: {_e}")
+
     # ── Summary ───────────────────────────────────────────────────────────────
     console.print()
     if errors:
@@ -404,11 +427,10 @@ def _run_snakemake(
         "--configfile", str(configfile),
     ]
 
-    # Targets
+    # Targets: in Snakemake 9, --configfile/--config are greedy (nargs='+'),
+    # so the positional target must be appended LAST (see end of function).
     if until:
         cmd += ["--until", until]
-    else:
-        cmd += [target]
 
     # Execution mode
     if slurm:
@@ -424,14 +446,19 @@ def _run_snakemake(
     if dryrun:            cmd += ["--dryrun"]
     if rerun_incomplete:  cmd += ["--rerun-incomplete"]
 
-    # Extra config key=value pairs
+    # Extra config key=value pairs (single --config; it is greedy in SM9)
     if extra_config:
-        for k, v in extra_config.items():
-            cmd += ["--config", f"{k}={v}"]
+        cmd += ["--config"] + [f"{k}={v}" for k, v in extra_config.items()]
 
     # Passthrough args
     if snakemake_args:
         cmd += snakemake_args.split()
+
+    # Positional target LAST, preceded by "--" so greedy --config/--configfile
+    # (nargs='+') stop consuming and treat it as the target, not a config pair.
+    # (When --until is set, the original behaviour passes no positional target.)
+    if not until:
+        cmd += ["--", target]
 
     # Print command
     console.print(f"\n[dim]$ {' '.join(cmd)}[/dim]\n")

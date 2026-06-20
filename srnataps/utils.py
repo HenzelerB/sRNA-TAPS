@@ -70,5 +70,4 @@ def detect_condition(sample_name: str) -> str:
     if "pb_Ctrl"  in sample_name: return "pb_ctrl"
     if "no-treat" in sample_name: return "no_treat"
     if "treat"    in sample_name: return "treat"
-    if "old"      in sample_name: return "old"
     return "unknown"

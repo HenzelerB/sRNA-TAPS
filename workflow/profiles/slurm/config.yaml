@@ -1,13 +1,162 @@
+# =============================================================================
+# workflow/profiles/slurm/config.yaml — bundled SLURM profile for sRNA-TAPS
+#
+# Used automatically by:  srnataps run --slurm   (and srnataps module ... --slurm)
+#
+# The per-rule mem_mb / runtime / threads below are sensible STARTING POINTS
+# tuned on human small-RNA TAPS data (HEK293 / Caco2, AVITI single-end ~178bp).
+# They are not universal — adjust for your cluster, queue limits, and library
+# depth. The Snakefile's est_mem() helper also scales memory by input size at
+# runtime, so these act mainly as floors/ceilings.
+#
+# BEFORE FIRST RUN, set the two cluster-specific values:
+#   slurm_account   — your SLURM account (REQUIRED on many clusters; blank here)
+#   slurm_partition — your compute partition name (default "compute" may differ)
+# `srnataps check` will warn if these look unset/default.
+# =============================================================================
+
 executor: slurm
+keep-going: True
+rerun-incomplete: True
+restart-times: 1
+jobs: 20
+latency-wait: 120
+
+# Default resources applied to every rule unless overridden in set-resources
 default-resources:
-  slurm_partition: "compute"
-  slurm_account: ""
-  mem_mb: 32000
-  runtime: 240
-  cpus_per_task: 8
-retries: 2
-jobs: 50
-latency-wait: 60
-rerun-incomplete: true
-printshellcmds: true
-keep-going: true
+  slurm_account: ""          # <-- SET THIS (many clusters reject jobs without it)
+  slurm_partition: "compute" # <-- CHECK THIS matches a real partition on your cluster
+  runtime: 480               # 8 hours default
+  mem_mb: 8000
+  slurm_extra: ""            # no nodelist constraint by default — use any available node
+
+# ── Threads per rule ──────────────────────────────────────────────────────────
+set-threads:
+  download_genome_fa: 1
+  download_gtf:      1
+  index_genome_fa:   4
+  bowtie1_index:    20
+  fastqc_pretrim:   4
+  fastqc_posttrim:  4
+  trim_galore:      4
+  bowtie1_align:    8
+  biotype_split:    4
+  merge_notreat:    4
+  snp_blacklist:    4
+  taps_call:        4
+  multiqc:          1
+  report_qc:        2
+  report_biotype:   2
+  report_modification: 4
+  report_seqlogos:  4
+  report_benchmark: 4
+  rastair_cpg:      8
+  rastair_all:      8
+  astair_call:      4
+  bismark_index:    8
+  bismark_align:    8
+  bismark_extract:  4
+  compare:          4
+
+# ── Per-rule resource overrides ───────────────────────────────────────────────
+set-resources:
+
+  download_genome_fa:
+    mem_mb: 4000
+    runtime: 480
+
+  download_gtf:
+    mem_mb: 4000
+    runtime: 120
+
+  index_genome_fa:
+    mem_mb: 8000
+    runtime: 60
+
+  bowtie1_index:
+    mem_mb: 64000
+    runtime: 720
+
+  fastqc_pretrim:
+    mem_mb: 8000
+    runtime: 120
+
+  fastqc_posttrim:
+    mem_mb: 8000
+    runtime: 120
+
+  trim_galore:
+    mem_mb: 16000
+    runtime: 360
+
+  bowtie1_align:
+    mem_mb: 40000
+    runtime: 2880         # 48h — large/synthetic datasets can be slow
+
+  biotype_split:
+    mem_mb: 30000
+    runtime: 240
+
+  merge_notreat:
+    mem_mb: 16000
+    runtime: 120
+
+  snp_blacklist:
+    mem_mb: 30000
+    runtime: 240
+
+  taps_call:
+    mem_mb: 40000
+    runtime: 480
+
+  multiqc:
+    mem_mb: 4000
+    runtime: 60
+
+  report_qc:
+    mem_mb: 8000
+    runtime: 60
+
+  report_biotype:
+    mem_mb: 8000
+    runtime: 60
+
+  report_modification:
+    mem_mb: 16000
+    runtime: 120
+
+  report_seqlogos:
+    mem_mb: 16000
+    runtime: 180
+
+  report_benchmark:
+    mem_mb: 24000
+    runtime: 60
+
+  rastair_cpg:
+    mem_mb: 4000
+    runtime: 240
+
+  rastair_all:
+    mem_mb: 4000
+    runtime: 240
+
+  astair_call:
+    mem_mb: 40000
+    runtime: 720
+
+  bismark_index:
+    mem_mb: 24000
+    runtime: 720
+
+  bismark_align:
+    mem_mb: 28000
+    runtime: 480
+
+  bismark_extract:
+    mem_mb: 36000
+    runtime: 240
+
+  compare:
+    mem_mb: 16000
+    runtime: 120

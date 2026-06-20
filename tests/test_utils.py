@@ -15,7 +15,6 @@ class TestDetectCondition:
     def test_notreat(self):   assert detect_condition("no-treat_Ctrl_HEK_R1")  == "no_treat"
     def test_pb(self):        assert detect_condition("pb_Ctrl_Caco2_R2")       == "pb_ctrl"
     def test_treat(self):     assert detect_condition("treat_HEK_R3")           == "treat"
-    def test_old(self):       assert detect_condition("old_HEK_R1")             == "old"
     def test_unknown(self):   assert detect_condition("mystery_sample")         == "unknown"
 
 

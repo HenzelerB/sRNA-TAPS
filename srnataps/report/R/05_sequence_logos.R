@@ -35,7 +35,14 @@ suppressPackageStartupMessages({
   library(patchwork)
   library(stringr)
 })
-source(file.path(Sys.getenv("SRNATAPS_R_DIR", "/mnt/nfs/home/bhenzeler/projects/RNA_TAPS/sRNA-TAPS/srnataps/report/R"), "00_setup.R"))
+# Locate 00_setup.R: env var SRNATAPS_R_DIR wins (set by the pipeline); otherwise
+# fall back to this script's own directory so manual runs work on any machine.
+.srnataps_r_dir <- tryCatch({
+  .a <- commandArgs(FALSE)
+  .f <- sub("^--file=", "", .a[grep("^--file=", .a)])
+  if (length(.f) > 0) dirname(normalizePath(.f[1])) else getwd()
+}, error = function(e) getwd())
+source(file.path(Sys.getenv("SRNATAPS_R_DIR", .srnataps_r_dir), "00_setup.R"))
 
 option_list <- list(
   make_option("--outdir",    type = "character", help = "Project output directory"),

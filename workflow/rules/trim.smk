@@ -16,8 +16,17 @@ rule trim_galore:
     shell:
         """
         mkdir -p {TRIM_DIR}
+        # Default TruSeq small-RNA adapter -> use --small_rna (preserves the
+        # small-RNA-specific short-read removal behaviour). A custom adapter
+        # set in config.yaml -> pass it explicitly with -a instead.
+        DEFAULT_SMALLRNA_ADAPTER="TGGAATTCTCGGGTGCCAAGG"
+        if [ "{params.adapter}" = "$DEFAULT_SMALLRNA_ADAPTER" ]; then
+            ADAPTER_ARG="--small_rna"
+        else
+            ADAPTER_ARG="-a {params.adapter}"
+        fi
         trim_galore \
-            --small_rna \
+            $ADAPTER_ARG \
             --length {params.min_length} \
             --cores {threads} \
             -o {TRIM_DIR} \

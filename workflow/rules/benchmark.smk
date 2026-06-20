@@ -88,6 +88,7 @@ rule astair_call:
         min_mapq  = config["benchmark"]["tools"]["astair"]["min_mapq"],
         min_baseq = config["benchmark"]["tools"]["astair"]["min_baseq"],
         context   = config["benchmark"]["tools"]["astair"]["context"],
+        astair_env = config["benchmark"]["tools"]["astair"].get("astair_env", ""),
     resources:
         mem_mb  = lambda wc, input: est_mem(
             10000, input.bam,
@@ -110,8 +111,16 @@ rule astair_call:
             exit 0
         fi
 
+        # Use a dedicated asTair env if configured (asTair deps conflict with
+        # the main env); otherwise fall back to `astair` on PATH.
+        if [ -n "{params.astair_env}" ]; then
+            ASTAIR="conda run --no-capture-output -p {params.astair_env} astair"
+        else
+            ASTAIR="astair"
+        fi
+
         export PYTHONNOUSERSITE=1
-        /opt/apps/conda/bhenzeler/envs/astair_env/bin/astair call \
+        $ASTAIR call \
             -i  {input.bam} \
             -f  {input.fasta} \
             -m  mCtoT \

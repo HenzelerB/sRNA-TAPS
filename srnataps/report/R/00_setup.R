@@ -204,8 +204,19 @@ CONDITION_LABELS <- setNames(
 
 .CL_SHAPES_BASE <- c(16, 17, 15, 18, 3, 4, 8, 1)   # filled circle, triangle, ...
 
+# High-contrast cell-line colours. Known lines get fixed, distinct anchors;
+# any other lines fall back to the sRNA-TAPS gradient. Distinct hues (rather
+# than the navy->teal gradient) keep multi-cell-line scatters (e.g. fig 3c)
+# legible. Mirrors the CONDITION_COLOURS known-plus-fallback pattern above.
+.KNOWN_CELL_COLOURS <- c(
+  "Caco2" = "#06D6A0",   # teal-green
+  "HEK"   = "#FFD166"    # gold
+)
 CELL_COLOURS <- setNames(
-  srnataps_palette(length(CELL_LINES)),
+  sapply(CELL_LINES, function(cl) {
+    if (cl %in% names(.KNOWN_CELL_COLOURS)) .KNOWN_CELL_COLOURS[[cl]]
+    else srnataps_palette(length(CELL_LINES))[which(CELL_LINES == cl)]
+  }),
   CELL_LINES
 )
 
@@ -227,10 +238,10 @@ BIOTYPE_COLOURS <- setNames(
 )
 
 TOOL_COLOURS_BENCH <- c(
-  "sRNA-TAPS" = "#1C4062",
-  "rastair"   = "#E07B39",
-  "astair"    = "#6AAB6E",
-  "bismark"   = "#9B6BB5"
+  "sRNA-TAPS" = "#1C4062",   # brand navy
+  "rastair"   = "#CC79A7",   # Okabe-Ito reddish-purple
+  "astair"    = "#009E73",   # Okabe-Ito bluish-green
+  "bismark"   = "#E69F00"    # Okabe-Ito orange
 )
 
 CONF_COLOURS <- c(

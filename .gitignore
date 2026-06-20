@@ -19,3 +19,7 @@ htmlcov/
 !config/samples.tsv
 bioconda-recipes/
 bioconda-recipes/
+
+# Editing backups from patch scripts
+*.bak
+*.bak_*

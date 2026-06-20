@@ -71,7 +71,7 @@ def annotate_taps(tsv_in: str, gtf: str, tsv_out: str,
     except pd.errors.EmptyDataError:
         log(f"[SKIP] Empty file: {tsv_in}")
         # write empty annotated header
-        pd.DataFrame(columns=["chrom", "start", "end", "context",
+        pd.DataFrame(columns=["chrom", "start", "end", "strand", "context",
                                "mod_count", "unmod_count", "coverage",
                                "mod_rate", "pvalue", "padj", "snp_flag",
                                "gene_name", "gene_id", "gene_biotype"]

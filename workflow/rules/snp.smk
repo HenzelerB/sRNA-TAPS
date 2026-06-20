@@ -1,21 +1,9 @@
 # =============================================================================
-# rules/snp.smk — SNP blacklist construction (three-layer filtering)
+# rules/snp.smk — SNP blacklist construction (per cell line)
 # =============================================================================
 
-def get_notreat_bams(wc):
-    """Return all no-treat BAMs for a given cell line."""
-    notreat = SAMPLES[
-        (SAMPLES["condition"] == "no-treat") &
-        (SAMPLES["cell_line"] == wc.cell_line)
-    ]["sample"].tolist()
-    return [str(ALIGN_DIR / f"{s}.sorted.bam") for s in notreat]
-
-
 rule merge_notreat_bams:
-    """
-    Merge no-treat replicate BAMs per cell line for SNP calling.
-    Higher coverage from merged replicates = more confident SNP calls.
-    """
+    """Merge no-treat replicate BAMs per cell line for SNP calling."""
     input:
         bams = get_notreat_bams,
     output:
@@ -23,10 +11,6 @@ rule merge_notreat_bams:
         bai = str(SNP_DIR / "notreat_{cell_line}_merged.bam.bai"),
     log:
         str(LOG_DIR / "snp" / "merge_notreat_{cell_line}.log"),
-    threads: 4
-    resources:
-        mem_mb   = 16000,
-        runtime  = 120,
     shell:
         """
         mkdir -p {SNP_DIR}
@@ -35,22 +19,13 @@ rule merge_notreat_bams:
         else
             cp {input.bams} {output.bam}
         fi
-        samtools index {output.bam}
+        samtools index {output.bam} {output.bai}
         """
 
-
-rule build_snp_blacklist:
+rule snp_blacklist:
     """
     Build per-cell-line SNP blacklist from no-treat BAMs.
-
-    The no-treat condition has no TAPS chemistry applied.
-    Any C→T or G→A at AF >= min_af is a germline variant, not modification.
-
-    HEK293 and Caco2 are immortalised lines with distinct mutation profiles
-    not fully captured in population dbSNP — this per-sample approach catches
-    cell-line-specific variants that dbSNP alone would miss.
-
-    Output BED columns: chrom, start, end, ref, alt, allele_freq, coverage, cell_line
+    C→T / G→A at AF >= min_af in no-treat = germline variant, not modification.
     """
     input:
         bam   = str(SNP_DIR / "notreat_{cell_line}_merged.bam"),
@@ -58,15 +33,11 @@ rule build_snp_blacklist:
     output:
         bed = str(SNP_DIR / "sample_snps_{cell_line}.bed"),
     params:
-        script  = str(Path(workflow.basedir).parent / "srnataps" / "snp.py"),
+        script  = str(SRNATAPS_SCRIPTS / "snp.py"),
         min_af  = config["snp"]["min_af"],
         min_cov = config["snp"]["min_cov"],
     log:
         str(LOG_DIR / "snp" / "blacklist_{cell_line}.log"),
-    threads: 1
-    resources:
-        mem_mb   = 30000,
-        runtime  = 240,
     shell:
         """
         python {params.script} \

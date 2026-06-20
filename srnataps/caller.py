@@ -160,22 +160,52 @@ def assign_snp_flag(key, dbsnp, sample_snps, het_positions):
     """
     Assign SNP flag for a position key 'chrom:pos0'.
     Called inside the pileup loop — must be fast.
+
+    het_positions is a SUBSET of sample_snps (a het site has AF >= het_threshold,
+    which is itself >= the min_af used to build sample_snps). So het and sample
+    are not independent signals — het is simply the more-specific grade of a
+    sample-derived SNP. They collapse into one "sample-derived" axis here.
+
+    SNP_MULTI is reserved for genuinely independent overlaps: a position flagged
+    by dbSNP AND independently by the sample-derived axis. Within the
+    sample-derived axis, the most-specific label wins (SNP_HET over SNP_SAMPLE).
     """
-    flags = 0
     in_dbsnp  = key in dbsnp
     in_sample = key in sample_snps
-    in_het    = key in het_positions
-    n = in_dbsnp + in_sample + in_het
-    if n == 0:          return PASS
-    if n > 1:           return SNP_MULTI
-    if in_dbsnp:        return SNP_KNOWN
-    if in_sample:       return SNP_SAMPLE
-    return SNP_HET
+    in_het    = key in het_positions          # het_positions ⊆ sample_snps
+
+    in_sample_axis = in_sample or in_het       # one axis, two grades
+
+    # Independent sources of evidence: dbSNP and the sample-derived axis
+    n_independent = in_dbsnp + in_sample_axis
+
+    if n_independent == 0:
+        return PASS
+    if n_independent > 1:
+        return SNP_MULTI          # dbSNP AND sample-derived — truly independent
+    if in_dbsnp:
+        return SNP_KNOWN
+    # sample-derived only — report the most-specific grade
+    if in_het:
+        return SNP_HET
+    return SNP_SAMPLE
 
 
 # ════════════════════════════════════════════════════════════════════════════
 # Context helpers (unchanged from original taps_calling_fast.py)
 # ════════════════════════════════════════════════════════════════════════════
+
+def revcomp_context(ctx):
+    """
+    Reverse-complement a trinucleotide context string.
+    Used for minus-strand sites so the stored `context` column is always
+    oriented 5'->3' on the modified-C strand (C-centred), matching plus-strand
+    sites. CpG remains CpG (palindromic), so downstream CpG filters work on
+    both strands. Unknown chars (e.g. 'N') map to themselves.
+    """
+    comp = {"A": "T", "T": "A", "G": "C", "C": "G", "N": "N"}
+    return "".join(comp.get(b, b) for b in reversed(ctx))
+
 
 def get_context(seq, pos):
     l = seq[pos-1] if pos > 0          else "N"
@@ -237,7 +267,7 @@ def process_chromosome(job):
         bam.close(); fasta.close()
         return []
 
-    counts = defaultdict(lambda: {"mod": 0.0, "unmod": 0.0, "ctx": "", "snp_flag": PASS})
+    counts = defaultdict(lambda: {"mod": 0.0, "unmod": 0.0, "ctx": "", "strand": ".", "snp_flag": PASS})
     snp_skipped = 0
 
     try:
@@ -298,6 +328,7 @@ def process_chromosome(job):
                 if not context_match(ref_seq, rpos, False, context_filter):
                     continue
                 counts[rpos]["ctx"] = get_context(ref_seq, rpos)
+                counts[rpos]["strand"] = "+"
                 if rb == "C":   counts[rpos]["unmod"] += weight
                 elif rb == "T": counts[rpos]["mod"]   += weight
             else:
@@ -305,7 +336,8 @@ def process_chromosome(job):
                     continue
                 if not context_match(ref_seq, rpos, True, context_filter):
                     continue
-                counts[rpos]["ctx"] = get_context(ref_seq, rpos)
+                counts[rpos]["ctx"] = revcomp_context(get_context(ref_seq, rpos))
+                counts[rpos]["strand"] = "-"
                 if rb == "G":   counts[rpos]["unmod"] += weight
                 elif rb == "A": counts[rpos]["mod"]   += weight
 
@@ -329,6 +361,7 @@ def process_chromosome(job):
             "unmod_count": round(v["unmod"], 2),
             "coverage":    round(total,      2),
             "mod_rate":    round(v["mod"] / total, 4),
+            "strand":      v["strand"],
             "snp_flag":    PASS,
         })
     return rows
@@ -415,7 +448,7 @@ def main():
     # Binomial test + BH correction — clean pool, no SNPs
     all_rows = binomial_test_bh(all_rows, args.background_rate)
 
-    cols = ["chrom", "start", "end", "context",
+    cols = ["chrom", "start", "end", "strand", "context",
             "mod_count", "unmod_count", "coverage", "mod_rate",
             "pvalue", "padj", "snp_flag"]
 

@@ -13,6 +13,8 @@ rule compare:
                          sample=SAMPLES, biotype=BIOTYPES),
         rastair = expand(str(BENCH_DIR / "rastair" / "all" / "{sample}" / "{sample}.bed.gz"),
                          sample=SAMPLES),
+        rastair_cpg = expand(str(BENCH_DIR / "rastair" / "cpg" / "{sample}" / "{sample}.bed.gz"),
+                         sample=SAMPLES),
         astair  = expand(str(BENCH_DIR / "astair" / "{biotype}" / ".done_{sample}"),
                          sample=SAMPLES, biotype=BIOTYPES),
         bismark = expand(str(BENCH_DIR / "bismark" / "{sample}" / ".done"),
