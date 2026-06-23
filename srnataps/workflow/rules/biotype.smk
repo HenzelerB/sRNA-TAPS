@@ -2,7 +2,7 @@
 # rules/biotype.smk — Per-biotype BAM splitting
 # =============================================================================
 
-SRNATAPS_SCRIPTS = Path(workflow.basedir).parent / "srnataps"
+SRNATAPS_SCRIPTS = Path(workflow.basedir).parent
 
 rule biotype_split:
     """

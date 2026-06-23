@@ -16,7 +16,7 @@
 # of the working directory.
 # =============================================================================
 
-R_DIR     = Path(workflow.basedir).parent / "srnataps" / "report" / "R"
+R_DIR     = Path(workflow.basedir).parent / "report" / "R"
 FIG_DIR   = OUTDIR / "report" / "figures"
 REPORT_LOG = LOG_DIR / "report"
 
