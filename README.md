@@ -9,8 +9,9 @@
   <img src="https://img.shields.io/badge/Snakemake-9.x-green.svg" alt="Snakemake">
   <img src="https://img.shields.io/badge/Platform-Linux-lightgrey.svg" alt="Platform">
   <img src="https://img.shields.io/badge/Genome-GRCh38-green.svg" alt="Genome">
-  <img src="https://img.shields.io/badge/Status-In%20Development-orange.svg" alt="Status">
-  <img src="https://img.shields.io/badge/Tests-66%2F66%20passing-brightgreen.svg" alt="Tests">
+  <a href="https://github.com/HenzelerB/sRNA-TAPS/actions/workflows/ci.yml"><img src="https://github.com/HenzelerB/sRNA-TAPS/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/HenzelerB/sRNA-TAPS/releases/tag/v0.3.0"><img src="https://img.shields.io/badge/release-v0.3.0-blue.svg" alt="Release v0.3.0"></a>
+  <img src="https://img.shields.io/badge/tests-58%20passing-brightgreen.svg" alt="58 tests passing">
 </p>
 
 <p align="center">
@@ -27,6 +28,7 @@ sRNA-TAPS detects 5-methylcytosine (m5C) and 5-hydroxymethylcytosine (5hmC) in s
   <li><a href="#️-installation">Installation</a></li>
   <li><a href="#-quick-start">Quick Start</a></li>
   <li><a href="#-test-dataset">Test Dataset</a></li>
+  <li><a href="#-v030-validation">v0.3.0 Validation</a></li>
   <li><a href="#-usage">Usage</a></li>
   <li><a href="#-pipeline-overview">Pipeline Overview</a></li>
   <li><a href="#-pipeline-steps-in-detail">Pipeline Steps in Detail</a></li>
@@ -71,31 +73,24 @@ The `pb_Ctrl` condition is essential. Pyridine borane converts a small fraction 
 
 ## ⚙️ Installation
 
-#### Conda (recommended)
-
-```bash
-conda install -c bioconda -c conda-forge srna-taps
-```
-
-#### pip
-
-```bash
-pip install sRNA-TAPS
-```
-
-#### From source
+#### From source (current release method)
 
 ```bash
 git clone https://github.com/HenzelerB/sRNA-TAPS
 cd sRNA-TAPS
-pip install -e .
+git checkout v0.3.0
+python -m pip install -e .
 ```
+
+The package is not yet published to PyPI or Bioconda. Install from the tagged
+GitHub source release until those distribution channels are announced.
 
 #### Full environment
 
 ```bash
 conda env create -f environment.yaml
 conda activate RNA_taps
+python -m pip install -e . --no-deps
 ```
 
 #### R packages (for report figures)
@@ -128,15 +123,15 @@ bash /path/to/sRNA-TAPS/sRNA_taps.bash
 
 #    — or directly with Snakemake —
 snakemake \
-    --snakefile /path/to/sRNA-TAPS/workflow/Snakefile \
+    --snakefile /path/to/sRNA-TAPS/srnataps/workflow/Snakefile \
     --configfile config.yaml \
-    --profile    /path/to/sRNA-TAPS/profile
+    --profile    /path/to/sRNA-TAPS/srnataps/workflow/profiles/slurm
 
 # 5. Run with benchmarking (optional — slow, manuscript-only)
 snakemake \
-    --snakefile /path/to/sRNA-TAPS/workflow/Snakefile \
+    --snakefile /path/to/sRNA-TAPS/srnataps/workflow/Snakefile \
     --configfile config.yaml \
-    --profile    /path/to/sRNA-TAPS/profile \
+    --profile    /path/to/sRNA-TAPS/srnataps/workflow/profiles/slurm \
     all_benchmark
 ```
 
@@ -146,52 +141,51 @@ The pipeline automatically downloads the GRCh38 genome from Ensembl and builds t
 
 ## 🧬 Test Dataset
 
-The repository includes a synthetic FASTQ simulator (`tests/simulate_taps_srna.py`) that generates small RNA reads with realistic TAPS chemistry. Known m5C positions are seeded into the templates at 40–80% conversion in the `treat` condition and 2–5% background in `no_treat`, so you can verify end-to-end pipeline behaviour without real sequencing data.
+Version 0.3.0 was validated with an independently generated 100-sample hg38
+benchmark containing 638 planted modification sites across miRNA, tRNA, rRNA,
+snoRNA, and snRNA. It includes 34 treatment, 33 PB-only control, and 33
+no-treatment libraries. The benchmark dataset is not bundled with the source
+distribution because the generated FASTQ and alignment files are large.
 
-#### Generating test FASTQs
-
-The test dataset uses **100 samples** (multiple conditions, replicates and cell lines) to stress-test the full pipeline at scale:
-
-```bash
-python3 tests/simulate_taps_srna.py \
-    --outdir ~/srnataps_test/fastq \
-    --samples 100 \
-    --seed 42
-```
-
-This writes 100 `.fq.gz` files and a `samples.tsv` describing all samples. The simulator uses real hg38 loci (hsa-miR-21-5p, mt-tRNA-Leu, mt-12S rRNA, SNORD14) with realistic biotype proportions: miRNA 40%, tRNA 25%, rRNA 25%, snoRNA 10%. Reads are 18–50 nt with a TruSeq small RNA 3′ adapter (`TGGAATTCTCGGGTGCCAAGG`).
-
-#### Running the test pipeline
+For any simulator that emits the same `truth.tsv` coordinate schema, evaluate
+pipeline calls with:
 
 ```bash
-cd ~/srnataps_test
-
-# Link the generated samples.tsv to the project root
-ln -sf fastq/samples.tsv samples.tsv
-
-# Run the pipeline — genome downloads automatically
-snakemake \
-    --snakefile /path/to/sRNA-TAPS/workflow/Snakefile \
-    --configfile config.yaml \
-    --profile    /path/to/sRNA-TAPS/profile
+srnataps evaluate \
+    --truth truth.tsv \
+    --calls-dir 07d.replicate_calls \
+    --samples-tsv samples.tsv \
+    --outdir 10.truth_evaluation \
+    --condition treat
 ```
 
-#### Expected results
+Truth-based evaluation is for synthetic validation only. It is not used by the
+caller and must not be used to tune thresholds on biological experiments.
 
-Around 80% of trimmed reads align to hg38. At the two seeded miRNA m5C sites:
+---
 
-| Position | Gene | Condition | mod_rate |
-|----------|------|-----------|----------|
-| chr17:59841313 | hsa-miR-21-5p | TET+PB | **~90%** |
-| chr17:59841313 | hsa-miR-21-5p | Untreated | **~2%** |
-| chrX:66018955 | hsa-miR-223-3p | TET+PB | **~72%** |
-| chrX:66018955 | hsa-miR-223-3p | Untreated | **~0.2%** |
+## ✅ v0.3.0 Validation
 
-```bash
-# Quick check — expect ~0.9 in treat, ~0.02 in no_treat
-grep "^17.*59841313" 07.taps_calls/miRNA/treat_HEK_R1_miRNA_taps.tsv
-grep "^17.*59841313" 07.taps_calls/miRNA/no-treat_Ctrl_HEK_R1_miRNA_taps.tsv
-```
+The complete benchmark was run through three-letter alignment, strand-aware
+SNP filtering, pooled controls, BAM-derived replicate testing, and the
+integrated Snakemake condition module.
+
+| Validation result | Outcome |
+|-------------------|---------|
+| Linux unit and focused integration tests | 58 passed |
+| GitHub Actions distribution build | Passed |
+| Simulated samples processed | 100/100 |
+| Integrated condition DAG | 50/50 jobs completed |
+| Pooled candidate recall | 99.37% |
+| Replicate discovery recall | 98.59% |
+| Stringent tier precision | 67.06% |
+| Stringent tier recall | 88.40% |
+| Stringent tier F1 | 0.763 |
+
+These figures describe the planted simulation and establish software behavior;
+they are not expected performance guarantees for biological samples. Biological
+validation must consider library complexity, RNA abundance, chemistry quality,
+multimapping, cell type, and the absence of a fully modified RNA standard.
 
 ---
 
@@ -310,18 +304,18 @@ bash /path/to/sRNA-TAPS/sRNA_taps.bash
 ```bash
 cd /path/to/my_project
 snakemake \
-    --snakefile /path/to/sRNA-TAPS/workflow/Snakefile \
+    --snakefile /path/to/sRNA-TAPS/srnataps/workflow/Snakefile \
     --configfile config.yaml \
-    --profile    /path/to/sRNA-TAPS/profile &
+    --profile    /path/to/sRNA-TAPS/srnataps/workflow/profiles/slurm &
 ```
 
 **Dry-run first (always recommended):**
 
 ```bash
 snakemake \
-    --snakefile /path/to/sRNA-TAPS/workflow/Snakefile \
+    --snakefile /path/to/sRNA-TAPS/srnataps/workflow/Snakefile \
     --configfile config.yaml \
-    --profile    /path/to/sRNA-TAPS/profile \
+    --profile    /path/to/sRNA-TAPS/srnataps/workflow/profiles/slurm \
     --dry-run
 ```
 
@@ -329,9 +323,9 @@ snakemake \
 
 ```bash
 snakemake \
-    --snakefile /path/to/sRNA-TAPS/workflow/Snakefile \
+    --snakefile /path/to/sRNA-TAPS/srnataps/workflow/Snakefile \
     --configfile config.yaml \
-    --profile    /path/to/sRNA-TAPS/profile \
+    --profile    /path/to/sRNA-TAPS/srnataps/workflow/profiles/slurm \
     all_benchmark
 ```
 
