@@ -2,7 +2,13 @@
 """tests/test_utils.py — Tests for srnataps.utils"""
 
 import pytest
-from srnataps.utils import detect_cell_line, detect_condition, get_chroms
+from srnataps.utils import (
+    detect_cell_line,
+    detect_condition,
+    get_chroms,
+    is_condition,
+    normalize_condition,
+)
 
 
 class TestDetectCellLine:
@@ -16,6 +22,36 @@ class TestDetectCondition:
     def test_pb(self):        assert detect_condition("pb_Ctrl_Caco2_R2")       == "pb_ctrl"
     def test_treat(self):     assert detect_condition("treat_HEK_R3")           == "treat"
     def test_unknown(self):   assert detect_condition("mystery_sample")         == "unknown"
+
+
+class TestNormalizeCondition:
+    @pytest.mark.parametrize("label", [
+        "no_treat", "no-treat", "notreat", "No Treat", "untreated", "untr",
+    ])
+    def test_notreat_aliases(self, label):
+        assert normalize_condition(label) == "no_treat"
+        assert is_condition(label, "no_treat")
+
+    @pytest.mark.parametrize("label", [
+        "pb_ctrl", "pb_Ctrl", "PB-Ctrl", "pb control", "PB only", "pb",
+    ])
+    def test_pb_aliases(self, label):
+        assert normalize_condition(label) == "pb_ctrl"
+        assert is_condition(label, "pb_ctrl")
+
+    @pytest.mark.parametrize("label", [
+        "treat", "treated", "TET+PB", "tet_pb", "full_taps",
+    ])
+    def test_treat_aliases(self, label):
+        assert normalize_condition(label) == "treat"
+        assert is_condition(label, "treat")
+
+    def test_unknown_passthrough(self):
+        assert normalize_condition("custom_condition") == "custom_condition"
+
+    def test_unknown_strict_raises(self):
+        with pytest.raises(ValueError):
+            normalize_condition("custom_condition", strict=True)
 
 
 class TestGetChroms:

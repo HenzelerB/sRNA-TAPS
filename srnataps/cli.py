@@ -32,6 +32,7 @@ from rich.table import Table
 from rich import print as rprint
 
 from srnataps import __version__
+from srnataps.evaluate import run_evaluation
 
 console = Console()
 
@@ -52,6 +53,7 @@ MODULES = {
     "biotype":  "Split BAMs by RNA biotype",
     "snp":      "Build SNP blacklist from no-treat BAMs",
     "call":     "Call TAPS m5C modifications",
+    "condition":"Pool conditions and build discovery/stringent evidence tiers",
     "benchmark":"Run rastair, asTair, and Bismark benchmarking",
     "compare":  "Compare custom pipeline vs benchmark tools",
 }
@@ -112,7 +114,18 @@ def init(outdir, genome, gtf, fastq_dir, force):
             "input":     {"fastq_dir": "", "samples_tsv": "samples.tsv"},
             "reference": {"genome_fa": "", "gtf": "", "bowtie1_index": "", "dbsnp_vcf": ""},
             "trimming":  {"adapter": "TGGAATTCTCGGGTGCCAAGG", "min_length": 18},
-            "alignment": {"mismatches": 2, "multimappers": 10, "max_multimappers": 100, "threads": 8},
+            "alignment": {
+                "strategy": "three_letter",
+                "mode": "seed",
+                "strand": "both",
+                "mismatches": 1,
+                "seed_length": 10,
+                "max_mismatch_quality": 100,
+                "multimappers": 1,
+                "max_multimappers": None,
+                "best_strata": False,
+                "threads": 8,
+            },
             "biotype":   {"priority": ["miRNA","tRNA","piRNA","snoRNA","snRNA","rRNA","lncRNA","other"]},
             "snp":       {"min_af": 0.20, "min_cov": 10, "het_threshold": 0.40},
             "calling":   {
@@ -120,6 +133,16 @@ def init(outdir, genome, gtf, fastq_dir, force):
                 "background_rate": 0.005, "pval_threshold": 0.05,
                 "min_coverage": {"rRNA":10,"miRNA":3,"tRNA":3,"snoRNA":3,"snRNA":5,"piRNA":5,"lncRNA":5,"other":5},
                 "contexts": ["ALL"],
+            },
+            "condition_analysis": {
+                "enabled": True,
+                "pooled_min_coverage": 1,
+                "test_min_coverage": 5,
+                "minimum_replicates": 3,
+                "minimum_delta": 0.10,
+                "discovery_max_padj": 0.05,
+                "stringent_max_padj": 1e-20,
+                "stringent_min_coverage": 5,
             },
             "benchmark": {"enabled": False, "tools": {
                 "rastair": {"min_depth":5,"min_mapq":10,"min_baseq":20},
@@ -131,7 +154,12 @@ def init(outdir, genome, gtf, fastq_dir, force):
                       "rule_resources":{}},
             "output": {"fastqc":"02.fastqc","trimmed":"03.trimGalore","genome":"04a.genome",
                        "aligned":"04b.aligned","biotypes":"05.biotype_bams","snp":"06.snp_resources",
-                       "calls":"07.taps_calls","benchmark":"08.benchmark","compare":"09.compare",
+                       "calls":"07.taps_calls","pooled_calls":"07b.pooled_calls",
+                       "control_contrast":"07c.control_contrast",
+                       "replicate_calls":"07d.replicate_calls",
+                       "stringent_calls":"07e.stringent_calls",
+                       "evidence_audit":"10.evidence_audit",
+                       "benchmark":"08.benchmark","compare":"09.compare",
                        "logs":"logs","report":"report"},
         }
 
@@ -245,6 +273,7 @@ def module(module_name, configfile, slurm, cores, jobs, dryrun, sample, snakemak
         "biotype":   "module_biotype",
         "snp":       "module_snp",
         "call":      "module_call",
+        "condition": "module_condition",
         "benchmark": "module_benchmark",
         "compare":   "module_compare",
     }
@@ -270,6 +299,53 @@ def module(module_name, configfile, slurm, cores, jobs, dryrun, sample, snakemak
 # ══════════════════════════════════════════════════════════════════════════════
 # srnataps check
 # ══════════════════════════════════════════════════════════════════════════════
+@cli.command()
+@click.option("--truth", required=True, type=click.Path(exists=True), help="truth.tsv from simulation")
+@click.option("--calls-dir", default="07.taps_calls", type=click.Path(), help="TAPS calls directory")
+@click.option("--samples-tsv", default="samples.tsv", type=click.Path(), help="sample sheet")
+@click.option("--outdir", default="10.truth_evaluation", type=click.Path(), help="output directory")
+@click.option("--annotated", is_flag=True, help="read *_taps_annotated.tsv instead of *_taps.tsv")
+@click.option("--min-coverage", default=1.0, show_default=True, help="minimum call coverage")
+@click.option("--min-mod-rate", default=0.0, show_default=True, help="minimum modification rate")
+@click.option("--max-padj", default=1.0, show_default=True, help="maximum adjusted p-value")
+@click.option("--condition", default="treat", show_default=True, help="condition to score, or 'all'")
+def evaluate(
+    truth,
+    calls_dir,
+    samples_tsv,
+    outdir,
+    annotated,
+    min_coverage,
+    min_mod_rate,
+    max_padj,
+    condition,
+):
+    """
+    Evaluate simulated sRNA-TAPS calls against truth.tsv.
+
+    This is intended for test datasets with planted m5C sites. It compares
+    caller coordinates against truth.tsv after converting truth genomic_pos
+    from 1-based to the caller's 0-based start coordinate.
+    """
+    summary, by_biotype = run_evaluation(
+        truth_path=truth,
+        calls_dir=calls_dir,
+        samples_tsv=samples_tsv,
+        outdir=outdir,
+        annotated=annotated,
+        min_coverage=min_coverage,
+        min_mod_rate=min_mod_rate,
+        max_padj=max_padj,
+        condition=condition,
+    )
+
+    console.print(Panel.fit(f"[bold green]Truth evaluation written:[/bold green] {outdir}"))
+    console.print("[bold]Overall[/bold]")
+    console.print(summary.to_string(index=False))
+    console.print("\n[bold]By biotype[/bold]")
+    console.print(by_biotype.to_string(index=False))
+
+
 @cli.command()
 @click.option("--configfile", required=True, type=click.Path(exists=True), help="Path to config.yaml")
 def check(configfile):
@@ -339,7 +415,7 @@ def check(configfile):
         ("Genome FASTA", genome,          True),
         ("Genome FASTA .fai", genome+".fai", False),
         ("GTF", gtf,                      True),
-        ("Bowtie1 index", config.get("reference", {}).get("bowtie1_index", "")+".1.ebwt", False),
+        ("Bowtie1 index", config.get("reference", {}).get("bowtie1_index", "") + ".1.ebwt", False),
     ]:
         if not path:
             status = "[yellow]NOT SET[/yellow]"

@@ -17,7 +17,7 @@ input:
 reference:
   genome_fa:    "<REQUIRED: /path/to/Homo_sapiens.GRCh38.dna.toplevel.fa>"
   gtf:          "<REQUIRED: /path/to/Homo_sapiens.GRCh38.112.gtf>"
-  bowtie1_index: ""    # leave blank to auto-build from genome_fa into outdir/genome/
+  bowtie1_index: ""    # Bowtie1 index prefix
 
   # dbSNP VCF (optional — Layer 1 SNP filtering)
   # Pre-filter with bcftools:
@@ -31,13 +31,18 @@ trimming:
   min_length: 18                       # discard reads shorter than this after trimming
 
 # ── Alignment (Bowtie1) ───────────────────────────────────────────────────────
-# TAPS chemistry note: do NOT use bisulfite alignment mode.
-# Bowtie1 -v mode is used (total mismatch tolerance, not quality-weighted)
-# because TAPS C→T at modified sites are genuine mismatches against reference.
+# Three-letter Bowtie1 neutralizes TAPS conversions during alignment, then
+# restores the original read sequence before C-to-T calling.
 alignment:
-  mismatches: 2          # -v 2: max total mismatches
-  multimappers: 10       # -k 10: report up to N alignments per read
-  max_multimappers: 100  # -m 100: discard reads mapping to >100 loci
+  strategy: "three_letter" # three_letter (recommended) or standard
+  strand: "both"         # both genomic strands; restrict only for special protocols
+  mode: "seed"
+  mismatches: 1          # Bowtie1 -n seed mismatch ceiling
+  seed_length: 10        # short seed tolerates TAPS conversions elsewhere
+  max_mismatch_quality: 100
+  multimappers: 1
+  max_multimappers: null # avoid exhaustive -m searches on repetitive RNAs
+  best_strata: false
   threads: 8
 
 # ── Biotype splitting ─────────────────────────────────────────────────────────
@@ -81,6 +86,19 @@ calling:
   contexts:
     - ALL             # report all C contexts (CpG, CHH, CHG)
     # - CpG           # CpG only
+
+# Condition-level evidence analysis. Requires treat, pb_ctrl, and no_treat
+# samples for each analysed cell line. The discovery tier uses unbiased
+# beta-binomial testing; stringent thresholds are intentionally configurable.
+condition_analysis:
+  enabled: true
+  pooled_min_coverage: 1
+  test_min_coverage: 5
+  minimum_replicates: 3
+  minimum_delta: 0.10
+  discovery_max_padj: 0.05
+  stringent_max_padj: 1.0e-20
+  stringent_min_coverage: 5
 
 # ── Benchmarking (enabled with --benchmark flag) ──────────────────────────────
 benchmark:
@@ -141,6 +159,11 @@ output:
   biotypes:  "05.biotype_bams"
   snp:       "06.snp_resources"
   calls:     "07.taps_calls"
+  pooled_calls: "07b.pooled_calls"
+  control_contrast: "07c.control_contrast"
+  replicate_calls: "07d.replicate_calls"
+  stringent_calls: "07e.stringent_calls"
+  evidence_audit: "10.evidence_audit"
   benchmark: "08.benchmark"
   compare:   "09.compare"
   logs:      "logs"

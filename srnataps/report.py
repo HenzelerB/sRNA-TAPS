@@ -31,6 +31,7 @@ from jinja2 import Environment, BaseLoader
 from srnataps.utils import (
     detect_condition as get_condition,
     detect_cell_line as get_cell_line,
+    normalize_condition,
 )
 
 log = logging.getLogger(__name__)
@@ -192,7 +193,7 @@ def build_top_species(outdir: str, min_cov: int = 5, top_n: int = 30) -> str:
             continue
         for f in bt_dir.glob("*treat*_taps.tsv"):
             sample = f.name.replace(f"_{biotype}_taps.tsv", "")
-            if "no-treat" in sample or "pb_Ctrl" in sample:
+            if get_condition(sample) != "treat":
                 continue
             try:
                 df = pd.read_csv(f, sep="\t")
@@ -657,7 +658,7 @@ def main():
             treat = sum(
                 len(pd.read_csv(f, sep="\t").query("snp_flag == 'PASS'"))
                 for f in calls_dir.rglob("*treat*_taps.tsv")
-                if "no-treat" not in str(f) and "pb_Ctrl" not in str(f)
+                if get_condition(f.name) == "treat"
             )
             n_sites_total = f"{total:,}"
             n_sites_treat = f"{treat:,}"
@@ -678,7 +679,7 @@ def main():
         try:
             _sdf = pd.read_csv(samples_tsv, sep="\t")
             n_samples    = str(len(_sdf))
-            n_conditions = str(_sdf["condition"].nunique())
+            n_conditions = str(_sdf["condition"].map(normalize_condition).nunique())
             n_cell_lines = str(_sdf["cell_line"].nunique())
         except Exception:
             pass

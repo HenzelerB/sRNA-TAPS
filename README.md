@@ -47,7 +47,7 @@ TAPS works through two sequential reactions: TET enzymes oxidise m5C and 5hmC to
 
 #### Why TAPS for small RNA?
 
-Bisulfite treatment degrades short RNA molecules and converts ~99% of unmodified cytosines, making 18–22 nt reads nearly impossible to align uniquely. TAPS leaves unmodified cytosines intact, preserving alignment specificity. The pipeline uses Bowtie1 parameters tuned to tolerate the C→T mismatches introduced by modification rather than penalising them as sequencing errors.
+Bisulfite treatment degrades short RNA molecules and converts ~99% of unmodified cytosines, making short reads difficult to align. sRNA-TAPS uses a three-letter Bowtie1 strategy: reads and references are converted for alignment, both genomic strands are searched independently, and the original read sequence and qualities are restored before C-to-T calling. This prevents genuine TAPS conversions from consuming the mismatch budget.
 
 #### Why not use lambda phage spike-ins?
 
@@ -230,9 +230,28 @@ output:
   biotypes:  05.biotype_bams
   snp:       06.snp_resources
   calls:     07.taps_calls
+  pooled_calls: 07b.pooled_calls
+  control_contrast: 07c.control_contrast
+  replicate_calls: 07d.replicate_calls
+  stringent_calls: 07e.stringent_calls
+  evidence_audit: 10.evidence_audit
   benchmark: 08.benchmark
   compare:   09.compare
   logs:      logs
+
+alignment:
+  strategy: three_letter
+  threads: 8
+
+condition_analysis:
+  enabled: true
+  pooled_min_coverage: 1
+  test_min_coverage: 5
+  minimum_replicates: 3
+  minimum_delta: 0.10
+  discovery_max_padj: 0.05
+  stringent_max_padj: 1.0e-20
+  stringent_min_coverage: 5
 
 benchmark:
   tools:
@@ -316,6 +335,16 @@ snakemake \
     all_benchmark
 ```
 
+**Condition-level evidence analysis:**
+
+```bash
+srnataps module condition --configfile config.yaml --slurm
+```
+
+This module pools matched `treat`, `pb_ctrl`, and `no_treat` samples by cell
+line, performs unbiased replicate-aware beta-binomial testing, and writes both
+discovery and configurable stringent evidence tiers.
+
 ### Monitoring
 
 ```bash
@@ -342,10 +371,14 @@ rawfiles/           Raw FASTQs (SE, TruSeq small RNA)
 01. FastQC (pre-trim)   QC on raw reads
 02. Trim Galore         TruSeq SR adapter trimming (--small_rna)
 03. FastQC (post-trim)  QC on trimmed reads
-04. Bowtie1             Alignment: -v2 --norc -k10 --best --strata -m100
+04. Three-letter Bowtie1 C-to-T/G-to-A alignment; original sequences restored
 05. Biotype split       miRNA > tRNA > piRNA > snoRNA > snRNA > rRNA > lncRNA > other
 06. SNP filter          3-layer: cell-line-specific + heterozygosity [+ dbSNP]
-07. TAPS calling        Pileup → C→T counting → binomial test → BH FDR
+07. TAPS calling        Strand-aware C/T counting and per-sample calls
+07b. Pool conditions    Pool counts within condition and cell line
+07c. Control contrast   Treat versus PB-only and no-treatment controls
+07d. Replicate calls    Unbiased beta-binomial testing with BH correction
+07e. Stringent calls    Configurable q-value, effect, and depth tier
     ↓
     [Reports — generated automatically after each stage]
     report_qc           Read length distribution, mapping rates
@@ -391,14 +424,15 @@ Trim Galore removes the TruSeq small RNA 3′ adapter (`TGGAATTCTCGGGTGCCAAGG`) 
 ### Step 3: TAPS-aware Alignment
 **Tool:** Bowtie 1.3.1, SAMtools
 
-Alignment is to the whole GRCh38 genome rather than a transcriptome — tRNA families (~600 gene copies), piRNA clusters, and snoRNA loci need genomic coordinates for correct downstream annotation. Four parameters are set specifically for TAPS data:
+Alignment is to the whole GRCh38 genome rather than a transcriptome. Three-letter alignment neutralizes TAPS conversions during mapping while preserving genomic coordinates for downstream annotation:
 
 | Parameter | Purpose |
 |-----------|---------|
-| `-v 2` | Up to 2 total mismatches — tolerates C→T modifications without penalising them |
-| `--norc` | Forward strand only — reverse complement alignment would introduce false G→A calls |
-| `-k 10 --best --strata` | Up to 10 alignments per read from the best stratum; writes `XA:i:N` tag used for fractional weighting |
-| `--sam` | Required for XA tag output |
+| C-to-T branch | Converted reads align to a C-to-T reference on the forward genomic strand |
+| G-to-A branch | Converted reads align to a G-to-A reference on the reverse genomic strand |
+| Branch selection | The best branch is retained for each read |
+| Sequence restoration | Original bases and qualities are restored before modification calling |
+| Process parallelism | FASTQs are split across independent Bowtie1 processes because some Bowtie1 builds ignore `-p` |
 
 ---
 
@@ -430,7 +464,7 @@ mod_rate = T_count / (C_count + T_count)
 |---------|---------------|
 | **Strand-specific logic** | Forward strand: modified C reads as T. Reverse strand: modified C reads as A. |
 | **CIGAR-aware parsing** | `get_aligned_pairs()` handles indels and soft-clipping without positional offset errors |
-| **Multi-mapper weighting** | Reads with `XA:i:N` contribute `1/N` per locus rather than 1, preventing inflation at tRNA gene copies and rRNA repeats |
+| **Multi-mapper weighting** | When `NH` or `XA` multiplicity tags are present, reads contribute `1/N` rather than 1 |
 | **Base quality filter** | Bases with Phred Q < 20 are excluded |
 | **Parallel processing** | Jobs distributed across chromosomes |
 | **Statistical testing** | Binomial test against background rate, BH FDR correction |
@@ -446,28 +480,27 @@ Output columns: `chrom, start, end, context, mod_count, unmod_count, coverage, m
 δ = treat_mod_rate − pb_Ctrl_mod_rate
 ```
 
-Subtracting `pb_Ctrl` removes both the global pyridine borane background and sequence-context-specific biases. Sites seen in only one replicate are discarded — stochastic noise is not reproducible, so this filter is the most effective way to reduce false positives.
+Pooled treatment counts are compared separately with PB-only and no-treatment controls. Replicate statistics are then calculated directly from BAM-level modified and unmodified counts. Missing per-sample TSV rows are never interpreted as biological zero.
 
 ---
 
 ### Step 7: Differential Methylation Analysis
-**Tool:** Custom Python cross-condition comparison
+**Tool:** Custom beta-binomial condition model
 
-A site is called as genuine m5C if it passes all three filters simultaneously:
+Coverage defines the testable universe before statistical testing. A one-sided
+beta-binomial likelihood-ratio test compares treatment with each control while
+allowing between-replicate overdispersion. BH correction is applied before
+effect-size filtering, avoiding selection on the same treatment-control effect
+that is subsequently tested.
 
-| Criterion | Threshold | Rationale |
-|-----------|-----------|-----------|
-| `delta > 0.1` | δ > 10% | Removes residual chemistry noise after background subtraction |
-| `notx_mean < 0.05` | no-treat < 5% | Removes SNPs and A-to-I editing sites, which are condition-independent |
-| `rep >= 2` | ≥ 2/3 replicates | Reproducibility across replicates is the strongest indicator of genuine signal |
+Outputs are intentionally tiered rather than reduced to one universal cutoff:
 
-Called sites are then stratified by confidence:
-
-| Confidence | Criteria |
-|------------|----------|
-| **High** | rep = 3/3 and δ > 0.3 |
-| **Medium** | rep ≥ 2 and δ > 0.15 |
-| **Low** | rep = 2 and δ > 0.1 |
+| Tier | Meaning |
+|------|---------|
+| **Pooled test universe** | Covered treatment cytosines; not modification claims |
+| **Control contrast** | Pooled treatment enrichment over both controls |
+| **Replicate discovery** | Replicate-supported calls at the configured discovery FDR |
+| **Stringent** | Configurable q-value, effect-size, and pooled-depth evidence tier |
 
 ---
 
@@ -555,10 +588,16 @@ outdir/
 ├── 07.taps_calls/      Per-biotype TAPS TSVs
 │                       (chrom, start, end, context, mod_count, unmod_count,
 │                        coverage, mod_rate, pvalue, padj, snp_flag)
+├── 07b.pooled_calls/   Condition-pooled test universes
+├── 07c.control_contrast/ Pooled dual-control calls
+├── 07d.replicate_calls/  Replicate-supported discovery calls
+├── 07e.stringent_calls/  Configurable stringent evidence calls
+├── 10.evidence_audit/   Complete pooled and replicate evidence tables
 ├── 08.benchmark/       rastair · asTair · Bismark outputs (opt-in)
 ├── 09.compare/         concordance_summary.tsv · correlation_summary.tsv (opt-in)
 └── report/
     ├── multiqc_report.html      Aggregated QC (FastQC + Trim Galore + Bowtie1)
+    ├── tables/evidence_tier_summary.tsv
     └── figures/                 Per-stage R figures (PDF + PNG + SVG)
         ├── 01a_read_length_distribution.*
         ├── 01b_mapping_rates.*

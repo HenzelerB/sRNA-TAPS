@@ -10,7 +10,7 @@ Tool characteristics:
     asTair   — TAPS-native, all C contexts, Bowtie1 biotype BAMs. Fully matched
                aligner + input. Most direct like-for-like comparison.
 
-    Bismark  — Bisulfite caller on Bowtie1 alignments. Included as contrast.
+    Bismark  — Bisulfite caller using Bowtie2. Included as contrast.
                CHEMISTRY INVERSION: Bismark reads C→T as UNMETHYLATED.
                TAPS reads C→T as METHYLATED. They are chemical inverses.
                Before any comparison, Bismark mod_rate is inverted:
@@ -38,11 +38,12 @@ import argparse
 import glob
 import logging
 import os
+import re
 import subprocess
 from pathlib import Path
 
 import pandas as pd
-from scipy import stats
+from srnataps.utils import CANONICAL_CONDITIONS, normalize_condition
 
 logging.basicConfig(
     level=logging.INFO,
@@ -56,7 +57,7 @@ CALLS_DIR = "07.taps_calls"
 BENCH_DIR = "08.benchmark"
 OUT_DIR   = "09.compare"
 
-CONDITIONS = [
+DEFAULT_CONDITION_PREFIXES = [
     "no-treat_Ctrl_Caco2", "no-treat_Ctrl_HEK",
     "pb_Ctrl_Caco2",        "pb_Ctrl_HEK",
     "treat_Caco2",          "treat_HEK",
@@ -69,6 +70,59 @@ INVERT_CHEMISTRY = {"bismark": True, "rastair": False, "rastair_all": False, "as
 
 # rastair is CpG-only — comparison restricted to CpG context sites
 CpG_ONLY = {"rastair": True, "rastair_all": False, "astair": False, "bismark": False}
+
+
+def sample_prefix(sample):
+    """Collapse replicate sample names to the prefix used by output paths."""
+    return re.sub(r"([_-])R\d+$", "", str(sample))
+
+
+def discover_condition_prefixes(samples_tsv="samples.tsv"):
+    """
+    Discover condition/cell-line prefixes from samples.tsv.
+
+    The comparison loaders operate on output filename prefixes such as
+    treat_HEK or pb_Ctrl_Caco2. This function derives those prefixes from the
+    sample sheet while using canonical condition roles internally.
+    """
+    if not Path(samples_tsv).exists():
+        return DEFAULT_CONDITION_PREFIXES
+
+    try:
+        samples = pd.read_csv(samples_tsv, sep="\t")
+    except Exception as exc:
+        log.warning("Could not read %s: %s", samples_tsv, exc)
+        return DEFAULT_CONDITION_PREFIXES
+
+    required = {"sample", "condition", "cell_line"}
+    if not required.issubset(samples.columns):
+        log.warning("%s missing columns %s; using default comparison groups",
+                    samples_tsv, sorted(required - set(samples.columns)))
+        return DEFAULT_CONDITION_PREFIXES
+
+    samples = samples.copy()
+    samples["condition_norm"] = samples["condition"].map(normalize_condition)
+    samples["prefix"] = samples["sample"].map(sample_prefix)
+
+    prefixes = []
+    order = {cond: i for i, cond in enumerate(CANONICAL_CONDITIONS)}
+    for (cond, cell_line), sub in samples.groupby(["condition_norm", "cell_line"], sort=False):
+        unique = sorted(sub["prefix"].dropna().unique())
+        if not unique:
+            continue
+        # Prefer the common replicate prefix. If naming is unusual, keep every
+        # discovered prefix so comparison still finds files instead of guessing.
+        prefixes.extend(unique)
+
+    def sort_key(prefix):
+        rows = samples[samples["prefix"] == prefix]
+        if rows.empty:
+            return (99, "", prefix)
+        cond = rows["condition_norm"].iloc[0]
+        cell = rows["cell_line"].iloc[0]
+        return (order.get(cond, 99), cell, prefix)
+
+    return sorted(dict.fromkeys(prefixes), key=sort_key) or DEFAULT_CONDITION_PREFIXES
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -271,6 +325,8 @@ def concordance(df_a, df_b, name_a, name_b, condition, biotype, tool):
 
 
 def correlation(df_a, df_b, name_a, name_b, condition, biotype, tool):
+    from scipy import stats
+
     # Aggregate to one row per site_key (mean mod_rate across replicates)
     # before merging. site_key is NOT unique per dataframe (one row per
     # replicate, all replicates concatenated in load_*), so merging on
@@ -322,7 +378,7 @@ def main():
     args = parse_args()
     Path(OUT_DIR).mkdir(parents=True, exist_ok=True)
 
-    conditions = CONDITIONS if args.condition == "all" else [args.condition]
+    conditions = discover_condition_prefixes() if args.condition == "all" else [args.condition]
     biotypes   = BIOTYPES   if args.biotype   == "all" else [args.biotype]
     tools      = TOOLS      if args.tool      == "all" else [args.tool]
 

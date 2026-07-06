@@ -7,13 +7,14 @@
 # Project structure expected in the working directory (e.g. sRNA_TAPS_bio/):
 #   config.yaml          — project config
 #   rawfiles/            — *.merged.fq.gz input FASTQs
-#   04a.genome/          — reference FASTA + GTF + bowtie1 index
+#   04a.genome/          — reference FASTA + GTF + Bowtie1 index
 #   samples.tsv          — sample sheet (sample, condition, cell_line, fastq)
 # =============================================================================
 
 import pandas as pd
 
 import os
+from srnataps.utils import normalize_condition
 
 # ── Dynamic memory estimation ──────────────────────────────────────────────────
 def est_mem(base_mb, *input_paths, scale=10, floor_mb=2000, ceil_mb=128000):
@@ -47,6 +48,10 @@ configfile: "config.yaml"
 
 # ── Sample sheet ──────────────────────────────────────────────────────────────
 SAMPLES_DF = pd.read_csv("samples.tsv", sep="\t").set_index("sample")
+SAMPLES_DF["condition_raw"] = SAMPLES_DF["condition"]
+SAMPLES_DF["condition"] = SAMPLES_DF["condition"].map(
+    lambda c: normalize_condition(c, strict=True)
+)
 SAMPLES     = SAMPLES_DF.index.tolist()
 
 # Optional sample filter (set by `srnataps module --sample a,b,c`). Subsets
@@ -64,7 +69,7 @@ if _sample_filter:
     SAMPLES = _wanted
     print(f"[srnataps] sample filter active — running {len(SAMPLES)} sample(s): "
           + ", ".join(SAMPLES))
-CELL_LINES  = SAMPLES_DF["cell_line"].unique().tolist()
+CELL_LINES  = SAMPLES_DF.loc[SAMPLES, "cell_line"].unique().tolist()
 BIOTYPES    = ["rRNA", "miRNA", "tRNA", "snoRNA", "snRNA", "piRNA", "lncRNA", "other"]
 
 # ── Directory layout (from config) ───────────────────────────────────────────
@@ -76,9 +81,15 @@ ALIGN_DIR   = OUTDIR / config["output"]["aligned"]
 BIOTYPE_DIR = OUTDIR / config["output"]["biotypes"]
 SNP_DIR     = OUTDIR / config["output"]["snp"]
 CALLS_DIR   = OUTDIR / config["output"]["calls"]
+POOLED_DIR  = OUTDIR / config["output"].get("pooled_calls", "07b.pooled_calls")
+CONTRAST_DIR = OUTDIR / config["output"].get("control_contrast", "07c.control_contrast")
+REPLICATE_DIR = OUTDIR / config["output"].get("replicate_calls", "07d.replicate_calls")
+STRINGENT_DIR = OUTDIR / config["output"].get("stringent_calls", "07e.stringent_calls")
+EVIDENCE_AUDIT_DIR = OUTDIR / config["output"].get("evidence_audit", "10.evidence_audit")
 BENCH_DIR   = OUTDIR / config["output"]["benchmark"]
 COMPARE_DIR = OUTDIR / config["output"]["compare"]
 LOG_DIR     = OUTDIR / config["output"]["logs"]
+REPORT_DIR  = OUTDIR / config["output"].get("report", "report")
 
 # ── Helper: cell line from sample name ───────────────────────────────────────
 def get_cell_line(sample):
@@ -89,9 +100,15 @@ def get_condition(sample):
 
 def get_notreat_bams(wc):
     notreat = SAMPLES_DF[
-        (SAMPLES_DF["condition"] == "no-treat") &
+        (SAMPLES_DF["condition"] == "no_treat") &
         (SAMPLES_DF["cell_line"] == wc.cell_line)
     ].index.tolist()
+    if not notreat:
+        raise ValueError(
+            f"No no_treat samples found for cell_line={wc.cell_line}. "
+            "Accepted no-treatment labels include no_treat, no-treat, "
+            "notreat, untreated, and untr."
+        )
     return [str(ALIGN_DIR / f"{s}.sorted.bam") for s in notreat]
 
 def get_snp_bed(wc):
@@ -105,6 +122,35 @@ def get_min_cov(wc):
         "lncRNA": 5, "other": 5,
     }.get(wc.biotype, 5)
 
+CONDITION_CONFIG = config.get("condition_analysis", {})
+CONDITION_ANALYSIS_ENABLED = bool(CONDITION_CONFIG.get("enabled", False))
+CONDITIONS = ["treat", "pb_ctrl", "no_treat"]
+
+def condition_samples(cell_line, condition):
+    selected = SAMPLES_DF[
+        (SAMPLES_DF["cell_line"] == cell_line)
+        & (SAMPLES_DF["condition"] == condition)
+    ].index.tolist()
+    if not selected:
+        raise ValueError(
+            f"Condition analysis requires {condition} samples for "
+            f"cell_line={cell_line}"
+        )
+    return selected
+
+def condition_biotype_bams(wc):
+    return [
+        str(BIOTYPE_DIR / wc.biotype / f"{sample}_{wc.biotype}.sorted.bam")
+        for sample in condition_samples(wc.cell_line, wc.condition)
+    ]
+
+def all_biotype_bams(wc):
+    return [
+        str(BIOTYPE_DIR / wc.biotype / f"{sample}_{wc.biotype}.sorted.bam")
+        for sample in SAMPLES
+        if get_cell_line(sample) == wc.cell_line
+    ]
+
 # ── Include rules ─────────────────────────────────────────────────────────────
 include: "rules/qc.smk"
 include: "rules/trim.smk"
@@ -112,6 +158,7 @@ include: "rules/align.smk"
 include: "rules/biotype.smk"
 include: "rules/snp.smk"
 include: "rules/call.smk"
+include: "rules/condition.smk"
 include: "rules/annotate.smk"
 include: "rules/benchmark.smk"
 include: "rules/compare.smk"
@@ -142,6 +189,15 @@ rule all:
         str(OUTDIR / "report" / "figures" / ".report_biotype.done"),
         str(OUTDIR / "report" / "figures" / ".report_modification.done"),
         str(OUTDIR / "report" / "figures" / ".report_seqlogos.done"),
+        expand(
+            str(REPLICATE_DIR / "{biotype}" / "treat_{cell_line}_replicate_{biotype}_taps.tsv"),
+            cell_line=CELL_LINES, biotype=BIOTYPES,
+        ) if CONDITION_ANALYSIS_ENABLED else [],
+        expand(
+            str(STRINGENT_DIR / "{biotype}" / "treat_{cell_line}_stringent_{biotype}_taps.tsv"),
+            cell_line=CELL_LINES, biotype=BIOTYPES,
+        ) if CONDITION_ANALYSIS_ENABLED else [],
+        str(REPORT_DIR / "tables" / "evidence_tier_summary.tsv") if CONDITION_ANALYSIS_ENABLED else [],
 
 rule all_benchmark:
     """Full pipeline including benchmarking and comparison."""
@@ -181,7 +237,7 @@ rule module_index:
     """Stage target: genome FASTA index + Bowtie1 index."""
     input:
         config["reference"]["genome_fa"] + ".fai",
-        str(GENOME_DIR / ".bowtie1_index_complete"),
+        alignment_index_markers(None),
 
 rule module_align:
     """Stage target: sorted BAMs for all samples."""
@@ -204,6 +260,23 @@ rule module_call:
     input:
         expand(str(CALLS_DIR / "{biotype}" / "{sample}_{biotype}_taps_annotated.tsv"),
                sample=SAMPLES, biotype=BIOTYPES),
+
+rule module_condition:
+    """Stage target: pooled, replicate-supported, and stringent condition calls."""
+    input:
+        expand(
+            str(POOLED_DIR / "{biotype}" / "{condition}_{cell_line}_pooled_{biotype}_taps.tsv"),
+            condition=CONDITIONS, cell_line=CELL_LINES, biotype=BIOTYPES,
+        ),
+        expand(
+            str(REPLICATE_DIR / "{biotype}" / "treat_{cell_line}_replicate_{biotype}_taps.tsv"),
+            cell_line=CELL_LINES, biotype=BIOTYPES,
+        ),
+        expand(
+            str(STRINGENT_DIR / "{biotype}" / "treat_{cell_line}_stringent_{biotype}_taps.tsv"),
+            cell_line=CELL_LINES, biotype=BIOTYPES,
+        ),
+        str(REPORT_DIR / "tables" / "evidence_tier_summary.tsv"),
 
 rule module_benchmark:
     """Stage target: rastair (all+cpg), asTair, and Bismark outputs."""

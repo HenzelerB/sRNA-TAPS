@@ -1,83 +1,107 @@
 # =============================================================================
-# rules/align.smk — Genome setup + Bowtie1 index + alignment
-#
-# For new users, the pipeline downloads and indexes the genome automatically.
-# Existing users with a genome already in place: set the paths in config.yaml
-# and the download steps will be skipped (Snakemake sees outputs already exist).
-#
-# Ensembl release is set in config["reference"]["ensembl_release"] (default 112).
+# rules/align.smk - genome setup, Bowtie1 index, and small-RNA alignment
 # =============================================================================
 
 ENSEMBL_RELEASE = config["reference"].get("ensembl_release", 112)
-ENSEMBL_FA_URL  = (
+ENSEMBL_FA_URL = (
     f"https://ftp.ensembl.org/pub/release-{ENSEMBL_RELEASE}/fasta/homo_sapiens/dna/"
-    f"Homo_sapiens.GRCh38.dna.toplevel.fa.gz"
+    "Homo_sapiens.GRCh38.dna.toplevel.fa.gz"
 )
 ENSEMBL_GTF_URL = (
     f"https://ftp.ensembl.org/pub/release-{ENSEMBL_RELEASE}/gtf/homo_sapiens/"
     f"Homo_sapiens.GRCh38.{ENSEMBL_RELEASE}.gtf.gz"
 )
 
+ALIGNMENT_STRATEGY = str(
+    config.get("alignment", {}).get("strategy", "three_letter")
+).lower()
+if ALIGNMENT_STRATEGY not in {"three_letter", "standard"}:
+    raise ValueError("alignment.strategy must be 'three_letter' or 'standard'")
+
+THREE_LETTER_DIR = GENOME_DIR / "three_letter"
+SRNATAPS_ROOT = Path(workflow.basedir).parent
+THREE_LETTER_C2T_FA = THREE_LETTER_DIR / "hg38_C2T.fa"
+THREE_LETTER_G2A_FA = THREE_LETTER_DIR / "hg38_G2A.fa"
+THREE_LETTER_C2T_INDEX = THREE_LETTER_DIR / "hg38_C2T"
+THREE_LETTER_G2A_INDEX = THREE_LETTER_DIR / "hg38_G2A"
+
+
+def alignment_index_markers(wildcards):
+    if ALIGNMENT_STRATEGY == "three_letter":
+        return [
+            str(THREE_LETTER_DIR / ".c2t_index_complete"),
+            str(THREE_LETTER_DIR / ".g2a_index_complete"),
+        ]
+    return [str(GENOME_DIR / ".bowtie1_index_complete")]
+
+
+def bowtie_alignment_args():
+    """Build the configured Bowtie1 small-RNA alignment policy."""
+    alignment = config.get("alignment", {})
+    mode = str(alignment.get("mode", "seed")).lower()
+    mismatches = int(alignment.get("mismatches", 1))
+    if not 0 <= mismatches <= 3:
+        raise ValueError("alignment.mismatches must be between 0 and 3")
+
+    if mode == "seed":
+        seed_length = int(alignment.get("seed_length", 10))
+        max_quality_sum = int(alignment.get("max_mismatch_quality", 100))
+        return f"-n {mismatches} -l {seed_length} -e {max_quality_sum}"
+    if mode in {"end_to_end", "v"}:
+        return f"-v {mismatches}"
+    raise ValueError("alignment.mode must be 'seed' or 'end_to_end'")
+
+
+def bowtie_strand_arg():
+    strand = str(config.get("alignment", {}).get("strand", "both")).lower()
+    if strand == "both":
+        return ""
+    if strand in {"forward", "fw"}:
+        return "--norc"
+    if strand in {"reverse", "rc"}:
+        return "--nofw"
+    raise ValueError("alignment.strand must be 'both', 'forward', or 'reverse'")
+
 
 rule download_genome_fa:
-    """
-    Download Ensembl GRCh38 unmasked FASTA.
-    Unmasked (dna.toplevel) is required for TAPS — the repeat-masked version
-    soft-masks cytosines, which would suppress genuine C→T modification signal.
-    Skipped automatically if the FASTA already exists.
-    """
     output:
-        fa = config["reference"]["genome_fa"],
+        fa=config["reference"]["genome_fa"],
     params:
-        url    = ENSEMBL_FA_URL,
-        fa_gz  = config["reference"]["genome_fa"] + ".gz",
-        outdir = str(GENOME_DIR),
+        url=ENSEMBL_FA_URL,
+        fa_gz=config["reference"]["genome_fa"] + ".gz",
+        outdir=str(GENOME_DIR),
     log:
         str(LOG_DIR / "align" / "download_genome_fa.log"),
     shell:
         """
         mkdir -p {params.outdir}
-        echo "Downloading genome FASTA from Ensembl release {ENSEMBL_RELEASE}..." > {log}
-        wget -q --show-progress -O {params.fa_gz} {params.url} >> {log} 2>&1
-        echo "Decompressing..." >> {log}
+        wget -q --show-progress -O {params.fa_gz} {params.url} > {log} 2>&1
         gunzip -f {params.fa_gz} >> {log} 2>&1
-        echo "Done: {output.fa}" >> {log}
         """
 
 
 rule download_gtf:
-    """
-    Download Ensembl GRCh38 GTF annotation.
-    Used for biotype-split annotation.
-    Skipped automatically if the GTF already exists.
-    """
     output:
-        gtf = config["reference"]["gtf"],
+        gtf=config["reference"]["gtf"],
     params:
-        url     = ENSEMBL_GTF_URL,
-        gtf_gz  = config["reference"]["gtf"] + ".gz",
-        outdir  = str(GENOME_DIR),
+        url=ENSEMBL_GTF_URL,
+        gtf_gz=config["reference"]["gtf"] + ".gz",
+        outdir=str(GENOME_DIR),
     log:
         str(LOG_DIR / "align" / "download_gtf.log"),
     shell:
         """
         mkdir -p {params.outdir}
-        echo "Downloading GTF from Ensembl release {ENSEMBL_RELEASE}..." > {log}
-        wget -q --show-progress -O {params.gtf_gz} {params.url} >> {log} 2>&1
-        echo "Decompressing..." >> {log}
+        wget -q --show-progress -O {params.gtf_gz} {params.url} > {log} 2>&1
         gunzip -f {params.gtf_gz} >> {log} 2>&1
-        echo "Done: {output.gtf}" >> {log}
         """
 
 
 rule index_genome_fa:
-    """
-    samtools faidx — required by caller.py for random FASTA access.
-    """
     input:
-        fa = config["reference"]["genome_fa"],
+        fa=config["reference"]["genome_fa"],
     output:
-        fai = config["reference"]["genome_fa"] + ".fai",
+        fai=config["reference"]["genome_fa"] + ".fai",
     log:
         str(LOG_DIR / "align" / "index_genome_fa.log"),
     shell:
@@ -87,16 +111,12 @@ rule index_genome_fa:
 
 
 rule bowtie1_index:
-    """
-    Build Bowtie1 genome index — run once.
-    Unmasked FASTA is required (see download_genome_fa rationale).
-    """
     input:
-        fa = config["reference"]["genome_fa"],
+        fa=config["reference"]["genome_fa"],
     output:
-        done = str(GENOME_DIR / ".bowtie1_index_complete"),
+        done=str(GENOME_DIR / ".bowtie1_index_complete"),
     params:
-        prefix = config["reference"]["bowtie1_index"],
+        prefix=config["reference"]["bowtie1_index"],
     log:
         str(LOG_DIR / "align" / "bowtie1_index.log"),
     shell:
@@ -106,50 +126,214 @@ rule bowtie1_index:
         """
 
 
-rule bowtie1_align:
-    """
-    Bowtie1 alignment — TAPS-aware, small RNA.
-    -v 2            : allow 2 mismatches (tolerates genuine C→T TAPS signal)
-    --norc          : strand-specific TruSeq small RNA libraries
-    -k 10           : report up to 10 alignments (tRNA multi-mappers + XA tag)
-    --best --strata : report only best-stratum hits
-    -m 100          : discard reads with >100 valid alignments (repetitive elements)
-    """
+rule three_letter_references:
     input:
-        fq   = str(TRIM_DIR / "{sample}_trimmed.fq.gz"),
-        done = str(GENOME_DIR / ".bowtie1_index_complete"),
+        fa=config["reference"]["genome_fa"],
     output:
-        bam = str(ALIGN_DIR / "{sample}.sorted.bam"),
-        bai = str(ALIGN_DIR / "{sample}.sorted.bam.bai"),
+        c2t=str(THREE_LETTER_C2T_FA),
+        g2a=str(THREE_LETTER_G2A_FA),
+        done=str(THREE_LETTER_DIR / ".references_complete"),
     params:
-        index = config["reference"]["bowtie1_index"],
+        script=str(SRNATAPS_ROOT / "three_letter.py"),
+        outdir=str(THREE_LETTER_DIR),
     resources:
-        mem_mb  = lambda wc, input: est_mem(
-            8000, input.fq,
-            scale=8, floor_mb=12000, ceil_mb=64000
-        ),
-        runtime = 2880,
-    log:
-        bowtie   = str(LOG_DIR / "align" / "{sample}_bowtie.log"),
-        flagstat = str(LOG_DIR / "align" / "{sample}_flagstat.log"),
+        mem_mb=8000,
+        runtime=120,
     shell:
         """
-        mkdir -p {ALIGN_DIR}
-        bowtie \
-            -v 2 \
-            --norc \
-            -k 10 \
-            --best \
-            --strata \
-            -m 100 \
-            -p {threads} \
-            --sam \
-            {params.index} \
-            {input.fq} \
-            2> {log.bowtie} \
-        | samtools view -bS -F 4 - \
-        | samtools sort -@ 4 -o {output.bam}
+        mkdir -p {params.outdir}
+        python {params.script} convert-reference \
+            --input {input.fa} \
+            --c2t {output.c2t}.tmp \
+            --g2a {output.g2a}.tmp
+        mv {output.c2t}.tmp {output.c2t}
+        mv {output.g2a}.tmp {output.g2a}
+        touch {output.done}
+        """
 
+
+rule three_letter_c2t_index:
+    threads:
+        config.get("alignment", {}).get("threads", 8),
+    input:
+        fa=str(THREE_LETTER_C2T_FA),
+        references=str(THREE_LETTER_DIR / ".references_complete"),
+    output:
+        done=str(THREE_LETTER_DIR / ".c2t_index_complete"),
+    params:
+        prefix=str(THREE_LETTER_C2T_INDEX),
+    log:
+        str(LOG_DIR / "three_letter" / "build_C2T.log"),
+    resources:
+        mem_mb=40000,
+        runtime=480,
+    shell:
+        """
+        mkdir -p {LOG_DIR}/three_letter
+        bowtie-build --threads {threads} {input.fa} {params.prefix} \
+            > {log} 2>&1
+        touch {output.done}
+        """
+
+
+rule three_letter_g2a_index:
+    threads:
+        config.get("alignment", {}).get("threads", 8),
+    input:
+        fa=str(THREE_LETTER_G2A_FA),
+        references=str(THREE_LETTER_DIR / ".references_complete"),
+    output:
+        done=str(THREE_LETTER_DIR / ".g2a_index_complete"),
+    params:
+        prefix=str(THREE_LETTER_G2A_INDEX),
+    log:
+        str(LOG_DIR / "three_letter" / "build_G2A.log"),
+    resources:
+        mem_mb=40000,
+        runtime=480,
+    shell:
+        """
+        mkdir -p {LOG_DIR}/three_letter
+        bowtie-build --threads {threads} {input.fa} {params.prefix} \
+            > {log} 2>&1
+        touch {output.done}
+        """
+
+
+rule bowtie1_align:
+    """
+    Align short TAPS RNA reads with Bowtie1 seed mode.
+
+    Short seeds allow candidate discovery when genuine TAPS conversions occur
+    elsewhere in the read. Both genomic strands are searched because annotated
+    RNAs occur on both strands. Independent Bowtie processes are used because
+    current Bioconda Bowtie1 builds may ignore the -p thread setting.
+    """
+    threads:
+        config.get("alignment", {}).get("threads", 8),
+    input:
+        fq=str(TRIM_DIR / "{sample}_trimmed.fq.gz"),
+        done=alignment_index_markers,
+    output:
+        bam=str(ALIGN_DIR / "{sample}.sorted.bam"),
+        bai=str(ALIGN_DIR / "{sample}.sorted.bam.bai"),
+    params:
+        strategy=ALIGNMENT_STRATEGY,
+        index=config["reference"]["bowtie1_index"],
+        c2t_index=str(THREE_LETTER_C2T_INDEX),
+        g2a_index=str(THREE_LETTER_G2A_INDEX),
+        three_letter_script=str(SRNATAPS_ROOT / "three_letter.py"),
+        three_letter_runner=str(SRNATAPS_ROOT / "workflow" / "scripts" / "three_letter_align.sh"),
+        alignment_args=bowtie_alignment_args(),
+        strand_arg=bowtie_strand_arg(),
+        multimappers=config.get("alignment", {}).get("multimappers", 1),
+        best_strata=(
+            "--best --strata"
+            if config.get("alignment", {}).get("best_strata", False)
+            else ""
+        ),
+        max_multi_arg=(
+            f"-m {config.get('alignment', {}).get('max_multimappers')}"
+            if config.get("alignment", {}).get("max_multimappers")
+            else ""
+        ),
+    resources:
+        mem_mb=lambda wc, input: est_mem(
+            8000, input.fq, scale=8, floor_mb=40000, ceil_mb=64000
+        ),
+        runtime=480,
+    log:
+        bowtie=str(LOG_DIR / "align" / "{sample}_bowtie.log"),
+        flagstat=str(LOG_DIR / "align" / "{sample}_flagstat.log"),
+        plus=str(LOG_DIR / "three_letter" / "{sample}_plus.log"),
+        minus=str(LOG_DIR / "three_letter" / "{sample}_minus.log"),
+    shell:
+        """
+        if [ "{params.strategy}" = "three_letter" ]; then
+            bash {params.three_letter_runner} \
+                {input.fq} \
+                {output.bam} \
+                {params.c2t_index} \
+                {params.g2a_index} \
+                "$(command -v python)" \
+                {params.three_letter_script} \
+                {threads} \
+                {log.bowtie} \
+                {log.flagstat} \
+                {log.plus} \
+                {log.minus} \
+                "$TMPDIR"
+            exit 0
+        fi
+
+        mkdir -p {ALIGN_DIR}
+        WORK=$(mktemp -d "$TMPDIR/srnataps.{wildcards.sample}.XXXXXX")
+        trap 'rm -rf "$WORK"' EXIT
+
+        gzip -dc {input.fq} \
+        | awk -v out="$WORK" -v n={threads} '
+            {{
+                chunk = int((NR - 1) / 4) % n
+                file = sprintf("%s/chunk_%03d.fastq", out, chunk)
+                print >> file
+            }}
+        '
+
+        PIDS=""
+        for fq in "$WORK"/chunk_*.fastq; do
+            (
+                bowtie \
+                    {params.alignment_args} \
+                    {params.strand_arg} \
+                    -k {params.multimappers} \
+                    {params.best_strata} \
+                    {params.max_multi_arg} \
+                    -p 1 \
+                    -q \
+                    --sam \
+                    -x {params.index} \
+                    "$fq" \
+                    2> "$fq.bowtie.log" \
+                | samtools view -bS -F 4 -o "$fq.bam" -
+            ) &
+            PIDS="$PIDS $!"
+        done
+
+        STATUS=0
+        for pid in $PIDS; do
+            wait "$pid" || STATUS=1
+        done
+        if [ "$STATUS" -ne 0 ]; then
+            cat "$WORK"/chunk_*.bowtie.log > {log.bowtie}
+            echo "One or more Bowtie workers failed" >&2
+            exit "$STATUS"
+        fi
+
+        awk '
+            /# reads processed:/ {{
+                value = $0; sub(/^.*: /, "", value); sub(/ .*/, "", value)
+                total += value
+            }}
+            /# reads with at least one (reported )?alignment:/ {{
+                value = $0; sub(/^.*: /, "", value); sub(/ .*/, "", value)
+                mapped += value
+            }}
+            /^Reported / {{ reported += $2 }}
+            END {{
+                failed = total - mapped
+                mapped_pct = total ? 100 * mapped / total : 0
+                failed_pct = total ? 100 * failed / total : 0
+                print "# reads processed: " total
+                printf "# reads with at least one reported alignment: %d (%.2f%%)", mapped, mapped_pct
+                print ""
+                printf "# reads that failed to align: %d (%.2f%%)", failed, failed_pct
+                print ""
+                print "Reported " reported " alignments"
+            }}
+        ' "$WORK"/chunk_*.bowtie.log > {log.bowtie}
+
+        samtools cat -o "$WORK/combined.bam" "$WORK"/chunk_*.fastq.bam
+        samtools sort -@ 1 -o {output.bam} "$WORK/combined.bam"
         samtools index {output.bam} {output.bai}
         samtools flagstat {output.bam} > {log.flagstat}
         """

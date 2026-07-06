@@ -86,10 +86,10 @@ load_hc_sites <- function(calls_dir, biotypes, condition, min_cov, min_mod, max_
     if (!dir.exists(bt_dir)) return(NULL)
 
     files <- list.files(bt_dir, pattern = "_taps\\.tsv$", full.names = TRUE)
-    # Filter to target condition, exclude no-treat and pb_Ctrl
+    # Filter to target condition, exclude untreated and PB-only aliases.
     files <- files[grepl(condition, files) &
-                   !grepl("no-treat", files) &
-                   !grepl("pb_Ctrl", files)]
+                   !grepl("no[-_]?treat|untreated|untr", files, ignore.case = TRUE) &
+                   !grepl("pb[-_]?ctrl|pb[-_]?control|pb[-_]?only", files, ignore.case = TRUE)]
 
     if (length(files) == 0) return(NULL)
 
