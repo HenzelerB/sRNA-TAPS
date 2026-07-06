@@ -593,11 +593,6 @@ if (_h1) {
   setTimeout(() => { _h1.style.opacity = '1'; _h1.style.transform = 'translateY(0)'; }, 300);
 }
 
-/* Floating badges */
-document.querySelectorAll('.tool-badge').forEach((b, i) => {
-  b.style.animation = `float ${2.5 + (i%3)*0.4}s ease-in-out ${i*0.12}s infinite alternate`;
-});
-
 /* Counter animation - looping */
 document.querySelectorAll('.stat-num').forEach(el => {
   const target = el.textContent.trim();
