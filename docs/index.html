@@ -608,9 +608,29 @@ if (_h1) {
     _h1.style.minHeight = `${_h1.offsetHeight}px`;
     _h1.textContent = '';
     let character = 0;
+    const accentText = 'small RNA';
+    const accentStart = finalText.indexOf(accentText);
+    const accentEnd = accentStart + accentText.length;
+
+    const renderTypedText = (length) => {
+      _h1.textContent = '';
+      const beforeAccent = finalText.slice(0, Math.min(length, accentStart));
+      if (beforeAccent) _h1.appendChild(document.createTextNode(beforeAccent));
+
+      if (length > accentStart) {
+        const accent = document.createElement('span');
+        accent.style.color = '#367FAC';
+        accent.textContent = finalText.slice(accentStart, Math.min(length, accentEnd));
+        _h1.appendChild(accent);
+      }
+
+      if (length > accentEnd) {
+        _h1.appendChild(document.createTextNode(finalText.slice(accentEnd, length)));
+      }
+    };
 
     const typeNext = () => {
-      _h1.textContent = finalText.slice(0, character);
+      renderTypedText(character);
       const caret = document.createElement('span');
       caret.className = 'type-caret';
       caret.setAttribute('aria-hidden', 'true');
