@@ -60,40 +60,49 @@ import pandas as pd
 from scipy import stats
 from statsmodels.stats.multitest import multipletests
 
-
 # ── SNP flag constants ────────────────────────────────────────────────────────
-PASS       = "PASS"
-SNP_KNOWN  = "SNP_KNOWN"
+PASS = "PASS"
+SNP_KNOWN = "SNP_KNOWN"
 SNP_SAMPLE = "SNP_SAMPLE"
-SNP_HET    = "SNP_HET"
-SNP_MULTI  = "SNP_MULTI"
+SNP_HET = "SNP_HET"
+SNP_MULTI = "SNP_MULTI"
 
 
 # ── Argument parsing ──────────────────────────────────────────────────────────
 def parse_args():
-    p = argparse.ArgumentParser(description=__doc__,
-                                formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("--bam",             required=True)
-    p.add_argument("--fasta",           required=True)
-    p.add_argument("--out",             required=True)
-    p.add_argument("--min-qual",        type=int,   default=20)
-    p.add_argument("--min-mapq",        type=int,   default=10)
-    p.add_argument("--min-cov",         type=int,   default=5)
-    p.add_argument("--context",         default="ALL",
-                   choices=["ALL", "CpG", "CHH", "CHG"])
-    p.add_argument("--threads",         type=int,   default=4)
-    p.add_argument("--dbsnp-vcf",       default=None)
-    p.add_argument("--sample-snp-bed",  default=None)
-    p.add_argument("--het-threshold",   type=float, default=0.40)
-    p.add_argument("--cell-line",       default="unknown")
-    p.add_argument("--background-rate", type=float, default=0.005,
-                   help="Expected C→T rate for unmodified C in binomial null (default: 0.005)")
+    p = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    p.add_argument(
+        "--bam",
+        required=True,
+        nargs="+",
+        help="One or more coordinate-sorted BAMs to pool before calling",
+    )
+    p.add_argument("--fasta", required=True)
+    p.add_argument("--out", required=True)
+    p.add_argument("--min-qual", type=int, default=20)
+    p.add_argument("--min-mapq", type=int, default=10)
+    p.add_argument("--min-cov", type=int, default=5)
+    p.add_argument("--context", default="ALL", choices=["ALL", "CpG", "CHH", "CHG"])
+    p.add_argument("--threads", type=int, default=4)
+    p.add_argument("--dbsnp-vcf", default=None)
+    p.add_argument("--sample-snp-bed", default=None)
+    p.add_argument("--het-threshold", type=float, default=0.40)
+    p.add_argument("--cell-line", default="unknown")
+    p.add_argument(
+        "--background-rate",
+        type=float,
+        default=0.005,
+        help="Expected C→T rate for unmodified C in binomial null (default: 0.005)",
+    )
     return p.parse_args()
 
 
 # ════════════════════════════════════════════════════════════════════════════
 # SNP resource loaders
 # ════════════════════════════════════════════════════════════════════════════
+
 
 def load_dbsnp(vcf_path):
     """
@@ -108,7 +117,7 @@ def load_dbsnp(vcf_path):
     try:
         vcf = pysam.VariantFile(vcf_path)
         for rec in vcf.fetch():
-            ref  = rec.ref
+            ref = rec.ref
             alts = [str(a) for a in rec.alts] if rec.alts else []
             if (ref == "C" and "T" in alts) or (ref == "G" and "A" in alts):
                 positions.add(f"{rec.chrom}:{rec.pos - 1}")  # VCF 1-based → 0-based
@@ -116,7 +125,9 @@ def load_dbsnp(vcf_path):
     except Exception as e:
         print(f"[snp] WARNING: Could not read dbSNP VCF: {e}", flush=True)
         return frozenset()
-    print(f"[snp] Layer 1 (dbSNP):      {len(positions):,} positions loaded", flush=True)
+    print(
+        f"[snp] Layer 1 (dbSNP):      {len(positions):,} positions loaded", flush=True
+    )
     return frozenset(positions)
 
 
@@ -128,10 +139,13 @@ def load_sample_snp_bed(bed_path, het_threshold):
         het_positions — positions where AF >= het_threshold (Layer 3)
     """
     if not bed_path or not Path(bed_path).exists():
-        print(f"[snp] Sample SNP BED not found: {bed_path} — Layers 2+3 disabled", flush=True)
+        print(
+            f"[snp] Sample SNP BED not found: {bed_path} — Layers 2+3 disabled",
+            flush=True,
+        )
         return frozenset(), frozenset()
 
-    sample_snps   = set()
+    sample_snps = set()
     het_positions = set()
 
     with open(bed_path) as fh:
@@ -151,8 +165,14 @@ def load_sample_snp_bed(bed_path, het_threshold):
                 except ValueError:
                     pass
 
-    print(f"[snp] Layer 2 (sample SNPs): {len(sample_snps):,} positions loaded", flush=True)
-    print(f"[snp] Layer 3 (het≥{het_threshold}):   {len(het_positions):,} positions loaded", flush=True)
+    print(
+        f"[snp] Layer 2 (sample SNPs): {len(sample_snps):,} positions loaded",
+        flush=True,
+    )
+    print(
+        f"[snp] Layer 3 (het≥{het_threshold}):   {len(het_positions):,} positions loaded",
+        flush=True,
+    )
     return frozenset(sample_snps), frozenset(het_positions)
 
 
@@ -170,11 +190,11 @@ def assign_snp_flag(key, dbsnp, sample_snps, het_positions):
     by dbSNP AND independently by the sample-derived axis. Within the
     sample-derived axis, the most-specific label wins (SNP_HET over SNP_SAMPLE).
     """
-    in_dbsnp  = key in dbsnp
+    in_dbsnp = key in dbsnp
     in_sample = key in sample_snps
-    in_het    = key in het_positions          # het_positions ⊆ sample_snps
+    in_het = key in het_positions  # het_positions ⊆ sample_snps
 
-    in_sample_axis = in_sample or in_het       # one axis, two grades
+    in_sample_axis = in_sample or in_het  # one axis, two grades
 
     # Independent sources of evidence: dbSNP and the sample-derived axis
     n_independent = in_dbsnp + in_sample_axis
@@ -182,7 +202,7 @@ def assign_snp_flag(key, dbsnp, sample_snps, het_positions):
     if n_independent == 0:
         return PASS
     if n_independent > 1:
-        return SNP_MULTI          # dbSNP AND sample-derived — truly independent
+        return SNP_MULTI  # dbSNP AND sample-derived — truly independent
     if in_dbsnp:
         return SNP_KNOWN
     # sample-derived only — report the most-specific grade
@@ -194,6 +214,7 @@ def assign_snp_flag(key, dbsnp, sample_snps, het_positions):
 # ════════════════════════════════════════════════════════════════════════════
 # Context helpers (unchanged from original taps_calling_fast.py)
 # ════════════════════════════════════════════════════════════════════════════
+
 
 def revcomp_context(ctx):
     """
@@ -208,8 +229,8 @@ def revcomp_context(ctx):
 
 
 def get_context(seq, pos):
-    l = seq[pos-1] if pos > 0          else "N"
-    r = seq[pos+1] if pos+1 < len(seq) else "N"
+    l = seq[pos - 1] if pos > 0 else "N"
+    r = seq[pos + 1] if pos + 1 < len(seq) else "N"
     return l + seq[pos] + r
 
 
@@ -217,23 +238,23 @@ def context_match(seq, pos, is_reverse, context_filter):
     if context_filter == "ALL":
         return True
     if not is_reverse:
-        downstream = seq[pos+1] if pos+1 < len(seq) else "N"
+        downstream = seq[pos + 1] if pos + 1 < len(seq) else "N"
         if context_filter == "CpG":
             return downstream == "G"
         if context_filter == "CHG":
-            return downstream != "G" and (pos+2 < len(seq) and seq[pos+2] == "G")
+            return downstream != "G" and (pos + 2 < len(seq) and seq[pos + 2] == "G")
         if context_filter == "CHH":
-            h1 = seq[pos+1] if pos+1 < len(seq) else "N"
-            h2 = seq[pos+2] if pos+2 < len(seq) else "N"
+            h1 = seq[pos + 1] if pos + 1 < len(seq) else "N"
+            h2 = seq[pos + 2] if pos + 2 < len(seq) else "N"
             return h1 != "G" and h2 != "G"
     else:
         if context_filter == "CpG":
-            return pos > 0 and seq[pos-1] == "C"
+            return pos > 0 and seq[pos - 1] == "C"
         if context_filter == "CHG":
-            return pos >= 2 and seq[pos-1] != "C" and seq[pos-2] == "C"
+            return pos >= 2 and seq[pos - 1] != "C" and seq[pos - 2] == "C"
         if context_filter == "CHH":
-            h1 = seq[pos-1] if pos >= 1 else "N"
-            h2 = seq[pos-2] if pos >= 2 else "N"
+            h1 = seq[pos - 1] if pos >= 1 else "N"
+            h2 = seq[pos - 2] if pos >= 2 else "N"
             return h1 != "C" and h2 != "C"
     return True
 
@@ -243,7 +264,8 @@ def context_match(seq, pos, is_reverse, context_filter):
 # SNP check happens HERE — before counts are accumulated
 # ════════════════════════════════════════════════════════════════════════════
 
-def process_chromosome(job):
+
+def process_bam_chromosome(job):
     """
     Per-chromosome pileup worker.
 
@@ -254,26 +276,39 @@ def process_chromosome(job):
 
     Returns list of dicts: one per PASS position meeting min_cov.
     """
-    (bam_path, fasta_path, chrom,
-     min_qual, min_mapq, min_cov, context_filter,
-     dbsnp, sample_snps, het_positions) = job
+    (
+        bam_path,
+        fasta_path,
+        chrom,
+        min_qual,
+        min_mapq,
+        min_cov,
+        context_filter,
+        dbsnp,
+        sample_snps,
+        het_positions,
+    ) = job
 
-    bam   = pysam.AlignmentFile(bam_path, "rb")
+    bam = pysam.AlignmentFile(bam_path, "rb")
     fasta = pysam.FastaFile(fasta_path)
 
     try:
         ref_seq = fasta.fetch(chrom).upper()
     except (KeyError, ValueError):
-        bam.close(); fasta.close()
+        bam.close()
+        fasta.close()
         return []
 
-    counts = defaultdict(lambda: {"mod": 0.0, "unmod": 0.0, "ctx": "", "strand": ".", "snp_flag": PASS})
+    counts = defaultdict(
+        lambda: {"mod": 0.0, "unmod": 0.0, "ctx": "", "strand": ".", "snp_flag": PASS}
+    )
     snp_skipped = 0
 
     try:
         reads = bam.fetch(chrom)
     except (ValueError, KeyError):
-        bam.close(); fasta.close()
+        bam.close()
+        fasta.close()
         return []
 
     for read in reads:
@@ -294,7 +329,7 @@ def process_chromosome(job):
                 nh = 1
         weight = 1.0 / max(nh, 1)
 
-        quals   = read.query_qualities
+        quals = read.query_qualities
         reverse = read.is_reverse
 
         for qpos, rpos in read.get_aligned_pairs(matches_only=True):
@@ -311,13 +346,13 @@ def process_chromosome(job):
             # A SNP affects all reads at that locus — filtering per-read
             # would still accumulate counts and produce a biased rate.
             if fb == "C" or fb == "G":
-                key      = f"{chrom}:{rpos}"
+                key = f"{chrom}:{rpos}"
                 snp_flag = assign_snp_flag(key, dbsnp, sample_snps, het_positions)
                 if snp_flag != PASS:
                     # Record flag for this position but skip counting
                     if rpos not in counts:
                         counts[rpos]["snp_flag"] = snp_flag
-                    continue   # ← skip all read-level accumulation
+                    continue  # ← skip all read-level accumulation
             # ── End SNP check ─────────────────────────────────────────────
 
             rb = read.query_sequence[qpos].upper()
@@ -329,8 +364,10 @@ def process_chromosome(job):
                     continue
                 counts[rpos]["ctx"] = get_context(ref_seq, rpos)
                 counts[rpos]["strand"] = "+"
-                if rb == "C":   counts[rpos]["unmod"] += weight
-                elif rb == "T": counts[rpos]["mod"]   += weight
+                if rb == "C":
+                    counts[rpos]["unmod"] += weight
+                elif rb == "T":
+                    counts[rpos]["mod"] += weight
             else:
                 if fb != "G":
                     continue
@@ -338,8 +375,10 @@ def process_chromosome(job):
                     continue
                 counts[rpos]["ctx"] = revcomp_context(get_context(ref_seq, rpos))
                 counts[rpos]["strand"] = "-"
-                if rb == "G":   counts[rpos]["unmod"] += weight
-                elif rb == "A": counts[rpos]["mod"]   += weight
+                if rb == "G":
+                    counts[rpos]["unmod"] += weight
+                elif rb == "A":
+                    counts[rpos]["mod"] += weight
 
     bam.close()
     fasta.close()
@@ -350,26 +389,101 @@ def process_chromosome(job):
         if v["snp_flag"] != PASS:
             continue
         total = v["mod"] + v["unmod"]
-        if total < min_cov:
+        if total <= 0 or total < min_cov:
             continue
-        rows.append({
-            "chrom":       chrom,
-            "start":       pos,
-            "end":         pos + 1,
-            "context":     v["ctx"],
-            "mod_count":   round(v["mod"],   2),
-            "unmod_count": round(v["unmod"], 2),
-            "coverage":    round(total,      2),
-            "mod_rate":    round(v["mod"] / total, 4),
-            "strand":      v["strand"],
-            "snp_flag":    PASS,
-        })
+        rows.append(
+            {
+                "chrom": chrom,
+                "start": pos,
+                "end": pos + 1,
+                "context": v["ctx"],
+                "mod_count": round(v["mod"], 2),
+                "unmod_count": round(v["unmod"], 2),
+                "coverage": round(total, 2),
+                "mod_rate": round(v["mod"] / total, 4),
+                "strand": v["strand"],
+                "snp_flag": PASS,
+            }
+        )
     return rows
+
+
+def process_chromosome(job):
+    """Pool counts from one or more BAMs, then apply the coverage threshold."""
+    if len(job) == 9:
+        # Backward compatibility for callers predating the explicit MAPQ field.
+        (
+            bam_paths,
+            fasta_path,
+            chrom,
+            min_qual,
+            min_cov,
+            context_filter,
+            dbsnp,
+            sample_snps,
+            het_positions,
+        ) = job
+        min_mapq = 0
+    else:
+        (
+            bam_paths,
+            fasta_path,
+            chrom,
+            min_qual,
+            min_mapq,
+            min_cov,
+            context_filter,
+            dbsnp,
+            sample_snps,
+            het_positions,
+        ) = job
+
+    if isinstance(bam_paths, (str, Path)):
+        bam_paths = [str(bam_paths)]
+
+    pooled = {}
+    for bam_path in bam_paths:
+        rows = process_bam_chromosome(
+            (
+                bam_path,
+                fasta_path,
+                chrom,
+                min_qual,
+                min_mapq,
+                0,
+                context_filter,
+                dbsnp,
+                sample_snps,
+                het_positions,
+            )
+        )
+        for row in rows:
+            key = (row["start"], row["strand"])
+            if key not in pooled:
+                pooled[key] = row.copy()
+                continue
+            pooled[key]["mod_count"] += row["mod_count"]
+            pooled[key]["unmod_count"] += row["unmod_count"]
+
+    result = []
+    for row in pooled.values():
+        mod_count = row["mod_count"]
+        unmod_count = row["unmod_count"]
+        coverage = mod_count + unmod_count
+        if coverage < min_cov:
+            continue
+        row["mod_count"] = round(mod_count, 2)
+        row["unmod_count"] = round(unmod_count, 2)
+        row["coverage"] = round(coverage, 2)
+        row["mod_rate"] = round(mod_count / coverage, 4)
+        result.append(row)
+    return result
 
 
 # ════════════════════════════════════════════════════════════════════════════
 # Statistical testing — runs ONLY on PASS sites
 # ════════════════════════════════════════════════════════════════════════════
+
 
 def binomial_test_bh(rows, background_rate):
     """
@@ -399,7 +513,7 @@ def binomial_test_bh(rows, background_rate):
 
     for r, pval, adj in zip(rows, pvalues, padj):
         r["pvalue"] = round(float(pval), 6)
-        r["padj"]   = round(float(adj),  6)
+        r["padj"] = round(float(adj), 6)
 
     return rows
 
@@ -408,30 +522,44 @@ def binomial_test_bh(rows, background_rate):
 # Main
 # ════════════════════════════════════════════════════════════════════════════
 
+
 def main():
     args = parse_args()
 
     # Load SNP resources once — passed to every worker via job tuple
-    dbsnp                    = load_dbsnp(args.dbsnp_vcf)
-    sample_snps, het_positions = load_sample_snp_bed(args.sample_snp_bed, args.het_threshold)
+    dbsnp = load_dbsnp(args.dbsnp_vcf)
+    sample_snps, het_positions = load_sample_snp_bed(
+        args.sample_snp_bed, args.het_threshold
+    )
 
-    with pysam.AlignmentFile(args.bam, "rb") as bam:
+    with pysam.AlignmentFile(args.bam[0], "rb") as bam:
         chroms = [sq["SN"] for sq in bam.header.to_dict()["SQ"]]
 
-    print(f"[taps] BAM        : {args.bam}",        flush=True)
-    print(f"[taps] Chroms     : {len(chroms)}",     flush=True)
-    print(f"[taps] Threads    : {args.threads}",    flush=True)
-    print(f"[taps] Context    : {args.context}",    flush=True)
-    print(f"[taps] Min cov    : {args.min_cov}",    flush=True)
-    print(f"[taps] Min mapq   : {args.min_mapq}",   flush=True)
+    print(f"[taps] BAMs       : {len(args.bam)}", flush=True)
+    for bam_path in args.bam:
+        print(f"[taps]              {bam_path}", flush=True)
+    print(f"[taps] Chroms     : {len(chroms)}", flush=True)
+    print(f"[taps] Threads    : {args.threads}", flush=True)
+    print(f"[taps] Context    : {args.context}", flush=True)
+    print(f"[taps] Min cov    : {args.min_cov}", flush=True)
+    print(f"[taps] Min mapq   : {args.min_mapq}", flush=True)
     print(f"[taps] BG rate    : {args.background_rate}", flush=True)
     print(f"[taps] SNP filter : BEFORE counting (correct order)", flush=True)
 
     # Build jobs — SNP sets included so each worker can filter independently
     jobs = [
-        (args.bam, args.fasta, chrom,
-         args.min_qual, args.min_mapq, args.min_cov, args.context,
-         dbsnp, sample_snps, het_positions)
+        (
+            args.bam,
+            args.fasta,
+            chrom,
+            args.min_qual,
+            args.min_mapq,
+            args.min_cov,
+            args.context,
+            dbsnp,
+            sample_snps,
+            het_positions,
+        )
         for chrom in chroms
     ]
 
@@ -440,17 +568,30 @@ def main():
         for i, result in enumerate(pool.imap_unordered(process_chromosome, jobs), 1):
             all_rows.extend(result)
             if i % 10 == 0 or i == len(chroms):
-                print(f"[taps] {i}/{len(chroms)} chroms  ({len(all_rows)} PASS sites so far)",
-                      flush=True)
+                print(
+                    f"[taps] {i}/{len(chroms)} chroms  ({len(all_rows)} PASS sites so far)",
+                    flush=True,
+                )
 
     print(f"[taps] PASS sites after SNP filter : {len(all_rows):,}", flush=True)
 
     # Binomial test + BH correction — clean pool, no SNPs
     all_rows = binomial_test_bh(all_rows, args.background_rate)
 
-    cols = ["chrom", "start", "end", "strand", "context",
-            "mod_count", "unmod_count", "coverage", "mod_rate",
-            "pvalue", "padj", "snp_flag"]
+    cols = [
+        "chrom",
+        "start",
+        "end",
+        "strand",
+        "context",
+        "mod_count",
+        "unmod_count",
+        "coverage",
+        "mod_rate",
+        "pvalue",
+        "padj",
+        "snp_flag",
+    ]
 
     df = pd.DataFrame(all_rows, columns=cols)
     df.sort_values(["chrom", "start"], inplace=True)

@@ -131,13 +131,25 @@ parse_bowtie_logs <- function(log_dir) {
     lines  <- readLines(f)
 
     total_line  <- grep("reads processed", lines, value = TRUE)
-    mapped_line <- grep("reads with at least one alignment", lines, value = TRUE)
+    mapped_line <- grep(
+      "reads with at least one (reported )?alignment",
+      lines,
+      value = TRUE
+    )
     multi_line  <- grep("reported alignments", lines, value = TRUE)
 
-    total  <- as.numeric(gsub("[^0-9]", "", total_line[1]))
-    pct <- regmatches(mapped_line[1], regexpr("\\([0-9.]+%\\)", mapped_line[1])); rate <- as.numeric(gsub("[^0-9.]", "", pct))
+    if (length(total_line) == 0 || length(mapped_line) == 0) return(NULL)
 
-    if (is.na(total) || is.na(rate)) return(NULL)
+    total  <- as.numeric(gsub("[^0-9]", "", total_line[1]))
+    pct <- regmatches(
+      mapped_line[1],
+      regexpr("\\([0-9.]+%\\)", mapped_line[1])
+    )
+    if (length(pct) == 0 || identical(pct, character(0))) return(NULL)
+    rate <- as.numeric(gsub("[^0-9.]", "", pct))
+
+    if (length(total) != 1 || length(rate) != 1 ||
+        is.na(total) || is.na(rate)) return(NULL)
 
     data.frame(
       sample       = sample,

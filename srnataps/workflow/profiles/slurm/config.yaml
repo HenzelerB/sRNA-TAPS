@@ -35,7 +35,7 @@ set-threads:
   download_genome_fa: 1
   download_gtf:      1
   index_genome_fa:   4
-  bowtie1_index:    20
+  bowtie1_index:    8
   fastqc_pretrim:   4
   fastqc_posttrim:  4
   trim_galore:      4
@@ -74,8 +74,8 @@ set-resources:
     runtime: 60
 
   bowtie1_index:
-    mem_mb: 64000
-    runtime: 720
+    mem_mb: 40000
+    runtime: 480
 
   fastqc_pretrim:
     mem_mb: 8000
@@ -91,7 +91,7 @@ set-resources:
 
   bowtie1_align:
     mem_mb: 40000
-    runtime: 2880         # 48h — large/synthetic datasets can be slow
+    runtime: 480
 
   biotype_split:
     mem_mb: 30000

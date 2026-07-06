@@ -86,6 +86,8 @@ def main():
                     for r in col.pileups:
                         if r.is_del or r.is_refskip:
                             continue
+                        if r.alignment.is_reverse:
+                            continue
                         b = r.alignment.query_sequence[r.query_position].upper()
                         if b == "C": c += 1
                         elif b == "T": t += 1
@@ -100,6 +102,8 @@ def main():
                     g = a = 0
                     for r in col.pileups:
                         if r.is_del or r.is_refskip:
+                            continue
+                        if not r.alignment.is_reverse:
                             continue
                         b = r.alignment.query_sequence[r.query_position].upper()
                         if b == "G": g += 1

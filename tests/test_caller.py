@@ -121,6 +121,35 @@ class TestProcessChromosome:
         rows = process_chromosome(job)
         assert len(rows) == 0, "No sites should pass with min_cov=1000"
 
+    def test_multiple_bams_are_pooled_before_coverage_filter(
+        self, bam_taps_modified, fasta_path
+    ):
+        single_job = (
+            bam_taps_modified, fasta_path, CHROM,
+            20, 0, "ALL",
+            frozenset(), frozenset(), frozenset(),
+        )
+        pooled_job = (
+            [bam_taps_modified, bam_taps_modified], fasta_path, CHROM,
+            20, 0, "ALL",
+            frozenset(), frozenset(), frozenset(),
+        )
+
+        single = {r["start"]: r for r in process_chromosome(single_job)}
+        pooled = {r["start"]: r for r in process_chromosome(pooled_job)}
+
+        assert single
+        for position, row in single.items():
+            assert pooled[position]["mod_count"] == pytest.approx(
+                2 * row["mod_count"]
+            )
+            assert pooled[position]["unmod_count"] == pytest.approx(
+                2 * row["unmod_count"]
+            )
+            assert pooled[position]["coverage"] == pytest.approx(
+                2 * row["coverage"]
+            )
+
     def test_output_columns_present(self, bam_taps_modified, fasta_path):
         """Output rows should have all required columns."""
         job = (
