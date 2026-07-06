@@ -206,6 +206,7 @@
     .fade-up { opacity: 0; transform: translateY(30px); transition: opacity 0.6s ease, transform 0.6s ease; }
     .fade-up.visible { opacity: 1; transform: translateY(0); }
   </style>
+  <link rel="stylesheet" href="responsive.css">
 </head>
 <body>
 
@@ -226,69 +227,8 @@
 <div class="hero">
   <img src="sRNA-taps_logo.svg" alt="sRNA-TAPS logo" class="hero-logo">
   <div class="hero-badge">🧬 New · v0.2.3 released</div>
-  <h1 id="hero-h1" style="min-height:2.4em"></h1>
-  <p class="hero-desc" id="hero-desc" style="opacity:0;transition:opacity 0.6s ease;min-height:3em">sRNA-TAPS detects 5-methylcytosine and 5-hydroxymethylcytosine in miRNA, tRNA, rRNA, snoRNA and more, using TET-assisted pyridine borane sequencing on human samples (GRCh38).</p>
-<script>
-(function(){
-  const h1 = document.getElementById('hero-h1');
-  const desc = document.getElementById('hero-desc');
-  if (!h1) return;
-
-  const finalHTML = 'm5C detection in <span style="color:#367FAC;">small RNA</span> — without bisulfite';
-  const wrongText = 'm5C detection in small RNA using bisulfite';
-  const deleteFrom = wrongText.indexOf(' using bisulfite');
-  const cursor = '<span style="border-right:3px solid var(--accent);margin-left:1px;animation:blink 0.7s step-end infinite"> </span>';
-  let idx = 0;
-
-  function restart() {
-    idx = 0;
-    desc.style.opacity = '0';
-    h1.innerHTML = '';
-    setTimeout(typeWrong, 600);
-  }
-
-  function typeWrong() {
-    if (idx <= wrongText.length) {
-      h1.innerHTML = wrongText.slice(0, idx) + cursor;
-      idx++;
-      setTimeout(typeWrong, 45 + Math.random() * 25);
-    } else {
-      setTimeout(deleteWrong, 900);
-    }
-  }
-
-  function deleteWrong() {
-    if (idx > deleteFrom) {
-      idx--;
-      h1.innerHTML = wrongText.slice(0, idx) + cursor;
-      setTimeout(deleteWrong, 35);
-    } else {
-      setTimeout(typeCorrect, 400);
-    }
-  }
-
-  function typeCorrect() {
-    const suffix = '— without bisulfite';
-    const base = 'm5C detection in small RNA ';
-    let si = 0;
-    function typeNext() {
-      if (si <= suffix.length) {
-        h1.innerHTML = base + suffix.slice(0, si) + cursor;
-        si++;
-        setTimeout(typeNext, 50 + Math.random() * 25);
-      } else {
-        h1.innerHTML = 'm5C detection in small RNA — without bisulfite';
-        desc.style.opacity = '1';
-        
-      }
-    }
-    typeNext();
-  }
-
-  // Start after page load
-  setTimeout(typeWrong, 800);
-})();
-</script>
+  <h1>m5C detection in <span style="color:#367FAC;">small RNA</span> — without bisulfite</h1>
+  <p class="hero-desc">sRNA-TAPS detects 5-methylcytosine and 5-hydroxymethylcytosine in miRNA, tRNA, rRNA, snoRNA and more, using TET-assisted pyridine borane sequencing on human samples (GRCh38).</p>
   <div class="hero-actions">
     <a href="docs.html#installation" class="btn btn-primary">Get started →</a>
     <a href="tutorial.html" class="btn btn-secondary">Run tutorial</a>
@@ -813,5 +753,6 @@ function srnaTyping(){
   return d;
 }
 </script>
+<script src="site.js"></script>
 </body>
 </html>
