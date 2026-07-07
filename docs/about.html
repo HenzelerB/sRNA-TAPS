@@ -4,64 +4,76 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- SEO -->
-  <meta name="description" content="About sRNA-TAPS: authors, affiliation (Schneider Lab, LMU Munich), citation, and links. Developed at the Institute of Chemical Epigenetics-Munich.">
+  <meta name="description" content="About sRNA-TAPS: project overview, affiliation, citation, and links. Developed in the Schneider Lab at LMU Munich.">
   <meta name="keywords" content="sRNA-TAPS, sRNA TAPS, RNA m5C detection, small RNA methylation, TAPS sequencing, epitranscriptomics, RNA epigenetics, m5C small RNA, TET-assisted pyridine borane sequencing, bisulfite-free RNA methylation, Snakemake bioinformatics pipeline, miRNA methylation, tRNA modification, rRNA m5C">
-  <meta name="author" content="Bennett Henzeler, Schneider Lab, LMU Munich">
+  <meta name="author" content="sRNA-TAPS project team, Schneider Lab, LMU Munich">
   <link rel="canonical" href="https://henzelerb.github.io/sRNA-TAPS/about.html">
   <!-- Open Graph -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="About — sRNA-TAPS">
-  <meta property="og:description" content="About sRNA-TAPS: authors, affiliation (Schneider Lab, LMU Munich), citation, and links. Developed at the Institute of Chemical Epigenetics-Munich.">
+  <meta property="og:title" content="About &mdash; sRNA-TAPS">
+  <meta property="og:description" content="About sRNA-TAPS: project overview, affiliation, citation, and links. Developed in the Schneider Lab at LMU Munich.">
   <meta property="og:url" content="https://henzelerb.github.io/sRNA-TAPS/about.html">
   <meta property="og:image" content="https://henzelerb.github.io/sRNA-TAPS/sRNA-taps_logo.svg">
   <meta property="og:site_name" content="sRNA-TAPS">
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="About — sRNA-TAPS">
-  <meta name="twitter:description" content="About sRNA-TAPS: authors, affiliation (Schneider Lab, LMU Munich), citation, and links. Developed at the Institute of Chemical Epigenetics-Munich.">
+  <meta name="twitter:title" content="About &mdash; sRNA-TAPS">
+  <meta name="twitter:description" content="About sRNA-TAPS: project overview, affiliation, citation, and links. Developed in the Schneider Lab at LMU Munich.">
   <meta name="twitter:image" content="https://henzelerb.github.io/sRNA-TAPS/sRNA-taps_logo.svg">
-  <title>About — sRNA-TAPS</title>
+  <title>About &mdash; sRNA-TAPS</title>
   <style>
-  @font-face { font-family: 'Outfit'; src: url('fonts/Outfit-Light.woff2') format('woff2'); font-weight: 300; font-display: block; }
-  @font-face { font-family: 'Outfit'; src: url('fonts/Outfit-Regular.woff2') format('woff2'); font-weight: 400; font-display: block; }
-  @font-face { font-family: 'Outfit'; src: url('fonts/Outfit-Medium.woff2') format('woff2'); font-weight: 500; font-display: block; }
-  @font-face { font-family: 'Outfit'; src: url('fonts/Outfit-SemiBold.woff2') format('woff2'); font-weight: 600; font-display: block; }
-  @font-face { font-family: 'Outfit'; src: url('fonts/Outfit-Bold.woff2') format('woff2'); font-weight: 700; font-display: block; }
-  * { font-family: 'Outfit', sans-serif; }
-</style>
+    @font-face { font-family: 'Outfit'; src: url('fonts/Outfit-Light.woff2') format('woff2'); font-weight: 300; font-display: block; }
+    @font-face { font-family: 'Outfit'; src: url('fonts/Outfit-Regular.woff2') format('woff2'); font-weight: 400; font-display: block; }
+    @font-face { font-family: 'Outfit'; src: url('fonts/Outfit-Medium.woff2') format('woff2'); font-weight: 500; font-display: block; }
+    @font-face { font-family: 'Outfit'; src: url('fonts/Outfit-SemiBold.woff2') format('woff2'); font-weight: 600; font-display: block; }
+    @font-face { font-family: 'Outfit'; src: url('fonts/Outfit-Bold.woff2') format('woff2'); font-weight: 700; font-display: block; }
+    * { font-family: 'Outfit', sans-serif; }
+  </style>
   <style>
     :root{--bg:#f7f6f2;--bg2:#eeecea;--surface:#ffffff;--border:#dedad4;--text:#1a1814;--text2:#5a5650;--text3:#8a8680;--accent:#2C5F8A;--accent2:#e8f0f8;--accent3:#2c5f8a;--green:#2C5F8A;--nav-h:72px}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     html{scroll-behavior:smooth}
-    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:16px;line-height:1.7;-webkit-font-smoothing:antialiased}
+    body{font-family:'DM Sans',sans-serif;background:
+      radial-gradient(circle at top, rgba(44,95,138,.08), rgba(44,95,138,0) 28%),
+      linear-gradient(180deg, #fbfaf7 0%, var(--bg) 22%, var(--bg) 100%);
+      color:var(--text);font-size:16px;line-height:1.7;-webkit-font-smoothing:antialiased}
 
     nav{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--nav-h);background:rgba(247,246,242,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 40px}
     .nav-logo{text-decoration:none;margin-right:auto;display:flex;align-items:center;height:100%}
-    
     .nav-links{display:flex;gap:8px;align-items:center}
     .nav-links a{font-size:1rem;font-weight:500;color:var(--text2);text-decoration:none;padding:8px 16px;border-radius:6px;transition:all .15s}
     .nav-links a:hover,.nav-links a.active{color:var(--text);background:var(--bg2)}
     .nav-btn{background:var(--accent)!important;color:#fff!important;border-radius:6px;padding:8px 18px!important}
 
-    .hero{max-width:900px;margin:0 auto;padding:calc(var(--nav-h)+64px) 40px 48px}
-    h1{font-family:'Outfit',sans-serif;font-size:2.2rem;margin-bottom:12px}
-    .lead{font-size:1.1rem;color:var(--text2);line-height:1.75;text-align:center;max-width:800px;margin:0 auto;}
-    .lead p+p{margin-top:18px;}
+    .hero{max-width:1040px;margin:0 auto;padding:calc(var(--nav-h) + 56px) 40px 38px}
+    .hero-panel{position:relative;overflow:hidden;background:linear-gradient(145deg,rgba(255,255,255,.95),rgba(232,240,248,.74));border:1px solid rgba(44,95,138,.14);border-radius:32px;padding:40px 42px;box-shadow:0 30px 70px rgba(26,24,20,.08)}
+    .hero-panel::before{content:"";position:absolute;right:-90px;bottom:-130px;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,rgba(44,95,138,.16),rgba(44,95,138,0) 72%)}
+    .hero-panel::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(255,255,255,0));pointer-events:none}
+    .hero-copy,.hero-highlights{position:relative;z-index:1}
+    .hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(44,95,138,.1);border:1px solid rgba(44,95,138,.14);color:#1a3d5c;border-radius:999px;padding:7px 14px;font-size:.78rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:18px}
+    h1{font-family:'Outfit',sans-serif;font-size:2.7rem;line-height:1.08;letter-spacing:-.03em;margin-bottom:16px}
+    .lead{font-size:1.08rem;color:var(--text2);line-height:1.78;max-width:760px}
+    .lead p + p{margin-top:18px}
+    .hero-highlights{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:28px}
+    .highlight-card{background:rgba(255,255,255,.76);border:1px solid rgba(44,95,138,.12);border-radius:20px;padding:18px 18px 16px;backdrop-filter:blur(10px);box-shadow:0 10px 24px rgba(26,24,20,.05)}
+    .highlight-kicker{display:block;font-size:.76rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+    .highlight-card strong{display:block;font-size:1rem;color:var(--text);margin-bottom:6px}
+    .highlight-card p{font-size:.92rem;line-height:1.65;margin:0}
 
-    section{padding:60px 0;border-top:1px solid var(--border)}
-    .container{max-width:900px;margin:0 auto;padding:0 40px}
-    h2{font-family:'Outfit',sans-serif;font-size:1.6rem;margin-bottom:24px}
+    section{padding:28px 0}
+    .container{max-width:1040px;margin:0 auto;padding:0 40px}
+    .section-card{background:rgba(255,255,255,.84);border:1px solid rgba(44,95,138,.12);border-radius:28px;padding:32px;box-shadow:0 18px 44px rgba(26,24,20,.06)}
+    .section-heading{display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
+    .section-kicker{font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+    h2{font-family:'Outfit',sans-serif;font-size:1.6rem;line-height:1.15}
     p{color:var(--text2);margin-bottom:14px;line-height:1.75}
     p strong{color:var(--text)}
     a{color:var(--accent);text-decoration:none}
     a:hover{text-decoration:underline}
 
-    /* 2x2 AUTHOR GRID */
-    .authors-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
-
-    .author-card{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;overflow:hidden;cursor:pointer;transition:all .2s}
-    .author-card:hover{transform:translateY(-3px);box-shadow:0 8px 32px rgba(0,0,0,.08);border-color:var(--accent)}
-
+    .authors-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+    .author-card{background:linear-gradient(180deg,#fff,rgba(247,246,242,.92));border:1.5px solid var(--border);border-radius:22px;overflow:hidden;cursor:pointer;transition:all .2s}
+    .author-card:hover{transform:translateY(-4px);box-shadow:0 14px 34px rgba(0,0,0,.08);border-color:rgba(44,95,138,.38)}
     .author-card-front{display:flex;flex-direction:column;align-items:center;padding:32px 24px 24px;text-align:center}
     .author-photo{width:150px;height:150px;border-radius:50%;overflow:hidden;border:3px solid var(--border);margin-bottom:20px;transition:border-color .2s}
     .author-card:hover .author-photo{border-color:var(--accent)}
@@ -73,32 +85,40 @@
     .expand-hint{font-size:.78rem;color:var(--text3);display:flex;align-items:center;gap:4px;transition:color .15s}
     .author-card:hover .expand-hint{color:var(--accent)}
     .expand-arrow{display:inline-block;transition:transform .3s}
-
-    /* DROPDOWN BIO */
-    .author-bio{max-height:0;overflow:hidden;transition:max-height .4s ease,padding .3s ease;background:var(--bg);border-top:0px solid var(--border)}
+    .author-bio{max-height:0;overflow:hidden;transition:max-height .4s ease,padding .3s ease;background:var(--bg);border-top:0 solid var(--border)}
     .author-bio.open{max-height:300px;border-top:1px solid var(--border)}
     .author-bio-inner{padding:20px 24px}
     .author-bio-inner p{font-size:.9rem;color:var(--text2);line-height:1.65;margin:0}
 
-    /* OTHER SECTIONS */
-    .cite-block{background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:20px 24px;margin-bottom:12px}
+    .info-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+    .info-card{background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(247,246,242,.92));border:1.5px solid var(--border);border-radius:22px;padding:24px}
+    .info-card h3{font-size:1.05rem;color:var(--text);margin-bottom:14px}
+
+    .cite-block{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:20px 24px;margin-bottom:12px}
     .cite-block p{margin:0;font-size:.9rem;font-style:italic;color:var(--text2)}
-    .cite-block .cite-doi{display:block;margin-top:8px;font-size:.8rem;font-style:normal;color:var(--accent3)}
+    .cite-doi{display:block;margin-top:8px;font-size:.8rem;font-style:normal;color:var(--accent3)}
 
     .links-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-    .link-card{background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:20px;text-align:center;text-decoration:none;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:8px}
-    .link-card:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,0,0,.07);border-color:var(--accent);text-decoration:none}
-    .link-card-icon{font-size:1.6rem}
+    .link-card{background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(247,246,242,.92));border:1.5px solid var(--border);border-radius:18px;padding:22px 20px;text-align:center;text-decoration:none;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:8px}
+    .link-card:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(0,0,0,.07);border-color:var(--accent);text-decoration:none}
+    .link-card-icon{font-size:1.5rem}
     .link-card-name{font-weight:600;font-size:.9rem;color:var(--text)}
     .link-card-sub{font-size:.78rem;color:var(--text3)}
+    .license-note{font-size:.9rem;color:var(--text3);margin-top:18px}
 
-    footer{background:var(--bg2);border-top:1px solid var(--border);padding:32px 40px}
+    footer{background:var(--bg2);border-top:1px solid var(--border);padding:32px 40px;margin-top:28px}
     .footer-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
 
+    @media(max-width:900px){
+      .hero-highlights,.info-grid,.authors-grid{grid-template-columns:1fr}
+    }
+
     @media(max-width:700px){
-      .authors-grid{grid-template-columns:1fr}
-      .hero{padding:calc(var(--nav-h)+32px) 20px 40px}
+      .hero{padding:calc(var(--nav-h) + 28px) 20px 28px}
+      .hero-panel{padding:28px 22px}
+      h1{font-size:2.2rem}
       .container{padding:0 20px}
+      .section-card{padding:24px 20px}
       .links-grid{grid-template-columns:1fr}
       nav{padding:0 20px}
     }
@@ -108,13 +128,12 @@
 <body>
 
 <nav>
-  <a class="nav-logo" href="https://henzelerb.github.io/sRNA-TAPS/"><img src="sRNA-taps_logo_centre.svg" alt="sRNA-TAPS" style="height:52px;width:auto;display:block;">
-  </a>
+  <a class="nav-logo" href="https://henzelerb.github.io/sRNA-TAPS/"><img src="sRNA-taps_logo_centre.svg" alt="sRNA-TAPS" style="height:52px;width:auto;display:block;"></a>
   <div class="nav-links">
     <a href="docs.html">Docs</a>
     <a href="tutorial.html">Tutorial</a>
     <a href="benchmarking.html">Benchmarking</a>
-    <a href="about.html">About</a>
+    <a href="about.html" class="active">About</a>
     <a href="https://github.com/HenzelerB/sRNA-TAPS" target="_blank">GitHub</a>
     <a href="contact.html">Contact</a>
     <a href="docs.html#installation" class="nav-btn">Install</a>
@@ -122,144 +141,194 @@
 </nav>
 
 <div class="hero">
-  <h1>About sRNA-TAPS</h1>
-  <div class="lead">
-    <p>sRNA-TAPS is an open-source analysis pipeline developed by Dr. Bennett Henzeler in the Schneider Lab at the Institute of Chemical Epigenetics Munich (ICEM), LMU Munich. It adapts TET-assisted pyridine borane sequencing (TAPS) to study cytosine modifications in small RNA—where short, repetitive, and strand-specific molecules create distinct analytical challenges.</p>
-    <p>Built specifically for small-RNA data, the workflow combines TAPS-aware alignment, fractional handling of multi-mapping reads, biotype-resolved modification calling, and a three-condition framework for chemistry-based background correction. It supports analysis of m5C and hm5C across miRNA, tRNA, rRNA, snoRNA, snRNA, piRNA, and lncRNA in human samples, without the harsh degradation associated with bisulfite treatment.</p>
+  <div class="hero-panel">
+    <div class="hero-copy">
+      <div class="hero-badge">Project overview</div>
+      <h1>About sRNA-TAPS</h1>
+      <div class="lead">
+        <p>sRNA-TAPS is an open-source analysis pipeline developed in the Schneider Lab at the Institute of Chemical Epigenetics Munich (ICEM), LMU Munich. It adapts TET-assisted pyridine borane sequencing (TAPS) to study cytosine modifications in small RNA, where short, repetitive, and strand-specific molecules create distinct analytical challenges.</p>
+        <p>Built specifically for small-RNA data, the workflow combines TAPS-aware alignment, fractional handling of multi-mapping reads, biotype-resolved modification calling, and a three-condition framework for chemistry-based background correction. It supports analysis of m5C and hm5C across miRNA, tRNA, rRNA, snoRNA, snRNA, piRNA, and lncRNA in human samples, without the harsh degradation associated with bisulfite treatment.</p>
+      </div>
+    </div>
+    <div class="hero-highlights">
+      <div class="highlight-card">
+        <span class="highlight-kicker">Designed for</span>
+        <strong>Small-RNA complexity</strong>
+        <p>TAPS-aware alignment is adapted to short, repetitive, and strand-specific molecules.</p>
+      </div>
+      <div class="highlight-card">
+        <span class="highlight-kicker">Built around</span>
+        <strong>Reliable signal correction</strong>
+        <p>A three-condition framework supports chemistry-aware background correction from the start.</p>
+      </div>
+      <div class="highlight-card">
+        <span class="highlight-kicker">Covers</span>
+        <strong>Multiple RNA biotypes</strong>
+        <p>Modification calling is resolved across miRNA, tRNA, rRNA, snoRNA, snRNA, piRNA, and lncRNA.</p>
+      </div>
+    </div>
   </div>
 </div>
 
 <section>
   <div class="container">
-    <h2>Authors</h2>
-    <div class="authors-grid">
-
-      <!-- Sabine -->
-      <div class="author-card" onclick="toggleBio(this)">
-        <div class="author-card-front">
-          <div class="author-photo">
-            <img src="sabine.jpg" alt="PD Dr. Sabine Schneider">
+    <div class="section-card">
+      <div class="section-heading">
+        <span class="section-kicker">Team</span>
+        <h2>Authors</h2>
+      </div>
+      <div class="authors-grid">
+        <div class="author-card" onclick="toggleBio(this)">
+          <div class="author-card-front">
+            <div class="author-photo">
+              <img src="sabine.jpg" alt="PD Dr. Sabine Schneider">
+            </div>
+            <div class="author-name"><a href="https://schneider.cup.uni-muenchen.de/group/sabine-schneider/" target="_blank" onclick="event.stopPropagation()">PD Dr. Sabine Schneider &nearr;</a></div>
+            <div class="author-role">Group Leader &middot; Supervisor</div>
+            <div class="expand-hint">Click to read more <span class="expand-arrow">&darr;</span></div>
           </div>
-          <div class="author-name"><a href="https://schneider.cup.uni-muenchen.de/group/sabine-schneider/" target="_blank" onclick="event.stopPropagation()">PD Dr. Sabine Schneider ↗</a></div>
-          <div class="author-role">Group Leader · Supervisor</div>
-          <div class="expand-hint">Click to read more <span class="expand-arrow">↓</span></div>
+          <div class="author-bio">
+            <div class="author-bio-inner">
+              <p>Her lab investigates the structure-function relationships of nucleic acids, their interactions with proteins and small molecules, and the chemical and epigenetic modification landscape of small non-coding RNAs.</p>
+            </div>
+          </div>
         </div>
-        <div class="author-bio">
-          <div class="author-bio-inner">
-            <p>Her lab investigates the structure–function relationships of nucleic acids, their interactions with proteins and small molecules, and the chemical and epigenetic modification landscape of small non-coding RNAs.</p>
+
+        <div class="author-card" onclick="toggleBio(this)">
+          <div class="author-card-front">
+            <div class="author-photo">
+              <img src="Bennett.png" alt="Dr. Bennett Henzeler">
+            </div>
+            <div class="author-name"><a href="https://orcid.org/0000-0003-2333-3791" target="_blank" onclick="event.stopPropagation()">Dr. Bennett Henzeler &nearr;</a></div>
+            <div class="author-role">Postdoctoral Fellow &middot; Lead Developer</div>
+            <div class="expand-hint">Click to read more <span class="expand-arrow">&darr;</span></div>
+          </div>
+          <div class="author-bio">
+            <div class="author-bio-inner">
+              <p>Molecular biologist specialising in RNA biology, epigenetics, and small RNA modifications, with a focus on developing methodologies for RNA modification analysis.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="author-card" onclick="toggleBio(this)">
+          <div class="author-card-front">
+            <div class="author-photo">
+              <img src="Özge.png" alt="Özge Simsir">
+            </div>
+            <div class="author-name"><a href="https://www.researchgate.net/profile/Oezge-Simsir-2" target="_blank" onclick="event.stopPropagation()">Özge Simsir &nearr;</a></div>
+            <div class="author-role">PhD Student &middot; Biochemistry Support</div>
+            <div class="expand-hint">Click to read more <span class="expand-arrow">&darr;</span></div>
+          </div>
+          <div class="author-bio">
+            <div class="author-bio-inner">
+              <p>Research focuses on the role of small RNAs, primarily miRNAs, in the epigenome and epitranscriptome, and the effects of chemical modifications such as methylation on disease and cellular processes.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="author-card" onclick="toggleBio(this)">
+          <div class="author-card-front">
+            <div class="author-photo">
+              <img src="pascal.png" alt="Dr. Pascal Giehr">
+            </div>
+            <div class="author-name"><a href="https://giehr.cup.uni-muenchen.de/group/pascal-giehr/" target="_blank" onclick="event.stopPropagation()">Dr. Pascal Giehr &nearr;</a></div>
+            <div class="author-role">Junior Group Leader &middot; Advisor and Coding Support</div>
+            <div class="expand-hint">Click to read more <span class="expand-arrow">&darr;</span></div>
+          </div>
+          <div class="author-bio">
+            <div class="author-bio-inner">
+              <p>His lab investigates how epigenetic and epitranscriptomic factors influence chromatin architecture and gene regulation, with a focus on dynamic nucleic acid modifications in DNA and RNA.</p>
+            </div>
           </div>
         </div>
       </div>
-
-      <!-- Bennett -->
-      <div class="author-card" onclick="toggleBio(this)">
-        <div class="author-card-front">
-          <div class="author-photo">
-            <img src="Bennett.png" alt="Dr. Bennett Henzeler">
-          </div>
-          <div class="author-name"><a href="https://orcid.org/0000-0003-2333-3791" target="_blank" onclick="event.stopPropagation()">Dr. Bennett Henzeler ↗</a></div>
-          <div class="author-role">Postdoctoral Fellow · Lead Developer</div>
-          <div class="expand-hint">Click to read more <span class="expand-arrow">↓</span></div>
-        </div>
-        <div class="author-bio">
-          <div class="author-bio-inner">
-            <p>Molecular biologist specialising in RNA biology, epigenetics, and small RNA modifications, with a focus on developing methodologies for RNA modification analysis.</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Özge -->
-      <div class="author-card" onclick="toggleBio(this)">
-        <div class="author-card-front">
-          <div class="author-photo">
-            <img src="Özge.png" alt="Özge Simsir">
-          </div>
-          <div class="author-name"><a href="https://www.researchgate.net/profile/Oezge-Simsir-2" target="_blank" onclick="event.stopPropagation()">Özge Simsir ↗</a></div>
-          <div class="author-role">PhD Student · Biochemistry Support</div>
-          <div class="expand-hint">Click to read more <span class="expand-arrow">↓</span></div>
-        </div>
-        <div class="author-bio">
-          <div class="author-bio-inner">
-            <p>Research focuses on the role of small RNAs — primarily miRNAs — in the epigenome and epitranscriptome, and the effects of chemical modifications such as methylation on disease and cellular processes.</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Pascal -->
-      <div class="author-card" onclick="toggleBio(this)">
-        <div class="author-card-front">
-          <div class="author-photo">
-            <img src="pascal.png" alt="Dr. Pascal Giehr">
-          </div>
-          <div class="author-name"><a href="https://giehr.cup.uni-muenchen.de/group/pascal-giehr/" target="_blank" onclick="event.stopPropagation()">Dr. Pascal Giehr ↗</a></div>
-          <div class="author-role">Junior Group Leader · Advisor and Coding Support</div>
-          <div class="expand-hint">Click to read more <span class="expand-arrow">↓</span></div>
-        </div>
-        <div class="author-bio">
-          <div class="author-bio-inner">
-            <p>His lab investigates how epigenetic and epitranscriptomic factors influence chromatin architecture and gene regulation, with a focus on dynamic nucleic acid modifications in DNA and RNA.</p>
-          </div>
-        </div>
-      </div>
-
     </div>
   </div>
 </section>
 
 <section>
   <div class="container">
-    <h2>Affiliation</h2>
-    <p><strong>Schneider Lab</strong><br>
-    Institute of Chemical Epigenetics-Munich (ICEM)<br>
-    Ludwig-Maximilians-Universität München<br>
-    Munich, Germany</p>
-    <p><a href="https://schneider.cup.uni-muenchen.de" target="_blank">schneider.cup.uni-muenchen.de ↗</a></p>
-  </div>
-</section>
-
-<section>
-  <div class="container">
-    <h2>Citation</h2>
-    <p>If you use sRNA-TAPS in your research, please cite:</p>
-    <div class="cite-block">
-      <p>Simsir Ö., Henzeler B. et al. sRNA-TAPS: TAPS-based m5C detection in small RNA. <em>(in preparation)</em></p>
-    </div>
-    <p style="margin-top:20px">And the underlying TAPS method:</p>
-    <div class="cite-block">
-      <p>Liu Y. et al. Bisulfite-free direct detection of 5-methylcytosine and 5-hydroxymethylcytosine at base resolution. <em>Nature Biotechnology</em> 37, 424–429 (2019).</p>
-      <a class="cite-doi" href="https://doi.org/10.1038/s41587-019-0041-2" target="_blank">https://doi.org/10.1038/s41587-019-0041-2 ↗</a>
-    </div>
-  </div>
-</section>
-
-<section>
-  <div class="container">
-    <h2>Links</h2>
-    <div class="links-grid">
-      <a class="link-card" href="https://github.com/HenzelerB/sRNA-TAPS" target="_blank">
-        <div class="link-card-icon">💻</div>
-        <div class="link-card-name">GitHub</div>
-        <div class="link-card-sub">Source code &amp; issues</div>
-      </a>
-      <a class="link-card" href="https://pypi.org/project/sRNA-TAPS/" target="_blank">
-        <div class="link-card-icon">📦</div>
-        <div class="link-card-name">PyPI</div>
-        <div class="link-card-sub">pip install sRNA-TAPS</div>
-      </a>
-      <a class="link-card" href="https://anaconda.org/bioconda/srna-taps" target="_blank">
-        <div class="link-card-icon">🐍</div>
-        <div class="link-card-name">bioconda</div>
-        <div class="link-card-sub">conda install srna-taps</div>
-      </a>
+    <div class="section-card">
+      <div class="section-heading">
+        <span class="section-kicker">Institution</span>
+        <h2>Affiliation</h2>
+      </div>
+      <div class="info-grid">
+        <div class="info-card">
+          <h3>Research home</h3>
+          <p><strong>Schneider Lab</strong><br>
+          Institute of Chemical Epigenetics-Munich (ICEM)<br>
+          Ludwig-Maximilians-Universität München<br>
+          Munich, Germany</p>
+        </div>
+        <div class="info-card">
+          <h3>Website</h3>
+          <p>The project is developed within the Schneider Lab research environment at LMU Munich.</p>
+          <p><a href="https://schneider.cup.uni-muenchen.de" target="_blank">schneider.cup.uni-muenchen.de &nearr;</a></p>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
 <section>
   <div class="container">
-    <h2>License</h2>
-    <p>sRNA-TAPS is released under the <strong>MIT License</strong>. Free to use, modify, and distribute with attribution.</p>
-    <p style="font-size:.9rem;color:var(--text3)">Copyright © 2026 Bennett Henzeler, Institute of Chemical Epigenetics-Munich, Ludwig-Maximilians-Universität München.</p>
+    <div class="section-card">
+      <div class="section-heading">
+        <span class="section-kicker">Credit</span>
+        <h2>Citation</h2>
+      </div>
+      <p>If you use sRNA-TAPS in your research, please cite:</p>
+      <div class="cite-block">
+        <p>Simsir Ö., Henzeler B. et al. sRNA-TAPS: TAPS-based m5C detection in small RNA. <em>(in preparation)</em></p>
+      </div>
+      <p style="margin-top:20px">And the underlying TAPS method:</p>
+      <div class="cite-block">
+        <p>Liu Y. et al. Bisulfite-free direct detection of 5-methylcytosine and 5-hydroxymethylcytosine at base resolution. <em>Nature Biotechnology</em> 37, 424-429 (2019).</p>
+        <a class="cite-doi" href="https://doi.org/10.1038/s41587-019-0041-2" target="_blank">https://doi.org/10.1038/s41587-019-0041-2 &nearr;</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div class="section-card">
+      <div class="section-heading">
+        <span class="section-kicker">Resources</span>
+        <h2>Links</h2>
+      </div>
+      <div class="links-grid">
+        <a class="link-card" href="https://github.com/HenzelerB/sRNA-TAPS" target="_blank">
+          <div class="link-card-icon">&#128187;</div>
+          <div class="link-card-name">GitHub</div>
+          <div class="link-card-sub">Source code &amp; issues</div>
+        </a>
+        <a class="link-card" href="https://pypi.org/project/sRNA-TAPS/" target="_blank">
+          <div class="link-card-icon">&#128230;</div>
+          <div class="link-card-name">PyPI</div>
+          <div class="link-card-sub">pip install sRNA-TAPS</div>
+        </a>
+        <a class="link-card" href="https://anaconda.org/bioconda/srna-taps" target="_blank">
+          <div class="link-card-icon">&#128013;</div>
+          <div class="link-card-name">bioconda</div>
+          <div class="link-card-sub">conda install srna-taps</div>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div class="section-card">
+      <div class="section-heading">
+        <span class="section-kicker">Usage</span>
+        <h2>License</h2>
+      </div>
+      <p>sRNA-TAPS is released under the <strong>MIT License</strong>. Free to use, modify, and distribute with attribution.</p>
+      <p class="license-note">Copyright &copy; 2026 Bennett Henzeler, Institute of Chemical Epigenetics-Munich, Ludwig-Maximilians-Universität München.</p>
+    </div>
   </div>
 </section>
 
@@ -275,7 +344,7 @@
       <a href="contact.html" style="font-size:.85rem;color:var(--text2);text-decoration:none">Contact</a>
       <a href="https://github.com/HenzelerB/sRNA-TAPS" target="_blank" style="font-size:.85rem;color:var(--text2);text-decoration:none">GitHub</a>
     </div>
-    <div style="font-size:.8rem;color:var(--text3)">© 2026 Schneider Lab, LMU Munich · MIT License</div>
+    <div style="font-size:.8rem;color:var(--text3)">&copy; 2026 Schneider Lab, LMU Munich &middot; MIT License</div>
   </div>
 </footer>
 
