@@ -183,13 +183,14 @@
 
     /* ANIMATIONS */
     @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    .hero > * { animation: fadeUp .5s ease both; }
-    .hero > *:nth-child(1) { animation-delay: .05s; }
-    .hero > *:nth-child(2) { animation-delay: .1s; }
-    .hero > *:nth-child(3) { animation-delay: .15s; }
-    .hero > *:nth-child(4) { animation-delay: .2s; }
-    .hero > *:nth-child(5) { animation-delay: .25s; }
-    .hero > *:nth-child(6) { animation-delay: .3s; }
+    .hero-core > * { animation: fadeUp .5s ease both; }
+    .hero-core > *:nth-child(1) { animation-delay: .05s; }
+    .hero-core > *:nth-child(2) { animation-delay: .1s; }
+    .hero-core > *:nth-child(3) { animation-delay: .15s; }
+    .hero-core > *:nth-child(4) { animation-delay: .2s; }
+    .hero-core > *:nth-child(5) { animation-delay: .25s; }
+    .tools-float { animation: fadeUp .5s ease .3s both; }
+    .hero-status { animation: fadeUp .5s ease .36s both; }
     @keyframes caretBlink { 0%, 45% { opacity: 1; } 46%, 100% { opacity: 0; } }
     .type-caret {
       display: inline-block;
@@ -218,6 +219,139 @@
     @keyframes fadeUp { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
     .fade-up { opacity: 0; transform: translateY(30px); transition: opacity 0.6s ease, transform 0.6s ease; }
     .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+    /* POLISHED HOMEPAGE LAYOUT */
+    body {
+      background:
+        radial-gradient(circle at 8% 8%, rgba(44,95,138,.10), transparent 27rem),
+        radial-gradient(circle at 92% 34%, rgba(44,95,138,.07), transparent 24rem),
+        linear-gradient(180deg, #f7f6f2 0%, #f4f3ef 58%, #f7f6f2 100%);
+    }
+    nav { box-shadow: 0 1px 18px rgba(26,24,20,.035); }
+    .hero {
+      max-width: 1180px;
+      padding-top: calc(var(--nav-h) + 52px);
+      padding-bottom: 28px;
+      text-align: center;
+    }
+    .hero-panel {
+      position: relative;
+      overflow: hidden;
+      padding: 52px 48px 30px;
+      border: 1px solid rgba(44,95,138,.14);
+      border-radius: 32px;
+      background: rgba(255,255,255,.84);
+      box-shadow: 0 24px 64px rgba(26,24,20,.08);
+      backdrop-filter: blur(12px);
+    }
+    .hero-panel::before {
+      content: '';
+      position: absolute;
+      width: 360px;
+      height: 360px;
+      top: -230px;
+      right: -90px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(44,95,138,.18), rgba(44,95,138,0) 70%);
+      pointer-events: none;
+    }
+    .hero-panel::after {
+      content: '';
+      position: absolute;
+      width: 260px;
+      height: 260px;
+      bottom: -190px;
+      left: -70px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(44,95,138,.12), rgba(44,95,138,0) 70%);
+      pointer-events: none;
+    }
+    .hero-core { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; }
+    .hero-logo { max-width: 620px; margin-bottom: 24px; }
+    .hero h1 { font-size: clamp(2.35rem, 5vw, 4rem); letter-spacing: -.035em; }
+    .hero-desc { max-width: 680px; }
+    .hero-actions { margin-bottom: 38px; }
+    .tools-float { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; }
+    .tool-badge { border-color: rgba(44,95,138,.18); box-shadow: 0 5px 15px rgba(26,24,20,.05); }
+    .tool-badge:hover { transform: translateY(-2px); }
+    .hero-status {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 9px;
+      margin-top: 28px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(44,95,138,.12);
+    }
+    .hero-status .badge { border-color: rgba(44,95,138,.14); background: rgba(247,246,242,.82); }
+    section { padding: 30px 0; }
+    .section-card {
+      padding: 44px;
+      border: 1px solid rgba(44,95,138,.12);
+      border-radius: 28px;
+      background: rgba(255,255,255,.84);
+      box-shadow: 0 18px 44px rgba(26,24,20,.055);
+      backdrop-filter: blur(10px);
+    }
+    .chemistry-bg, .install-bg { background: transparent; border: 0; }
+    .chem-grid { grid-template-columns: minmax(0,.9fr) minmax(0,1.1fr); gap: 44px; }
+    .chem-comparison, .chem-callout { background: rgba(247,246,242,.9); }
+    .feature-card, .condition-card, .stat-card {
+      border-color: rgba(44,95,138,.14);
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(247,246,242,.9));
+    }
+    .feature-card { padding: 26px; }
+    .feature-card:hover, .stat-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(44,95,138,.36);
+      box-shadow: 0 14px 34px rgba(26,24,20,.08);
+    }
+    .feature-icon, .chem-icon { border-radius: 13px; }
+    .stat-card { transition: all .2s; }
+    .condition-card.treat, .condition-card.pb, .condition-card.notx {
+      border-color: rgba(44,95,138,.22);
+      background: linear-gradient(180deg, rgba(232,240,248,.9), rgba(255,255,255,.94));
+    }
+    .install-grid { align-items: center; }
+    .code-block { border: 1px solid rgba(255,255,255,.08); border-radius: 18px; box-shadow: 0 18px 42px rgba(30,45,74,.18); }
+    .cta-bg { background: transparent; color: #fff; padding-bottom: 56px; }
+    .cta-panel {
+      position: relative;
+      overflow: hidden;
+      padding: 64px 44px;
+      border-radius: 28px;
+      background: linear-gradient(135deg, #182942, #244d72 68%, #2c5f8a);
+      box-shadow: 0 22px 52px rgba(30,45,74,.20);
+    }
+    .cta-panel::after {
+      content: '';
+      position: absolute;
+      width: 340px;
+      height: 340px;
+      right: -180px;
+      top: -210px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,.13);
+      box-shadow: 0 0 0 45px rgba(255,255,255,.025), 0 0 0 90px rgba(255,255,255,.018);
+    }
+    .cta-inner { position: relative; z-index: 1; }
+    footer { background: rgba(238,236,234,.75); }
+
+    @media (max-width: 900px) {
+      .hero-panel, .section-card { padding: 34px 28px; }
+      .chem-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      .hero { padding-top: calc(var(--nav-h) + 28px) !important; }
+      .hero-panel { padding: 30px 20px 22px; border-radius: 24px; }
+      .hero-logo { margin-bottom: 18px !important; }
+      .hero-status { justify-content: flex-start; }
+      .section-card { padding: 28px 20px; border-radius: 22px; }
+      .cta-panel { padding: 48px 22px; border-radius: 22px; }
+    }
   </style>
   <link rel="stylesheet" href="responsive.css">
 </head>
@@ -238,6 +372,8 @@
 </nav>
 
 <div class="hero">
+  <div class="hero-panel">
+    <div class="hero-core">
   <img src="sRNA-taps_logo.svg" alt="sRNA-TAPS logo" class="hero-logo">
   <div class="hero-badge">🧬 New · v0.2.3 released</div>
   <h1>m5C detection in <span style="color:#367FAC;">small RNA</span> (without bisulfite)</h1>
@@ -247,6 +383,7 @@
     <a href="tutorial.html" class="btn btn-secondary">Run tutorial</a>
     <a href="https://github.com/HenzelerB/sRNA-TAPS" target="_blank" class="btn btn-ghost">GitHub ↗</a>
   </div>
+    </div>
   <div class="tools-float">
     <div class="tool-badge highlight"><span class="tool-step">00</span> Snakemake 9</div>
     <div class="tool-badge highlight"><span class="tool-step">01</span> FastQC</div>
@@ -260,20 +397,21 @@
     <div class="tool-badge"><span class="tool-step">07</span> ggplot2</div>
     <div class="tool-badge"><span class="tool-step">07</span> Plotly</div>
   </div>
+  <div class="hero-status">
+    <div class="badge"><div class="dot dot-green"></div> MIT License</div>
+    <div class="badge"><div class="dot dot-blue"></div> Python 3.11+</div>
+    <div class="badge"><div class="dot dot-blue"></div> GRCh38</div>
+    <div class="badge"><div class="dot dot-orange"></div> In Development</div>
+    <div class="badge"><div class="dot dot-green"></div> 66/66 tests passing</div>
+    <div class="badge"><div class="dot dot-teal"></div> Available on bioconda</div>
+    <div class="badge"><div class="dot dot-teal"></div> Available on PyPI</div>
+  </div>
 </div>
-
-<div class="badges">
-  <div class="badge"><div class="dot dot-green"></div> MIT License</div>
-  <div class="badge"><div class="dot dot-blue"></div> Python 3.11+</div>
-  <div class="badge"><div class="dot dot-blue"></div> GRCh38</div>
-  <div class="badge"><div class="dot dot-orange"></div> In Development</div>
-  <div class="badge"><div class="dot dot-green"></div> 66/66 tests passing</div>
-  <div class="badge"><div class="dot dot-teal"></div> Available on bioconda</div>
-  <div class="badge"><div class="dot dot-teal"></div> Available on PyPI</div>
 </div>
 
 <section class="chemistry-bg">
   <div class="container">
+    <div class="section-card">
     <div class="chem-grid">
       <div>
         <div class="section-label">Chemistry</div>
@@ -377,11 +515,13 @@
         </div>
       </div>
     </div>
+    </div>
   </div>
 </section>
 
 <section>
   <div class="container">
+    <div class="section-card">
     <div class="section-label">Features</div>
     <h2 class="section-title">Built for small RNA</h2>
     <p class="section-desc">Every design decision accounts for the specific challenges of short, strand-specific, multimapping RNA molecules.</p>
@@ -401,11 +541,13 @@
       <div class="stat-card"><div class="stat-num">66/66</div><div class="stat-label">Tests passing</div></div>
       <div class="stat-card"><div class="stat-num">3</div><div class="stat-label">Benchmark tools</div></div>
     </div>
+    </div>
   </div>
 </section>
 
 <section class="chemistry-bg">
   <div class="container">
+    <div class="section-card">
     <div class="section-label">Experimental Design</div>
     <h2 class="section-title">Three-condition framework</h2>
     <p class="section-desc">Three sample conditions are required to separate genuine m5C signal from chemistry background and sequencing noise.</p>
@@ -417,11 +559,13 @@
     <div class="chem-callout">
       <p>The <strong>delta (δ) score</strong> = treat_mod_rate − pb_Ctrl_mod_rate. Subtracting the pb_Ctrl background isolates only TET-dependent signal, removing both global chemistry noise and sequence-context-specific biases.</p>
     </div>
+    </div>
   </div>
 </section>
 
 <section class="install-bg">
   <div class="container">
+    <div class="section-card">
     <div class="install-grid">
       <div>
         <div class="section-label">Installation</div>
@@ -553,11 +697,13 @@
 </script>
       </div>
     </div>
+    </div>
   </div>
 </section>
 
 <section class="cta-bg">
   <div class="container">
+    <div class="cta-panel">
     <div class="cta-inner">
       <div class="section-label">Get started</div>
       <h2 class="section-title">Ready to detect m5C in your small RNA?</h2>
@@ -567,6 +713,7 @@
         <a href="docs.html" class="btn btn-outline-white">Read the docs</a>
         <a href="https://github.com/HenzelerB/sRNA-TAPS" target="_blank" class="btn btn-outline-white">GitHub ↗</a>
       </div>
+    </div>
     </div>
   </div>
 </section>
