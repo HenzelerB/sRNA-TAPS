@@ -3,6 +3,21 @@ html { overflow-x: hidden; }
 body { min-width: 0; overflow-x: hidden; }
 img, svg, video, iframe { max-width: 100%; }
 
+:root {
+  --site-shell: min(1680px, calc(100vw - 56px));
+  --site-shell-tight: min(1560px, calc(100vw - 56px));
+}
+
+@media (min-width: 901px) {
+  .hero { max-width: var(--site-shell-tight) !important; }
+  .container,
+  .content,
+  .footer-inner,
+  footer > div:first-child {
+    max-width: var(--site-shell) !important;
+  }
+}
+
 .nav-toggle {
   display: none;
   width: 44px;
