@@ -261,7 +261,7 @@
       display: grid;
       grid-template-columns: minmax(0, 1.16fr) minmax(300px, .84fr);
       gap: 24px;
-      align-items: stretch;
+      align-items: start;
     }
     .hero-copy {
       min-width: 0;
@@ -278,8 +278,8 @@
       margin: 0 0 14px;
     }
     .hero h1 {
-      font-size: clamp(2.6rem, 4.6vw, 4.15rem);
-      line-height: 1.04;
+      font-size: clamp(2.2rem, 3.9vw, 3.55rem);
+      line-height: 1.06;
       letter-spacing: -.045em;
       max-width: 13ch;
       margin-bottom: 16px;
@@ -321,14 +321,16 @@
       z-index: 1;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      justify-content: flex-start;
+      align-self: start;
       min-width: 0;
-      padding: 22px 20px 20px;
+      gap: 16px;
+      padding: 24px 22px 22px;
       border-radius: 22px;
-      border: 1px solid rgba(44,95,138,.12);
-      background: rgba(247,246,242,.78);
-      color: var(--text2);
-      box-shadow: none;
+      border: 1px solid rgba(255,255,255,.08);
+      background: linear-gradient(135deg, #1b2d45, #285477 72%, #2c5f8a);
+      color: rgba(255,255,255,.82);
+      box-shadow: 0 16px 34px rgba(30,45,74,.14);
     }
     .hero-proof { animation: fadeUp .5s ease .12s both; }
     .proof-eyebrow {
@@ -336,33 +338,34 @@
       font-weight: 600;
       letter-spacing: .1em;
       text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 10px;
+      color: rgba(255,255,255,.64);
+      margin-bottom: 8px;
     }
     .proof-title {
       font-family: 'Outfit', sans-serif;
-      font-size: 1.42rem;
-      line-height: 1.12;
-      color: var(--text);
+      font-size: 1.2rem;
+      line-height: 1.18;
+      color: #fff;
       letter-spacing: -.04em;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
     .proof-desc {
-      font-size: .9rem;
-      line-height: 1.68;
-      color: var(--text2);
-      margin-bottom: 18px;
+      font-size: .88rem;
+      line-height: 1.64;
+      color: rgba(255,255,255,.72);
+      margin-bottom: 0;
     }
     .proof-list {
       display: grid;
-      gap: 8px;
+      gap: 0;
     }
     .proof-item {
       display: grid;
       grid-template-columns: 32px minmax(0, 1fr);
       gap: 12px;
-      padding: 12px 0;
-      border-top: 1px solid rgba(44,95,138,.1);
+      align-items: start;
+      padding: 10px 0;
+      border-top: 1px solid rgba(255,255,255,.14);
     }
     .proof-item:first-child { border-top: 0; padding-top: 0; }
     .proof-item:last-child { padding-bottom: 0; }
@@ -373,22 +376,22 @@
       width: 32px;
       height: 32px;
       border-radius: 10px;
-      background: var(--accent2);
-      color: var(--accent3);
+      background: rgba(255,255,255,.12);
+      color: #fff;
       font-size: .72rem;
       font-weight: 600;
       letter-spacing: .06em;
     }
     .proof-item strong {
       display: block;
-      color: var(--text);
+      color: #fff;
       font-size: .9rem;
       margin-bottom: 3px;
     }
     .proof-item p {
       font-size: .82rem;
       line-height: 1.6;
-      color: var(--text2);
+      color: rgba(255,255,255,.72);
     }
     .hero-footer {
       position: relative;
@@ -543,7 +546,7 @@
     @media (max-width: 560px) {
       .hero-panel { padding: 24px 18px 20px; border-radius: 26px; }
       .hero-logo { max-width: 360px; margin-bottom: 16px !important; }
-      .proof-title { font-size: 1.42rem; }
+      .proof-title { font-size: 1.08rem; }
       .section-card { padding: 26px 18px; border-radius: 24px; }
       .cta-panel { padding: 42px 20px; border-radius: 24px; }
     }
@@ -665,25 +668,24 @@
         <div style="text-align:center;margin-bottom:24px">
           <div style="width:100%;display:block;">
 <style>
-@keyframes popIn{0%{transform:scale(0);opacity:0}70%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-@keyframes bounce1{0%,100%{transform:translateY(0) scale(1)}40%{transform:translateY(-10px) scale(1.04)}60%{transform:translateY(-6px) scale(1.02)}}
-@keyframes bounce2{0%,100%{transform:translateY(0) scale(1)}40%{transform:translateY(-10px) scale(1.04)}60%{transform:translateY(-6px) scale(1.02)}}
-@keyframes bounce3{0%,100%{transform:translateY(0) scale(1)}40%{transform:translateY(-10px) scale(1.04)}60%{transform:translateY(-6px) scale(1.02)}}
-@keyframes bounce4{0%,100%{transform:translateY(0) scale(1)}40%{transform:translateY(-10px) scale(1.04)}60%{transform:translateY(-6px) scale(1.02)}}
-.cn1{transform-origin:100px 100px;animation:popIn 0.5s ease 0.3s both}
-.cn2{transform-origin:253px 100px;animation:popIn 0.5s ease 1.5s both}
-.cn3{transform-origin:407px 100px;animation:popIn 0.5s ease 2.8s both}
-.cn4{transform-origin:560px 100px;animation:popIn 0.5s ease 4.2s both}
-.cl1{animation:fadeIn 0.4s ease 1.1s both}
-.cl2{animation:fadeIn 0.4s ease 2.4s both}
-.cl3{animation:fadeIn 0.4s ease 3.8s both}
-
-.cunmod{animation:fadeIn 0.6s ease 5.2s both}
-.b1{transform-origin:100px 100px;animation:popIn 0.5s ease 0.3s both,bounce1 2.2s ease-in-out 1s infinite}
-.b2{transform-origin:253px 100px;animation:popIn 0.5s ease 1.5s both,bounce2 2.2s ease-in-out 1.3s infinite}
-.b3{transform-origin:407px 100px;animation:popIn 0.5s ease 2.8s both,bounce3 2.2s ease-in-out 1.6s infinite}
-.b4{transform-origin:560px 100px;animation:popIn 0.5s ease 4.2s both,bounce4 2.2s ease-in-out 1.9s infinite}
+@keyframes chemNodeIn{0%{opacity:0;transform:translateY(10px) scale(.96)}100%{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes chemLabelIn{0%{opacity:0;transform:translateY(6px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes chemFadeIn{from{opacity:0}to{opacity:1}}
+@keyframes chemHalo{0%,100%{filter:drop-shadow(0 0 0 rgba(255,255,255,0))}50%{filter:drop-shadow(0 0 10px rgba(255,255,255,.12))}}
+.cn1,.cn2,.cn3,.cn4{opacity:0;animation:chemLabelIn .42s ease both}
+.cn1{animation-delay:.38s}
+.cn2{animation-delay:1.48s}
+.cn3{animation-delay:2.58s}
+.cn4{animation-delay:3.68s}
+.cl1{opacity:0;animation:chemFadeIn .34s ease 1.04s both}
+.cl2{opacity:0;animation:chemFadeIn .34s ease 2.14s both}
+.cl3{opacity:0;animation:chemFadeIn .34s ease 3.24s both}
+.cunmod{opacity:0;animation:chemFadeIn .5s ease 4.12s both}
+.b1,.b2,.b3,.b4{opacity:0;animation:chemNodeIn .52s cubic-bezier(.22,1,.36,1) both}
+.b1{transform-origin:100px 100px;animation-delay:.18s}
+.b2{transform-origin:253px 100px;animation-delay:1.28s}
+.b3{transform-origin:407px 100px;animation-delay:2.38s}
+.b4{transform-origin:560px 100px;animation:chemNodeIn .52s cubic-bezier(.22,1,.36,1) 3.48s both,chemHalo 6s ease-in-out 4.8s infinite}
 </style>
 <svg width="100%" viewBox="0 0 660 240" role="img">
 <title>TAPS chemistry</title>
@@ -713,19 +715,6 @@
 
 <g class="cunmod"><line x1="40" y1="208" x2="620" y2="208" stroke="#ccc" stroke-width="0.5" stroke-dasharray="4,4"/><text x="330" y="224" text-anchor="middle" dominant-baseline="middle" fill="#888" font-size="11" font-family="Outfit,sans-serif">Unmodified cytosine (C) is not affected by TAPS chemistry &#x2014; it remains as C in sequencing reads</text></g>
 </svg>
-<script>
-(function(){
-  // Restart SVG animations every 8 seconds
-  const svg = document.querySelector(".cn1");
-  if (!svg) return;
-  setInterval(() => {
-    const svgEl = document.querySelector('svg[role="img"]');
-    if (!svgEl) return;
-    const clone = svgEl.cloneNode(true);
-    svgEl.parentNode.replaceChild(clone, svgEl);
-  }, 8000);
-})();
-</script>
           </div>
         </div>
         <div class="section-label" style="margin-bottom:16px">TAPS vs Bisulfite</div>
