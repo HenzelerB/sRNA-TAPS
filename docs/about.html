@@ -49,12 +49,14 @@
     .hero-panel{position:relative;overflow:hidden;background:linear-gradient(145deg,rgba(255,255,255,.95),rgba(232,240,248,.74));border:1px solid rgba(44,95,138,.14);border-radius:32px;padding:40px 42px;box-shadow:0 30px 70px rgba(26,24,20,.08)}
     .hero-panel::before{content:"";position:absolute;right:-90px;bottom:-130px;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,rgba(44,95,138,.16),rgba(44,95,138,0) 72%)}
     .hero-panel::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(255,255,255,0));pointer-events:none}
-    .hero-top,.hero-copy,.hero-highlights{position:relative;z-index:1}
-    .hero-top{display:block}
+    .hero-top,.hero-copy,.hero-group-photo,.hero-highlights{position:relative;z-index:1}
+    .hero-top{display:grid;grid-template-columns:minmax(0,1.02fr) minmax(320px,.98fr);gap:26px;align-items:stretch}
     .hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(44,95,138,.1);border:1px solid rgba(44,95,138,.14);color:#1a3d5c;border-radius:999px;padding:7px 14px;font-size:.78rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:18px}
     h1{font-family:'Outfit',sans-serif;font-size:2.7rem;line-height:1.08;letter-spacing:-.03em;margin-bottom:16px}
-    .lead{font-size:1.08rem;color:var(--text2);line-height:1.78;max-width:760px}
+    .lead{font-size:1.08rem;color:var(--text2);line-height:1.78;max-width:none}
     .lead p + p{margin-top:18px}
+    .hero-group-photo{border-radius:28px;overflow:hidden;border:1px solid rgba(44,95,138,.12);background:rgba(255,255,255,.78);box-shadow:0 16px 34px rgba(26,24,20,.06);display:flex;min-height:100%}
+    .hero-group-photo img{width:100%;height:100%;display:block;object-fit:cover;flex:1 1 auto}
     .hero-highlights{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:28px;align-items:start}
     .highlight-card{background:rgba(255,255,255,.76);border:1px solid rgba(44,95,138,.12);border-radius:20px;padding:18px 18px 16px;backdrop-filter:blur(10px);box-shadow:0 10px 24px rgba(26,24,20,.05)}
     .highlight-kicker{display:block;font-size:.76rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
@@ -128,6 +130,7 @@
     }
 
     @media(max-width:980px){
+      .hero-top{grid-template-columns:1fr}
       .hero-highlights{grid-template-columns:repeat(2,minmax(0,1fr))}
       .location-card{grid-template-columns:minmax(220px,280px) minmax(0,1fr)}
       .location-card-copy{grid-template-columns:1fr}
@@ -178,6 +181,9 @@
           <p>Built specifically for small-RNA data, the workflow combines TAPS-aware alignment, fractional handling of multi-mapping reads, biotype-resolved modification calling, and a three-condition framework for chemistry-based background correction. It supports analysis of m5C and hm5C across miRNA, tRNA, rRNA, snoRNA, snRNA, piRNA, and lncRNA in human samples, without the harsh degradation associated with bisulfite treatment.</p>
         </div>
       </div>
+      <aside class="hero-group-photo">
+        <img src="SchneiderGroup.JPG" alt="Schneider Lab group photo">
+      </aside>
     </div>
     <div class="hero-highlights">
       <div class="highlight-card">
@@ -284,31 +290,6 @@
           </div>
         </div>
 
-      </div>
-    </div>
-  </div>
-</section>
-
-<section>
-  <div class="container">
-    <div class="section-card">
-      <div class="section-heading">
-        <span class="section-kicker">Institution</span>
-        <h2>Affiliation</h2>
-      </div>
-      <div class="info-grid">
-        <div class="info-card">
-          <h3>Research home</h3>
-          <p><strong>Schneider Lab</strong><br>
-          Institute of Chemical Epigenetics-Munich (ICEM)<br>
-          Ludwig-Maximilians-Universität München<br>
-          Munich, Germany</p>
-        </div>
-        <div class="info-card">
-          <h3>Website</h3>
-          <p>The project is developed within the Schneider Lab research environment at LMU Munich.</p>
-          <p><a href="https://schneider.cup.uni-muenchen.de" target="_blank">schneider.cup.uni-muenchen.de &nearr;</a></p>
-        </div>
       </div>
     </div>
   </div>
