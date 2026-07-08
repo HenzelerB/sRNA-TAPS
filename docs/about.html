@@ -71,7 +71,7 @@
     a{color:var(--accent);text-decoration:none}
     a:hover{text-decoration:underline}
 
-    .authors-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+    .authors-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
     .author-card{background:linear-gradient(180deg,#fff,rgba(247,246,242,.92));border:1.5px solid var(--border);border-radius:22px;overflow:hidden;cursor:pointer;transition:all .2s}
     .author-card:hover{transform:translateY(-4px);box-shadow:0 14px 34px rgba(0,0,0,.08);border-color:rgba(44,95,138,.38)}
     .author-card-front{display:flex;flex-direction:column;align-items:center;padding:32px 24px 24px;text-align:center}
@@ -108,6 +108,10 @@
 
     footer{background:var(--bg2);border-top:1px solid var(--border);padding:32px 40px;margin-top:28px}
     .footer-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
+
+    @media(max-width:1100px){
+      .authors-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    }
 
     @media(max-width:900px){
       .hero-highlights,.info-grid,.authors-grid{grid-template-columns:1fr}
@@ -184,7 +188,7 @@
               <img src="sabine.jpg" alt="PD Dr. Sabine Schneider">
             </div>
             <div class="author-name"><a href="https://schneider.cup.uni-muenchen.de/group/sabine-schneider/" target="_blank" onclick="event.stopPropagation()">PD Dr. Sabine Schneider &nearr;</a></div>
-            <div class="author-role">Group Leader &middot; Supervisor</div>
+            <div class="author-role">Supervisor</div>
             <div class="expand-hint">Click to read more <span class="expand-arrow">&darr;</span></div>
           </div>
           <div class="author-bio">
@@ -200,7 +204,7 @@
               <img src="Bennett.png" alt="Dr. Bennett Henzeler">
             </div>
             <div class="author-name"><a href="https://orcid.org/0000-0003-2333-3791" target="_blank" onclick="event.stopPropagation()">Dr. Bennett Henzeler &nearr;</a></div>
-            <div class="author-role">Postdoctoral Fellow &middot; Lead Developer</div>
+            <div class="author-role">Lead Developer</div>
             <div class="expand-hint">Click to read more <span class="expand-arrow">&darr;</span></div>
           </div>
           <div class="author-bio">
@@ -215,13 +219,29 @@
             <div class="author-photo">
               <img src="Özge.png" alt="Özge Simsir">
             </div>
-            <div class="author-name"><a href="https://www.researchgate.net/profile/Oezge-Simsir-2" target="_blank" onclick="event.stopPropagation()">Özge Simsir &nearr;</a></div>
-            <div class="author-role">PhD Student &middot; Biochemistry Support</div>
+            <div class="author-name"><a href="https://www.researchgate.net/profile/Oezge-Simsir-2" target="_blank" onclick="event.stopPropagation()">Özge Simsir, MSc &nearr;</a></div>
+            <div class="author-role">Biochemistry Support</div>
             <div class="expand-hint">Click to read more <span class="expand-arrow">&darr;</span></div>
           </div>
           <div class="author-bio">
             <div class="author-bio-inner">
               <p>Research focuses on the role of small RNAs, primarily miRNAs, in the epigenome and epitranscriptome, and the effects of chemical modifications such as methylation on disease and cellular processes.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="author-card" onclick="toggleBio(this)">
+          <div class="author-card-front">
+            <div class="author-photo">
+              <img src="pascal.png" alt="Dr. Pascal Giehr">
+            </div>
+            <div class="author-name"><a href="https://giehr.cup.uni-muenchen.de/group/pascal-giehr/" target="_blank" onclick="event.stopPropagation()">Dr. Pascal Giehr &nearr;</a></div>
+            <div class="author-role">Advisor</div>
+            <div class="expand-hint">Click to read more <span class="expand-arrow">&darr;</span></div>
+          </div>
+          <div class="author-bio">
+            <div class="author-bio-inner">
+              <p>His lab investigates how epigenetic and epitranscriptomic factors influence chromatin architecture and gene regulation, with a focus on dynamic nucleic acid modifications in DNA and RNA.</p>
             </div>
           </div>
         </div>
