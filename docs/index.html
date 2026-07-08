@@ -259,18 +259,21 @@
       position: relative;
       z-index: 1;
       display: grid;
-      grid-template-columns: minmax(0, 1.16fr) minmax(300px, .84fr);
-      gap: 24px;
-      align-items: start;
+      grid-template-columns: minmax(0, 1.04fr) minmax(360px, .96fr);
+      gap: 34px;
+      align-items: center;
     }
     .hero-copy {
+      display: flex;
+      align-items: center;
       min-width: 0;
-      padding: 6px 4px 0;
+      min-height: 100%;
+      padding: 4px 6px 0;
     }
     .hero-core {
       position: relative;
       z-index: 1;
-      max-width: 720px;
+      max-width: 640px;
       margin: 0;
     }
     .hero-logo {
@@ -292,13 +295,22 @@
     }
     .hero-actions {
       justify-content: flex-start;
-      margin-bottom: 18px;
+      margin-bottom: 0;
     }
     .hero-metrics {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 10px;
-      max-width: 640px;
+      max-width: none;
+    }
+    .hero-side {
+      display: grid;
+      gap: 14px;
+      min-width: 0;
+      align-content: center;
+    }
+    .hero-metrics-side {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
     .hero-metric {
       padding: 12px 14px;
@@ -308,6 +320,13 @@
       color: var(--text2);
       font-size: .84rem;
     }
+    .hero-metrics-side .hero-metric {
+      padding: 13px 12px;
+      background: rgba(255,255,255,.92);
+      box-shadow: 0 8px 22px rgba(26,24,20,.05);
+      font-size: .78rem;
+      line-height: 1.55;
+    }
     .hero-metric strong {
       display: block;
       font-size: 1.45rem;
@@ -316,13 +335,17 @@
       margin-bottom: 6px;
       letter-spacing: -.04em;
     }
+    .hero-metrics-side .hero-metric strong {
+      font-size: 1.3rem;
+      margin-bottom: 5px;
+      color: var(--accent3);
+    }
     .hero-proof {
       position: relative;
       z-index: 1;
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
-      align-self: start;
       min-width: 0;
       gap: 16px;
       padding: 24px 22px 22px;
@@ -408,7 +431,7 @@
       z-index: 1;
       display: flex;
       flex-wrap: wrap;
-      justify-content: flex-start;
+      justify-content: center;
       gap: 10px;
       margin-top: 0;
       padding-top: 0;
@@ -422,7 +445,7 @@
       position: relative;
       z-index: 1;
       max-width: none;
-      justify-content: flex-start;
+      justify-content: center;
       margin: 0;
       gap: 8px;
     }
@@ -534,12 +557,14 @@
       .hero-grid { grid-template-columns: 1fr; }
       .hero-core { max-width: none; }
       .hero h1 { max-width: 14ch; }
+      .hero-side { gap: 16px; }
     }
     @media (max-width: 900px) {
       .hero-panel, .section-card { padding: 30px 24px; }
       .hero { padding-top: calc(var(--nav-h) + 30px) !important; text-align: left; }
       .hero h1 { max-width: none; }
       .hero-metrics { grid-template-columns: 1fr; }
+      .hero-copy { display: block; }
       .hero-actions, .hero-status, .tools-float, .cta-actions { justify-content: flex-start; }
       .chem-grid, .install-grid, .features-grid { grid-template-columns: 1fr; }
     }
@@ -583,13 +608,9 @@
     <a href="tutorial.html" class="btn btn-secondary">Run tutorial</a>
     <a href="https://github.com/HenzelerB/sRNA-TAPS" target="_blank" class="btn btn-ghost">GitHub ↗</a>
   </div>
-  <div class="hero-metrics">
-    <div class="hero-metric"><strong>7</strong> RNA biotypes handled with biotype-aware thresholds.</div>
-    <div class="hero-metric"><strong>3</strong> control conditions separate chemistry background from true signal.</div>
-    <div class="hero-metric"><strong>75</strong> figures generated automatically for QC, biology, and benchmarking.</div>
-  </div>
         </div>
       </div>
+      <div class="hero-side">
       <aside class="hero-proof">
         <div>
           <div class="proof-eyebrow">Signal overview</div>
@@ -611,6 +632,12 @@
           </div>
         </div>
       </aside>
+      <div class="hero-metrics hero-metrics-side">
+        <div class="hero-metric"><strong>7</strong> RNA biotypes handled with biotype-aware thresholds.</div>
+        <div class="hero-metric"><strong>3</strong> control conditions separate chemistry background from true signal.</div>
+        <div class="hero-metric"><strong>75</strong> figures generated automatically for QC, biology, and benchmarking.</div>
+      </div>
+      </div>
     </div>
     <div class="hero-footer">
       <div class="hero-status">
