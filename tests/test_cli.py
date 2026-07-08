@@ -89,6 +89,31 @@ class TestCliInit:
             config = yaml.safe_load(f)
         assert config["reference"]["genome_fa"] == "/fake/path/hg38.fa"
 
+    def test_init_sets_supported_species(self, runner, tmp_path):
+        outdir = tmp_path / "mouse_project"
+        result = runner.invoke(cli, [
+            "init", "--outdir", str(outdir), "--species", "mouse",
+        ])
+        assert result.exit_code == 0
+        with open(outdir / "config.yaml") as f:
+            config = yaml.safe_load(f)
+        assert config["reference"]["species"] == "mouse"
+
+    def test_init_rejects_unknown_species(self, runner, tmp_path):
+        result = runner.invoke(cli, [
+            "init", "--outdir", str(tmp_path / "bad"), "--species", "capybara",
+        ])
+        assert result.exit_code != 0
+        assert "Supported species" in result.output
+
+    def test_species_command_lists_assemblies(self, runner):
+        result = runner.invoke(cli, ["species"])
+        assert result.exit_code == 0
+        assert "human" in result.output
+        assert "GRCh38" in result.output
+        assert "mouse" in result.output
+        assert "GRCm39" in result.output
+
     def test_init_fills_outdir_in_config(self, runner, tmp_path):
         outdir = tmp_path / "new_project"
         runner.invoke(cli, ["init", "--outdir", str(outdir)])

@@ -97,10 +97,12 @@ rule report_modification:
 
 
 rule report_seqlogos:
-    """Sequence logos around high-confidence m5C sites (requires BSgenome hg38)."""
+    """Sequence logos around high-confidence m5C sites from the configured FASTA."""
     input:
         calls = expand(str(CALLS_DIR / "{biotype}" / "{sample}_{biotype}_taps.tsv"),
                        sample=SAMPLES, biotype=BIOTYPES),
+        fasta = config["reference"]["genome_fa"],
+        fai = config["reference"]["genome_fa"] + ".fai",
     output:
         done = touch(str(FIG_DIR / ".report_seqlogos.done")),
     params:
@@ -117,6 +119,8 @@ rule report_seqlogos:
         Rscript {params.script} \
             --outdir {params.outdir} \
             --figdir {params.figdir} \
+            --calls-dir {CALLS_DIR} \
+            --genome {input.fasta} \
             > {log} 2>&1
         """
 

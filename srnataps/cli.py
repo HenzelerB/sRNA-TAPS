@@ -33,6 +33,7 @@ from rich import print as rprint
 
 from srnataps import __version__
 from srnataps.evaluate import run_evaluation
+from srnataps.species import canonical_species, reference_details, supported_species
 
 console = Console()
 
@@ -77,11 +78,13 @@ def cli():
 # ══════════════════════════════════════════════════════════════════════════════
 @cli.command()
 @click.option("--outdir",   required=True,  type=click.Path(), help="Project output directory (will be created)")
-@click.option("--genome",   default=None,   help="Path to hg38 FASTA (optional — fill in config.yaml later)")
+@click.option("--species",  default="human", show_default=True,
+              help="Supported species or alias; run `srnataps species` for choices")
+@click.option("--genome",   default=None,   help="Custom genome FASTA (overrides species download)")
 @click.option("--gtf",      default=None,   help="Path to Ensembl GTF (optional)")
 @click.option("--fastq-dir",default=None,   help="Directory containing merged FASTQ files")
 @click.option("--force",    is_flag=True,   help="Overwrite existing project directory")
-def init(outdir, genome, gtf, fastq_dir, force):
+def init(outdir, species, genome, gtf, fastq_dir, force):
     """
     Initialise a new sRNA-TAPS project.
 
@@ -93,6 +96,11 @@ def init(outdir, genome, gtf, fastq_dir, force):
         srnataps init --outdir ~/my_taps_project --genome hg38.fa --gtf hg38.gtf
     """
     outdir = Path(outdir).resolve()
+
+    try:
+        species = canonical_species(species)
+    except ValueError as exc:
+        raise click.BadParameter(str(exc), param_hint="--species") from exc
 
     if outdir.exists() and not force:
         console.print(f"[red]Directory already exists: {outdir}[/red]")
@@ -112,7 +120,8 @@ def init(outdir, genome, gtf, fastq_dir, force):
         config = {
             "project":   {"name": "my_taps_project", "outdir": ""},
             "input":     {"fastq_dir": "", "samples_tsv": "samples.tsv"},
-            "reference": {"genome_fa": "", "gtf": "", "bowtie1_index": "", "dbsnp_vcf": ""},
+            "reference": {"species": "human", "ensembl_release": 112,
+                          "genome_fa": "", "gtf": "", "bowtie1_index": "", "dbsnp_vcf": ""},
             "trimming":  {"adapter": "TGGAATTCTCGGGTGCCAAGG", "min_length": 18},
             "alignment": {
                 "strategy": "three_letter",
@@ -164,6 +173,7 @@ def init(outdir, genome, gtf, fastq_dir, force):
         }
 
     config["project"]["outdir"] = str(outdir)
+    config["reference"]["species"] = species
     if genome:    config["reference"]["genome_fa"] = str(Path(genome).resolve())
     if gtf:       config["reference"]["gtf"]       = str(Path(gtf).resolve())
     if fastq_dir: config["input"]["fastq_dir"]     = str(Path(fastq_dir).resolve())
@@ -190,6 +200,24 @@ def init(outdir, genome, gtf, fastq_dir, force):
         f"  4. Run:  [bold]srnataps run   --configfile {config_out} --slurm[/bold]",
         title="sRNA-TAPS init",
     ))
+
+
+@cli.command("species")
+def list_species():
+    """List species supported for automatic Ensembl reference download."""
+    table = Table(title="Supported Ensembl species")
+    table.add_column("Name", style="bold cyan")
+    table.add_column("Scientific name")
+    table.add_column("Assembly")
+    table.add_column("Aliases")
+    for name, record in supported_species().items():
+        table.add_row(
+            name,
+            record["scientific_name"],
+            record["assembly"],
+            ", ".join(record["aliases"]),
+        )
+    console.print(table)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -408,14 +436,29 @@ def check(configfile):
     ref_table.add_column("Status", width=8)
     ref_table.add_column("Path")
 
-    genome = config.get("reference", {}).get("genome_fa", "")
-    gtf    = config.get("reference", {}).get("gtf", "")
+    reference = config.get("reference", {})
+    genome_dir = (
+        Path(config["project"]["outdir"])
+        / config.get("output", {}).get("genome", "04a.genome")
+    )
+    try:
+        resolved_reference = reference_details(reference, genome_dir)
+    except ValueError as exc:
+        errors.append(str(exc))
+        resolved_reference = {
+            "genome_fa": reference.get("genome_fa", ""),
+            "gtf": reference.get("gtf", ""),
+            "bowtie1_index": reference.get("bowtie1_index", ""),
+        }
+    genome = resolved_reference["genome_fa"]
+    gtf = resolved_reference["gtf"]
+    automatic = bool(reference.get("species"))
 
     for label, path, required in [
         ("Genome FASTA", genome,          True),
         ("Genome FASTA .fai", genome+".fai", False),
         ("GTF", gtf,                      True),
-        ("Bowtie1 index", config.get("reference", {}).get("bowtie1_index", "") + ".1.ebwt", False),
+        ("Bowtie1 index", resolved_reference["bowtie1_index"] + ".1.ebwt", False),
     ]:
         if not path:
             status = "[yellow]NOT SET[/yellow]"
@@ -423,8 +466,9 @@ def check(configfile):
         elif Path(path).exists():
             status = "[green]OK[/green]"
         else:
-            status = "[red]MISSING[/red]"
-            if required: errors.append(f"File not found: {path}")
+            status = "[yellow]DOWNLOAD[/yellow]" if automatic else "[red]MISSING[/red]"
+            if required and not automatic:
+                errors.append(f"File not found: {path}")
             else: warnings.append(f"Not yet built: {label}")
         ref_table.add_row(label, status, path or "(not set)")
 

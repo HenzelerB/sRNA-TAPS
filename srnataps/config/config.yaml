@@ -15,9 +15,11 @@ input:
 
 # ── Reference files ───────────────────────────────────────────────────────────
 reference:
-  genome_fa:    "<REQUIRED: /path/to/Homo_sapiens.GRCh38.dna.toplevel.fa>"
-  gtf:          "<REQUIRED: /path/to/Homo_sapiens.GRCh38.112.gtf>"
-  bowtie1_index: ""    # Bowtie1 index prefix
+  species:      "human" # run `srnataps species` to list supported values
+  ensembl_release: 112
+  genome_fa:    ""      # blank: derive path and download from Ensembl
+  gtf:          ""      # blank: derive path and download from Ensembl
+  bowtie1_index: ""     # blank: derive index prefix from species/assembly
 
   # dbSNP VCF (optional — Layer 1 SNP filtering)
   # Pre-filter with bcftools:

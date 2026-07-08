@@ -15,6 +15,7 @@ import pandas as pd
 
 import os
 from srnataps.utils import normalize_condition
+from srnataps.species import resolve_reference_config
 
 # ── Dynamic memory estimation ──────────────────────────────────────────────────
 def est_mem(base_mb, *input_paths, scale=10, floor_mb=2000, ceil_mb=128000):
@@ -77,6 +78,7 @@ OUTDIR      = Path(config["project"]["outdir"])
 QC_DIR      = OUTDIR / config["output"]["fastqc"]
 TRIM_DIR    = OUTDIR / config["output"]["trimmed"]
 GENOME_DIR  = OUTDIR / config["output"]["genome"]
+REFERENCE_DETAILS = resolve_reference_config(config["reference"], GENOME_DIR)
 ALIGN_DIR   = OUTDIR / config["output"]["aligned"]
 BIOTYPE_DIR = OUTDIR / config["output"]["biotypes"]
 SNP_DIR     = OUTDIR / config["output"]["snp"]
