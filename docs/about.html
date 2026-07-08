@@ -71,7 +71,7 @@
     a{color:var(--accent);text-decoration:none}
     a:hover{text-decoration:underline}
 
-    .authors-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+    .authors-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
     .author-card{background:linear-gradient(180deg,#fff,rgba(247,246,242,.92));border:1.5px solid var(--border);border-radius:22px;overflow:hidden;cursor:pointer;transition:all .2s}
     .author-card:hover{transform:translateY(-4px);box-shadow:0 14px 34px rgba(0,0,0,.08);border-color:rgba(44,95,138,.38)}
     .author-card-front{display:flex;flex-direction:column;align-items:center;padding:32px 24px 24px;text-align:center}
@@ -226,21 +226,6 @@
           </div>
         </div>
 
-        <div class="author-card" onclick="toggleBio(this)">
-          <div class="author-card-front">
-            <div class="author-photo">
-              <img src="pascal.png" alt="Dr. Pascal Giehr">
-            </div>
-            <div class="author-name"><a href="https://giehr.cup.uni-muenchen.de/group/pascal-giehr/" target="_blank" onclick="event.stopPropagation()">Dr. Pascal Giehr &nearr;</a></div>
-            <div class="author-role">Junior Group Leader &middot; Advisor and Coding Support</div>
-            <div class="expand-hint">Click to read more <span class="expand-arrow">&darr;</span></div>
-          </div>
-          <div class="author-bio">
-            <div class="author-bio-inner">
-              <p>His lab investigates how epigenetic and epitranscriptomic factors influence chromatin architecture and gene regulation, with a focus on dynamic nucleic acid modifications in DNA and RNA.</p>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   </div>
