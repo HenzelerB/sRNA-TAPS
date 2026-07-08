@@ -49,11 +49,19 @@
     .hero-panel{position:relative;overflow:hidden;background:linear-gradient(145deg,rgba(255,255,255,.95),rgba(232,240,248,.74));border:1px solid rgba(44,95,138,.14);border-radius:32px;padding:40px 42px;box-shadow:0 30px 70px rgba(26,24,20,.08)}
     .hero-panel::before{content:"";position:absolute;right:-90px;bottom:-130px;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,rgba(44,95,138,.16),rgba(44,95,138,0) 72%)}
     .hero-panel::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(255,255,255,0));pointer-events:none}
-    .hero-copy,.hero-highlights{position:relative;z-index:1}
+    .hero-top,.hero-copy,.hero-visual,.hero-highlights{position:relative;z-index:1}
+    .hero-top{display:grid;grid-template-columns:minmax(0,1.04fr) minmax(320px,.96fr);gap:28px;align-items:center}
     .hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(44,95,138,.1);border:1px solid rgba(44,95,138,.14);color:#1a3d5c;border-radius:999px;padding:7px 14px;font-size:.78rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:18px}
     h1{font-family:'Outfit',sans-serif;font-size:2.7rem;line-height:1.08;letter-spacing:-.03em;margin-bottom:16px}
     .lead{font-size:1.08rem;color:var(--text2);line-height:1.78;max-width:760px}
     .lead p + p{margin-top:18px}
+    .hero-visual{background:rgba(255,255,255,.76);border:1px solid rgba(44,95,138,.12);border-radius:24px;overflow:hidden;box-shadow:0 14px 30px rgba(26,24,20,.07)}
+    .hero-visual-media{aspect-ratio:1.18/1;overflow:hidden;background:rgba(44,95,138,.06)}
+    .hero-visual-media img{width:100%;height:100%;object-fit:cover;display:block}
+    .hero-visual-copy{padding:18px 20px 20px}
+    .hero-visual-kicker{display:inline-block;font-size:.76rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+    .hero-visual strong{display:block;font-size:1.06rem;color:var(--text);margin-bottom:6px}
+    .hero-visual p{font-size:.92rem;line-height:1.65;margin:0;color:var(--text2)}
     .hero-highlights{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:28px}
     .highlight-card{background:rgba(255,255,255,.76);border:1px solid rgba(44,95,138,.12);border-radius:20px;padding:18px 18px 16px;backdrop-filter:blur(10px);box-shadow:0 10px 24px rgba(26,24,20,.05)}
     .highlight-kicker{display:block;font-size:.76rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
@@ -113,6 +121,10 @@
       .authors-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
     }
 
+    @media(max-width:980px){
+      .hero-top{grid-template-columns:1fr}
+    }
+
     @media(max-width:900px){
       .hero-highlights,.info-grid,.authors-grid{grid-template-columns:1fr}
     }
@@ -146,13 +158,25 @@
 
 <div class="hero">
   <div class="hero-panel">
-    <div class="hero-copy">
-      <div class="hero-badge">Project overview</div>
-      <h1>About sRNA-TAPS</h1>
-      <div class="lead">
-        <p>sRNA-TAPS is an open-source analysis pipeline developed in the Schneider Lab at the Institute of Chemical Epigenetics Munich (ICEM), LMU Munich. It adapts TET-assisted pyridine borane sequencing (TAPS) to study cytosine modifications in small RNA, where short, repetitive, and strand-specific molecules create distinct analytical challenges.</p>
-        <p>Built specifically for small-RNA data, the workflow combines TAPS-aware alignment, fractional handling of multi-mapping reads, biotype-resolved modification calling, and a three-condition framework for chemistry-based background correction. It supports analysis of m5C and hm5C across miRNA, tRNA, rRNA, snoRNA, snRNA, piRNA, and lncRNA in human samples, without the harsh degradation associated with bisulfite treatment.</p>
+    <div class="hero-top">
+      <div class="hero-copy">
+        <div class="hero-badge">Project overview</div>
+        <h1>About sRNA-TAPS</h1>
+        <div class="lead">
+          <p>sRNA-TAPS is an open-source analysis pipeline developed in the Schneider Lab at the Institute of Chemical Epigenetics Munich (ICEM), LMU Munich. It adapts TET-assisted pyridine borane sequencing (TAPS) to study cytosine modifications in small RNA, where short, repetitive, and strand-specific molecules create distinct analytical challenges.</p>
+          <p>Built specifically for small-RNA data, the workflow combines TAPS-aware alignment, fractional handling of multi-mapping reads, biotype-resolved modification calling, and a three-condition framework for chemistry-based background correction. It supports analysis of m5C and hm5C across miRNA, tRNA, rRNA, snoRNA, snRNA, piRNA, and lncRNA in human samples, without the harsh degradation associated with bisulfite treatment.</p>
+        </div>
       </div>
+      <aside class="hero-visual">
+        <div class="hero-visual-media">
+          <img src="ICEM.jpg" alt="Institute of Chemical Epigenetics Munich (ICEM) building">
+        </div>
+        <div class="hero-visual-copy">
+          <span class="hero-visual-kicker">Based at ICEM</span>
+          <strong>Home of the Schneider Lab at LMU Munich</strong>
+          <p>The Schneider Lab is located at the Institute of Chemical Epigenetics Munich (ICEM), where the project is developed within the LMU Munich research environment.</p>
+        </div>
+      </aside>
     </div>
     <div class="hero-highlights">
       <div class="highlight-card">
@@ -182,22 +206,6 @@
         <h2>Authors</h2>
       </div>
       <div class="authors-grid">
-        <div class="author-card" onclick="toggleBio(this)">
-          <div class="author-card-front">
-            <div class="author-photo">
-              <img src="sabine.jpg" alt="PD Dr. Sabine Schneider">
-            </div>
-            <div class="author-name"><a href="https://schneider.cup.uni-muenchen.de/group/sabine-schneider/" target="_blank" onclick="event.stopPropagation()">PD Dr. Sabine Schneider &nearr;</a></div>
-            <div class="author-role">Supervisor</div>
-            <div class="expand-hint">Click to read more <span class="expand-arrow">&darr;</span></div>
-          </div>
-          <div class="author-bio">
-            <div class="author-bio-inner">
-              <p>Her lab investigates the structure-function relationships of nucleic acids, their interactions with proteins and small molecules, and the chemical and epigenetic modification landscape of small non-coding RNAs.</p>
-            </div>
-          </div>
-        </div>
-
         <div class="author-card" onclick="toggleBio(this)">
           <div class="author-card-front">
             <div class="author-photo">
@@ -242,6 +250,22 @@
           <div class="author-bio">
             <div class="author-bio-inner">
               <p>His lab investigates how epigenetic and epitranscriptomic factors influence chromatin architecture and gene regulation, with a focus on dynamic nucleic acid modifications in DNA and RNA.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="author-card" onclick="toggleBio(this)">
+          <div class="author-card-front">
+            <div class="author-photo">
+              <img src="sabine.jpg" alt="PD Dr. Sabine Schneider">
+            </div>
+            <div class="author-name"><a href="https://schneider.cup.uni-muenchen.de/group/sabine-schneider/" target="_blank" onclick="event.stopPropagation()">PD Dr. Sabine Schneider &nearr;</a></div>
+            <div class="author-role">Supervisor</div>
+            <div class="expand-hint">Click to read more <span class="expand-arrow">&darr;</span></div>
+          </div>
+          <div class="author-bio">
+            <div class="author-bio-inner">
+              <p>Her lab investigates the structure-function relationships of nucleic acids, their interactions with proteins and small molecules, and the chemical and epigenetic modification landscape of small non-coding RNAs.</p>
             </div>
           </div>
         </div>
