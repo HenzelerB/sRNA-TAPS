@@ -55,15 +55,15 @@
     h1{font-family:'Outfit',sans-serif;font-size:2.7rem;line-height:1.08;letter-spacing:-.03em;margin-bottom:16px}
     .lead{font-size:1.08rem;color:var(--text2);line-height:1.78;max-width:760px}
     .lead p + p{margin-top:18px}
-    .hero-highlights{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-top:28px;align-items:stretch}
+    .hero-highlights{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:28px;align-items:start}
     .highlight-card{background:rgba(255,255,255,.76);border:1px solid rgba(44,95,138,.12);border-radius:20px;padding:18px 18px 16px;backdrop-filter:blur(10px);box-shadow:0 10px 24px rgba(26,24,20,.05)}
     .highlight-kicker{display:block;font-size:.76rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
     .highlight-card strong{display:block;font-size:1rem;color:var(--text);margin-bottom:6px}
     .highlight-card p{font-size:.92rem;line-height:1.65;margin:0}
-    .location-card{padding:0;overflow:hidden;display:flex;flex-direction:column}
-    .location-card-media{aspect-ratio:1.42/1;overflow:hidden;background:rgba(44,95,138,.06)}
+    .location-card{grid-column:1 / -1;padding:0;overflow:hidden;display:grid;grid-template-columns:minmax(240px,320px) minmax(0,1fr);align-items:stretch}
+    .location-card-media{min-height:100%;overflow:hidden;background:rgba(44,95,138,.06)}
     .location-card-media img{width:100%;height:100%;object-fit:cover;display:block}
-    .location-card-copy{padding:16px 18px 18px}
+    .location-card-copy{padding:20px 22px;display:flex;flex-direction:column;justify-content:center}
     .location-card .highlight-kicker{margin-bottom:8px}
     .location-card p{font-size:.9rem;line-height:1.6}
 
@@ -122,10 +122,13 @@
 
     @media(max-width:980px){
       .hero-highlights{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .location-card{grid-template-columns:minmax(220px,280px) minmax(0,1fr)}
     }
 
     @media(max-width:900px){
       .hero-highlights,.info-grid,.authors-grid{grid-template-columns:1fr}
+      .location-card{grid-template-columns:1fr}
+      .location-card-media{min-height:220px}
     }
 
     @media(max-width:700px){
