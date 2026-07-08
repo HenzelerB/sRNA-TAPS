@@ -287,6 +287,30 @@
       max-width: 13ch;
       margin-bottom: 16px;
     }
+    .hero-title-main {
+      display: block;
+    }
+    .hero-accent {
+      color: #367FAC;
+    }
+    .hero-qualifier {
+      display: block;
+      margin-top: 12px;
+      font-size: .42em;
+      line-height: 1.28;
+      letter-spacing: .01em;
+      font-weight: 500;
+      color: var(--text2);
+    }
+    .hero-qualifier.is-pending {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    .hero-qualifier.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity .35s ease, transform .35s ease;
+    }
     .hero-desc {
       max-width: 620px;
       font-size: 1.02rem;
@@ -601,7 +625,7 @@
         <div class="hero-core">
   <img src="sRNA-taps_logo.svg" alt="sRNA-TAPS logo" class="hero-logo">
   <div class="hero-badge">🧬 New · v0.2.3 released</div>
-  <h1>m5C detection for <span style="color:#367FAC;">small RNA</span> (without bisulfite)</h1>
+  <h1><span class="hero-title-main">m5C detection in <span class="hero-accent">small RNA</span></span><span class="hero-qualifier">without bisulfite conversion</span></h1>
   <p class="hero-desc">sRNA-TAPS detects m5C and hm5C across miRNA, tRNA, rRNA, snoRNA, and related small-RNA biotypes using TET-assisted pyridine borane sequencing on human GRCh38 data.</p>
   <div class="hero-actions">
     <a href="docs.html#installation" class="btn btn-primary">Get started →</a>
@@ -990,32 +1014,46 @@ document.querySelectorAll('section, .feature-card, .stat-card, .condition-card, 
 /* Professional, one-time typewriter reveal for the hero heading */
 const _h1 = document.querySelector('.hero h1');
 if (_h1) {
-  const finalHTML = _h1.innerHTML;
-  const finalText = _h1.textContent.trim();
-  _h1.setAttribute('aria-label', finalText);
+  const mainSpan = _h1.querySelector('.hero-title-main');
+  const qualifierSpan = _h1.querySelector('.hero-qualifier');
+  const finalMainHTML = mainSpan ? mainSpan.innerHTML : _h1.innerHTML;
+  const finalText = mainSpan ? mainSpan.textContent.trim() : _h1.textContent.trim();
+  const qualifierText = qualifierSpan ? qualifierSpan.textContent.trim() : '';
+  _h1.setAttribute('aria-label', qualifierText ? `${finalText} ${qualifierText}` : finalText);
 
   if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     _h1.style.minHeight = `${_h1.offsetHeight}px`;
-    _h1.textContent = '';
+    _h1.innerHTML = '';
+    const liveMainSpan = document.createElement('span');
+    liveMainSpan.className = 'hero-title-main';
+    _h1.appendChild(liveMainSpan);
+
+    let liveQualifier = null;
+    if (qualifierText) {
+      liveQualifier = document.createElement('span');
+      liveQualifier.className = 'hero-qualifier is-pending';
+      liveQualifier.textContent = qualifierText;
+      _h1.appendChild(liveQualifier);
+    }
     let character = 0;
     const accentText = 'small RNA';
     const accentStart = finalText.indexOf(accentText);
     const accentEnd = accentStart + accentText.length;
 
     const renderTypedText = (length) => {
-      _h1.textContent = '';
+      liveMainSpan.textContent = '';
       const beforeAccent = finalText.slice(0, Math.min(length, accentStart));
-      if (beforeAccent) _h1.appendChild(document.createTextNode(beforeAccent));
+      if (beforeAccent) liveMainSpan.appendChild(document.createTextNode(beforeAccent));
 
       if (length > accentStart) {
         const accent = document.createElement('span');
-        accent.style.color = '#367FAC';
+        accent.className = 'hero-accent';
         accent.textContent = finalText.slice(accentStart, Math.min(length, accentEnd));
-        _h1.appendChild(accent);
+        liveMainSpan.appendChild(accent);
       }
 
       if (length > accentEnd) {
-        _h1.appendChild(document.createTextNode(finalText.slice(accentEnd, length)));
+        liveMainSpan.appendChild(document.createTextNode(finalText.slice(accentEnd, length)));
       }
     };
 
@@ -1024,15 +1062,21 @@ if (_h1) {
       const caret = document.createElement('span');
       caret.className = 'type-caret';
       caret.setAttribute('aria-hidden', 'true');
-      _h1.appendChild(caret);
+      liveMainSpan.appendChild(caret);
 
       if (character < finalText.length) {
         const typed = finalText.charAt(character++);
         const delay = typed === '—' ? 150 : typed === ' ' ? 22 : 38;
         setTimeout(typeNext, delay);
       } else {
-        _h1.innerHTML = finalHTML + '<span class="type-caret" aria-hidden="true"></span>';
-        const finalCaret = _h1.querySelector('.type-caret');
+        liveMainSpan.innerHTML = finalMainHTML + '<span class="type-caret" aria-hidden="true"></span>';
+        const finalCaret = liveMainSpan.querySelector('.type-caret');
+        if (liveQualifier) {
+          setTimeout(() => {
+            liveQualifier.classList.remove('is-pending');
+            liveQualifier.classList.add('is-visible');
+          }, 180);
+        }
         setTimeout(() => finalCaret.classList.add('done'), 700);
       }
     };
