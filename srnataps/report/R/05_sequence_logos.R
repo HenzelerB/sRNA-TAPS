@@ -5,7 +5,7 @@
 # and generates sequence logos showing nucleotide context preference.
 #
 # Requires Bioconductor packages:
-#   BiocManager::install(c("BSgenome.Hsapiens.UCSC.hg38", "GenomicRanges"))
+#   BiocManager::install(c("Rsamtools", "GenomicRanges"))
 #   install.packages("ggseqlogo")
 #
 # Inputs:
@@ -28,7 +28,7 @@
 suppressPackageStartupMessages({
   library(optparse)
   library(ggseqlogo)
-  library(BSgenome.Hsapiens.UCSC.hg38)
+  library(Rsamtools)
   library(GenomicRanges)
   library(dplyr)
   library(readr)
@@ -47,6 +47,9 @@ source(file.path(Sys.getenv("SRNATAPS_R_DIR", .srnataps_r_dir), "00_setup.R"))
 option_list <- list(
   make_option("--outdir",    type = "character", help = "Project output directory"),
   make_option("--figdir",    type = "character", default = NULL),
+  make_option("--calls-dir", type = "character", default = NULL),
+  make_option("--genome", type = "character",
+              help = "Indexed reference FASTA used by the pipeline"),
   make_option("--biotypes",  type = "character",
               default = "miRNA,tRNA,rRNA,snoRNA",
               help = "Comma-separated biotypes [default: miRNA,tRNA,rRNA,snoRNA]"),
@@ -65,8 +68,14 @@ if (is.null(opt$figdir)) opt$figdir <- file.path(opt$outdir, "report", "figures"
 dir.create(opt$figdir, recursive = TRUE, showWarnings = FALSE)
 
 BIOTYPES_USE <- strsplit(opt$biotypes, ",")[[1]]
-CALLS_DIR    <- file.path(opt$outdir, "07.taps_calls")
-GENOME       <- BSgenome.Hsapiens.UCSC.hg38
+CALLS_DIR    <- if (is.null(opt$`calls-dir`)) {
+  file.path(opt$outdir, "07.taps_calls")
+} else opt$`calls-dir`
+if (is.null(opt$genome) || !file.exists(opt$genome)) {
+  stop("--genome must point to the indexed pipeline reference FASTA")
+}
+GENOME       <- FaFile(opt$genome)
+AVAILABLE_SEQS <- as.character(seqnames(scanFaIndex(GENOME)))
 WINDOWS      <- c(5, 10)   # ±5 nt and ±10 nt
 
 
@@ -138,14 +147,19 @@ print(as.data.frame(site_counts))
 # Step 2: Extract genomic sequences around each site
 # ══════════════════════════════════════════════════════════════════════════════
 
-# Normalise chromosome names: ensure they have 'chr' prefix for BSgenome
+# Match Ensembl/UCSC chromosome naming to the configured FASTA.
 normalise_chrom <- function(chrom) {
-  dplyr::case_when(
-    chrom == "MT"          ~ "chrM",   # mitochondrial
-    chrom == "M"           ~ "chrM",
-    grepl("^chr", chrom)   ~ chrom,    # already has chr prefix
-    TRUE                   ~ paste0("chr", chrom)
-  )
+  vapply(chrom, function(value) {
+    candidates <- c(
+      value,
+      if (grepl("^chr", value)) sub("^chr", "", value) else paste0("chr", value),
+      if (value %in% c("M", "MT", "chrM", "chrMT")) {
+        c("MT", "M", "chrM", "chrMT")
+      }
+    )
+    match <- candidates[candidates %in% AVAILABLE_SEQS]
+    if (length(match)) match[[1]] else value
+  }, character(1))
 }
 
 extract_sequences <- function(sites_df, genome, half_window) {

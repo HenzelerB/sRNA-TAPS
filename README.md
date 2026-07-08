@@ -8,7 +8,7 @@
   <img src="https://img.shields.io/badge/Python-3.11+-blue.svg" alt="Python">
   <img src="https://img.shields.io/badge/Snakemake-9.x-green.svg" alt="Snakemake">
   <img src="https://img.shields.io/badge/Platform-Linux-lightgrey.svg" alt="Platform">
-  <img src="https://img.shields.io/badge/Genome-GRCh38-green.svg" alt="Genome">
+  <img src="https://img.shields.io/badge/References-Ensembl-green.svg" alt="Ensembl references">
   <a href="https://github.com/HenzelerB/sRNA-TAPS/actions/workflows/ci.yml"><img src="https://github.com/HenzelerB/sRNA-TAPS/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://github.com/HenzelerB/sRNA-TAPS/releases/tag/v0.3.0"><img src="https://img.shields.io/badge/release-v0.3.0-blue.svg" alt="Release v0.3.0"></a>
   <img src="https://img.shields.io/badge/tests-58%20passing-brightgreen.svg" alt="58 tests passing">
@@ -135,7 +135,7 @@ snakemake \
     all_benchmark
 ```
 
-The pipeline automatically downloads the GRCh38 genome from Ensembl and builds the Bowtie1 index if they are not already present. Report figures are generated at each stage without any additional steps.
+The pipeline automatically downloads the selected species reference from Ensembl and builds the Bowtie1 and three-letter indexes when they are not already present. Report figures are generated at each stage without additional indexing steps.
 
 ---
 
@@ -210,10 +210,11 @@ project:
   outdir: /path/to/my_project
 
 reference:
-  genome_fa:     /path/to/my_project/04a.genome/Homo_sapiens.GRCh38.dna.toplevel.fa
-  gtf:           /path/to/my_project/04a.genome/Homo_sapiens.GRCh38.112.gtf
-  bowtie1_index: /path/to/my_project/04a.genome/genome
-  ensembl_release: 112    # used for automatic genome download
+  species: human          # see supported values below
+  ensembl_release: 112
+  genome_fa: ""           # derived and downloaded automatically
+  gtf: ""                 # derived and downloaded automatically
+  bowtie1_index: ""       # derived and built automatically
   dbsnp_vcf: ""           # optional — leave empty to skip dbSNP layer
 
 output:
@@ -256,7 +257,36 @@ benchmark:
       context:   all
 ```
 
-> **Genome auto-download:** If `genome_fa` or `gtf` do not exist on disk, the pipeline downloads them automatically from Ensembl release 112 (or whichever `ensembl_release` you set) and builds the Bowtie1 index. No pre-built index is required for new users.
+> **Reference auto-download:** Choose `reference.species` and leave `genome_fa`, `gtf`, and `bowtie1_index` blank. The pipeline derives the Ensembl filenames, downloads the unmasked `dna.toplevel` FASTA and GTF for the configured release, and builds all indexes. Explicit paths override these defaults.
+
+List supported species and assemblies with:
+
+```bash
+srnataps species
+```
+
+| Configuration name | Species | Assembly |
+|--------------------|---------|----------|
+| `human` | *Homo sapiens* | GRCh38 |
+| `mouse` | *Mus musculus* | GRCm39 |
+| `rat` | *Rattus norvegicus* | mRatBN7.2 |
+| `zebrafish` | *Danio rerio* | GRCz11 |
+| `fruit_fly` | *Drosophila melanogaster* | BDGP6.46 |
+| `c_elegans` | *Caenorhabditis elegans* | WBcel235 |
+| `chicken` | *Gallus gallus* | GRCg7b |
+
+For example:
+
+```bash
+srnataps init --outdir mouse_taps --species mouse --fastq-dir /data/fastq
+```
+
+For an organism or assembly outside the registry, provide your own matching FASTA and GTF:
+
+```bash
+srnataps init --outdir custom_taps \
+  --genome /refs/custom.fa --gtf /refs/custom.gtf
+```
 
 ### samples.tsv
 
@@ -506,7 +536,7 @@ Called sites are intersected with the Ensembl annotation to assign gene name, bi
 ---
 
 ### Step 9: Report Generation
-**Tools:** R (ggplot2, ggseqlogo, BSgenome.Hsapiens.UCSC.hg38), MultiQC
+**Tools:** R (ggplot2, ggseqlogo, Rsamtools), MultiQC
 
 Report figures are generated **automatically as part of the pipeline** — no manual steps required. Each report stage runs immediately after its upstream data are ready:
 
@@ -627,7 +657,7 @@ outdir/
 | multiqc | ≥ 1.21 | QC aggregation |
 | wget | any | Genome auto-download |
 | R | ≥ 4.3 | Report figures (automatic) |
-| BSgenome.Hsapiens.UCSC.hg38 | any | Sequence logos |
+| Rsamtools | any | Indexed FASTA access for sequence logos |
 | bismark | ≥ 0.24 | Benchmarking only |
 | rastair | ≥ 2.1 | Benchmarking only |
 | asTair | ≥ 3.3 | Benchmarking only (separate conda env) |

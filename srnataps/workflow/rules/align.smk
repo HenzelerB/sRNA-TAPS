@@ -2,15 +2,9 @@
 # rules/align.smk - genome setup, Bowtie1 index, and small-RNA alignment
 # =============================================================================
 
-ENSEMBL_RELEASE = config["reference"].get("ensembl_release", 112)
-ENSEMBL_FA_URL = (
-    f"https://ftp.ensembl.org/pub/release-{ENSEMBL_RELEASE}/fasta/homo_sapiens/dna/"
-    "Homo_sapiens.GRCh38.dna.toplevel.fa.gz"
-)
-ENSEMBL_GTF_URL = (
-    f"https://ftp.ensembl.org/pub/release-{ENSEMBL_RELEASE}/gtf/homo_sapiens/"
-    f"Homo_sapiens.GRCh38.{ENSEMBL_RELEASE}.gtf.gz"
-)
+ENSEMBL_RELEASE = REFERENCE_DETAILS["ensembl_release"]
+ENSEMBL_FA_URL = REFERENCE_DETAILS["genome_url"]
+ENSEMBL_GTF_URL = REFERENCE_DETAILS["gtf_url"]
 
 ALIGNMENT_STRATEGY = str(
     config.get("alignment", {}).get("strategy", "three_letter")
@@ -20,10 +14,11 @@ if ALIGNMENT_STRATEGY not in {"three_letter", "standard"}:
 
 THREE_LETTER_DIR = GENOME_DIR / "three_letter"
 SRNATAPS_ROOT = Path(workflow.basedir).parent
-THREE_LETTER_C2T_FA = THREE_LETTER_DIR / "hg38_C2T.fa"
-THREE_LETTER_G2A_FA = THREE_LETTER_DIR / "hg38_G2A.fa"
-THREE_LETTER_C2T_INDEX = THREE_LETTER_DIR / "hg38_C2T"
-THREE_LETTER_G2A_INDEX = THREE_LETTER_DIR / "hg38_G2A"
+REFERENCE_STEM = REFERENCE_DETAILS["index_stem"]
+THREE_LETTER_C2T_FA = THREE_LETTER_DIR / f"{REFERENCE_STEM}_C2T.fa"
+THREE_LETTER_G2A_FA = THREE_LETTER_DIR / f"{REFERENCE_STEM}_G2A.fa"
+THREE_LETTER_C2T_INDEX = THREE_LETTER_DIR / f"{REFERENCE_STEM}_C2T"
+THREE_LETTER_G2A_INDEX = THREE_LETTER_DIR / f"{REFERENCE_STEM}_G2A"
 
 
 def alignment_index_markers(wildcards):
