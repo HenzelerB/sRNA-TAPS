@@ -6,34 +6,37 @@
   <!-- SEO -->
   <meta name="description" content="Benchmarking of sRNA-TAPS against rastair, asTair, and Bismark for small RNA m5C detection. Site concordance, Pearson correlation, and proof that rastair is a CpG-only caller.">
   <meta name="keywords" content="sRNA-TAPS, sRNA TAPS, RNA m5C detection, small RNA methylation, TAPS sequencing, epitranscriptomics, RNA epigenetics, m5C small RNA, TET-assisted pyridine borane sequencing, bisulfite-free RNA methylation, Snakemake bioinformatics pipeline, miRNA methylation, tRNA modification, rRNA m5C">
-  <meta name="author" content="Bennett Henzeler, Schneider Lab, LMU Munich">
+  <meta name="author" content="sRNA-TAPS project team, Schneider Lab, LMU Munich">
   <link rel="canonical" href="https://henzelerb.github.io/sRNA-TAPS/benchmarking.html">
   <!-- Open Graph -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Benchmarking — sRNA-TAPS">
+  <meta property="og:title" content="Benchmarking &mdash; sRNA-TAPS">
   <meta property="og:description" content="Benchmarking of sRNA-TAPS against rastair, asTair, and Bismark for small RNA m5C detection. Site concordance, Pearson correlation, and proof that rastair is a CpG-only caller.">
   <meta property="og:url" content="https://henzelerb.github.io/sRNA-TAPS/benchmarking.html">
   <meta property="og:image" content="https://henzelerb.github.io/sRNA-TAPS/sRNA-taps_logo.svg">
   <meta property="og:site_name" content="sRNA-TAPS">
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Benchmarking — sRNA-TAPS">
+  <meta name="twitter:title" content="Benchmarking &mdash; sRNA-TAPS">
   <meta name="twitter:description" content="Benchmarking of sRNA-TAPS against rastair, asTair, and Bismark for small RNA m5C detection. Site concordance, Pearson correlation, and proof that rastair is a CpG-only caller.">
   <meta name="twitter:image" content="https://henzelerb.github.io/sRNA-TAPS/sRNA-taps_logo.svg">
-  <title>Benchmarking — sRNA-TAPS</title>
+  <title>Benchmarking &mdash; sRNA-TAPS</title>
   <style>
-  @font-face { font-family: 'Outfit'; src: url('fonts/Outfit-Light.woff2') format('woff2'); font-weight: 300; font-display: block; }
-  @font-face { font-family: 'Outfit'; src: url('fonts/Outfit-Regular.woff2') format('woff2'); font-weight: 400; font-display: block; }
-  @font-face { font-family: 'Outfit'; src: url('fonts/Outfit-Medium.woff2') format('woff2'); font-weight: 500; font-display: block; }
-  @font-face { font-family: 'Outfit'; src: url('fonts/Outfit-SemiBold.woff2') format('woff2'); font-weight: 600; font-display: block; }
-  @font-face { font-family: 'Outfit'; src: url('fonts/Outfit-Bold.woff2') format('woff2'); font-weight: 700; font-display: block; }
-  * { font-family: 'Outfit', sans-serif; }
-</style>
+    @font-face { font-family: 'Outfit'; src: url('fonts/Outfit-Light.woff2') format('woff2'); font-weight: 300; font-display: block; }
+    @font-face { font-family: 'Outfit'; src: url('fonts/Outfit-Regular.woff2') format('woff2'); font-weight: 400; font-display: block; }
+    @font-face { font-family: 'Outfit'; src: url('fonts/Outfit-Medium.woff2') format('woff2'); font-weight: 500; font-display: block; }
+    @font-face { font-family: 'Outfit'; src: url('fonts/Outfit-SemiBold.woff2') format('woff2'); font-weight: 600; font-display: block; }
+    @font-face { font-family: 'Outfit'; src: url('fonts/Outfit-Bold.woff2') format('woff2'); font-weight: 700; font-display: block; }
+    * { font-family: 'Outfit', sans-serif; }
+  </style>
   <style>
     :root{--bg:#f7f6f2;--bg2:#eeecea;--surface:#ffffff;--border:#dedad4;--text:#1a1814;--text2:#5a5650;--text3:#8a8680;--accent:#2C5F8A;--accent2:#e8f0f8;--accent3:#2c5f8a;--green:#2C5F8A;--nav-h:72px}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     html{scroll-behavior:smooth}
-    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:16px;line-height:1.7;-webkit-font-smoothing:antialiased}
+    body{font-family:'DM Sans',sans-serif;background:
+      radial-gradient(circle at top, rgba(44,95,138,.08), rgba(44,95,138,0) 28%),
+      linear-gradient(180deg, #fbfaf7 0%, var(--bg) 22%, var(--bg) 100%);
+      color:var(--text);font-size:16px;line-height:1.7;-webkit-font-smoothing:antialiased}
 
     nav{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--nav-h);background:rgba(247,246,242,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 40px}
     .nav-logo{text-decoration:none;margin-right:auto;display:flex;align-items:center;height:100%}
@@ -43,56 +46,91 @@
     .nav-links a:hover,.nav-links a.active{color:var(--text);background:var(--bg2)}
     .nav-btn{background:var(--accent)!important;color:#fff!important;border-radius:6px;padding:8px 18px!important}
 
-    .hero{max-width:900px;margin:0 auto;padding:calc(var(--nav-h)+64px) 40px 48px}
-    h1{font-family:'Outfit',sans-serif;font-size:2.2rem;margin-bottom:12px}
-    .lead{font-size:1.05rem;color:var(--text2);line-height:1.75;max-width:700px;margin-bottom:0}
+    .hero{max-width:1040px;margin:0 auto;padding:calc(var(--nav-h) + 56px) 40px 34px}
+    .hero-panel{position:relative;overflow:hidden;background:linear-gradient(145deg,rgba(255,255,255,.95),rgba(232,240,248,.74));border:1px solid rgba(44,95,138,.14);border-radius:32px;padding:40px 42px;box-shadow:0 30px 70px rgba(26,24,20,.08)}
+    .hero-panel::before{content:"";position:absolute;right:-90px;bottom:-130px;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,rgba(44,95,138,.16),rgba(44,95,138,0) 72%)}
+    .hero-panel::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(255,255,255,0));pointer-events:none}
+    .hero-top,.hero-copy,.hero-highlights{position:relative;z-index:1}
+    .hero-top{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(280px,.92fr);gap:24px;align-items:start}
+    .hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(44,95,138,.1);border:1px solid rgba(44,95,138,.14);color:#1a3d5c;border-radius:999px;padding:7px 14px;font-size:.78rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:18px}
+    h1{font-family:'Outfit',sans-serif;font-size:2.7rem;line-height:1.08;letter-spacing:-.03em;margin-bottom:14px}
+    .lead{font-size:1.08rem;color:var(--text2);line-height:1.78;max-width:none}
+    .hero-highlights{display:grid;grid-template-columns:1fr;gap:16px;align-content:start}
+    .highlight-card{background:rgba(255,255,255,.76);border:1px solid rgba(44,95,138,.12);border-radius:20px;padding:18px 18px 16px;backdrop-filter:blur(10px);box-shadow:0 10px 24px rgba(26,24,20,.05)}
+    .highlight-kicker{display:block;font-size:.76rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+    .highlight-card strong{display:block;font-size:1rem;color:var(--text);margin-bottom:6px}
+    .highlight-card p{font-size:.92rem;line-height:1.65;margin:0}
 
-    section{padding:60px 0;border-top:1px solid var(--border)}
-    .container{max-width:900px;margin:0 auto;padding:0 40px}
-    h2{font-family:'Outfit',sans-serif;font-size:1.6rem;margin-bottom:16px}
+    section{padding:28px 0}
+    .container{max-width:1040px;margin:0 auto;padding:0 40px}
+    .section-card{background:rgba(255,255,255,.84);border:1px solid rgba(44,95,138,.12);border-radius:28px;padding:32px;box-shadow:0 18px 44px rgba(26,24,20,.06)}
+    .section-heading{display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
+    .section-kicker{font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+    h2{font-family:'Outfit',sans-serif;font-size:1.6rem;line-height:1.15}
     h3{font-size:1.05rem;font-weight:600;margin-bottom:10px;margin-top:28px}
     p{color:var(--text2);margin-bottom:14px;line-height:1.75}
     p strong{color:var(--text)}
+    a{color:var(--accent);text-decoration:none}
+    a:hover{text-decoration:underline}
 
-    /* COMPARISON TABLE */
-    .compare-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:0;border:1.5px solid var(--border);border-radius:12px;overflow:hidden;margin:24px 0}
+    .tools-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin:24px 0 4px}
+    .tool-card{background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(247,246,242,.92));border:1.5px solid var(--border);border-radius:22px;padding:24px;transition:all .2s}
+    .tool-card:hover{transform:translateY(-3px);box-shadow:0 14px 34px rgba(0,0,0,.08);border-color:rgba(44,95,138,.38)}
+    .tool-name{font-weight:700;font-size:1rem;margin-bottom:6px}
+    .tool-desc{font-size:.875rem;color:var(--text2);line-height:1.6;margin-bottom:12px}
+    .tool-tag{display:inline-block;font-size:.75rem;font-weight:600;padding:4px 9px;border-radius:999px}
+    .tag-dna{background:#eef3f8;color:#1a3d5c}
+    .tag-rna{background:var(--accent2);color:#1a3d5c}
+    .tag-bs{background:#f2efe9;color:#6c6255}
+
+    .callout{background:linear-gradient(180deg,rgba(232,240,248,.92),rgba(245,248,252,.9));border:1px solid rgba(44,95,138,.16);border-radius:20px;padding:18px 22px;margin:24px 0}
+    .callout p{margin:0;font-size:.93rem;color:var(--text);line-height:1.7}
+    .callout strong{color:#1a3d5c}
+
+    .compare-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:0;border:1.5px solid var(--border);border-radius:20px;overflow:hidden;margin:24px 0;background:#fff}
     .compare-header{background:var(--bg2);padding:14px 16px;font-size:.8rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text2);border-bottom:1px solid var(--border)}
     .compare-header.highlight{background:var(--accent2);color:#1a3d5c}
     .compare-cell{padding:12px 16px;font-size:.875rem;color:var(--text2);border-bottom:1px solid var(--border);border-right:1px solid var(--border)}
     .compare-cell:last-child{border-right:none}
-    .compare-cell.highlight{background:#e8f0f8;font-weight:500;color:var(--text)}
+    .compare-cell.highlight{background:#f4f8fc;font-weight:500;color:var(--text)}
     .compare-cell.good{color:#2C5F8A;font-weight:600}
-    .compare-cell.bad{color:#2C5F8A}
-    .compare-cell.ok{color:#e67e22}
-    .compare-row-label{padding:12px 16px;font-size:.875rem;font-weight:600;color:var(--text);border-bottom:1px solid var(--border);border-right:1px solid var(--border);background:var(--bg)}
+    .compare-cell.bad{color:#7a7064}
+    .compare-cell.ok{color:#9a6a2b}
+    .compare-row-label{padding:12px 16px;font-size:.875rem;font-weight:600;color:var(--text);border-bottom:1px solid var(--border);border-right:1px solid var(--border);background:#fbfaf7}
 
-    /* FIGURES */
-    .figures-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:32px}
-    .figure-card{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;overflow:hidden}
+    .figures-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:28px}
+    .figure-card{background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(247,246,242,.94));border:1.5px solid var(--border);border-radius:22px;overflow:hidden;cursor:zoom-in;transition:all .2s}
+    .figure-card:hover{transform:translateY(-3px);box-shadow:0 14px 34px rgba(0,0,0,.08);border-color:rgba(44,95,138,.38)}
     .figure-card img{width:100%;height:auto;display:block;border-bottom:1px solid var(--border)}
-    .figure-caption{padding:14px 16px}
-    .figure-caption h4{font-size:.9rem;font-weight:600;margin-bottom:4px}
-    .figure-caption p{font-size:.82rem;color:var(--text3);margin:0;line-height:1.5}
+    .figure-caption{padding:16px 18px}
+    .figure-caption h4{font-size:.92rem;font-weight:600;margin-bottom:6px}
+    .figure-caption p{font-size:.84rem;color:var(--text3);margin:0;line-height:1.58}
 
-    /* CALLOUT */
-    .callout{background:var(--accent2);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;padding:18px 22px;margin:24px 0}
-    .callout p{margin:0;font-size:.925rem;color:var(--text);line-height:1.65}
-    .callout strong{color:#1a3d5c}
-
-    /* TOOL CARDS */
-    .tools-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin:24px 0}
-    .tool-card{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:24px}
-    .tool-name{font-weight:700;font-size:1rem;margin-bottom:6px}
-    .tool-desc{font-size:.875rem;color:var(--text2);line-height:1.6;margin-bottom:12px}
-    .tool-tag{display:inline-block;font-size:.75rem;font-weight:600;padding:3px 8px;border-radius:4px;font-family:'DM Mono',monospace}
-    .tag-dna{background:#fde8d0;color:#1a3d5c}
-    .tag-rna{background:var(--accent2);color:#1a3d5c}
-    .tag-bs{background:#e8f0f8;color:#2C5F8A}
-
-    footer{background:var(--bg2);border-top:1px solid var(--border);padding:32px 40px}
+    footer{background:var(--bg2);border-top:1px solid var(--border);padding:32px 40px;margin-top:28px}
     .footer-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
 
-    @media(max-width:700px){.hero{padding:calc(var(--nav-h)+32px) 20px 40px}.container{padding:0 20px}.figures-grid,.tools-grid{grid-template-columns:1fr}.compare-grid{grid-template-columns:1fr}nav{padding:0 20px}}
+    .lightbox-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:1000;align-items:center;justify-content:center;cursor:zoom-out}
+    .lightbox-overlay.active{display:flex}
+    .lightbox-overlay img{max-width:90vw;max-height:90vh;border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,0.5)}
+
+    @media(max-width:980px){
+      .hero-top{grid-template-columns:1fr}
+      .hero-highlights{grid-template-columns:repeat(3,minmax(0,1fr));margin-top:28px}
+    }
+
+    @media(max-width:900px){
+      .hero-highlights,.tools-grid,.figures-grid{grid-template-columns:1fr}
+      .compare-grid{grid-template-columns:1fr}
+    }
+
+    @media(max-width:700px){
+      .hero{padding:calc(var(--nav-h)+28px) 20px 28px}
+      .hero-panel{padding:28px 22px}
+      h1{font-size:2.2rem}
+      .container{padding:0 20px}
+      .section-card{padding:24px 20px}
+      nav{padding:0 20px}
+    }
   </style>
   <link rel="stylesheet" href="responsive.css">
 </head>
@@ -105,7 +143,7 @@
   <div class="nav-links">
     <a href="docs.html">Docs</a>
     <a href="tutorial.html">Tutorial</a>
-    <a href="benchmarking.html">Benchmarking</a>
+    <a href="benchmarking.html" class="active">Benchmarking</a>
     <a href="about.html">About</a>
     <a href="https://github.com/HenzelerB/sRNA-TAPS" target="_blank">GitHub</a>
     <a href="contact.html">Contact</a>
@@ -114,125 +152,63 @@
 </nav>
 
 <div class="hero">
-  <h1>Benchmarking</h1>
-  <p class="lead">sRNA-TAPS was compared against three established methylation analysis tools — rastair, asTair, and Bismark — to evaluate site-level concordance, modification rate correlation, and small RNA biotype coverage.</p>
+  <div class="hero-panel">
+    <div class="hero-top">
+      <div class="hero-copy">
+        <div class="hero-badge">Evidence</div>
+        <h1>Benchmarking</h1>
+        <p class="lead">sRNA-TAPS was compared against rastair, asTair, and Bismark to evaluate site-level concordance, modification rate correlation, and how well each approach handles small-RNA biology.</p>
+      </div>
+      <div class="hero-highlights">
+        <div class="highlight-card">
+          <span class="highlight-kicker">Comparison scope</span>
+          <strong>Three external callers</strong>
+          <p>rastair, asTair, and Bismark are evaluated alongside sRNA-TAPS across multiple output and chemistry assumptions.</p>
+        </div>
+        <div class="highlight-card">
+          <span class="highlight-kicker">What matters</span>
+          <strong>Biotypes and chemistry stay explicit</strong>
+          <p>Coverage thresholds, multi-mapping behaviour, and TAPS-native signal direction are kept central to the interpretation.</p>
+        </div>
+        <div class="highlight-card">
+          <span class="highlight-kicker">Readout</span>
+          <strong>Figures stay close to the claims</strong>
+          <p>Concordance, shared-site correlation, overlap, and context behaviour are all shown directly below.</p>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <section>
   <div class="container">
-    <h2>Why existing tools fall short for small RNA</h2>
-    <p>Most methylation callers were designed for DNA or for long, abundant RNA species. Applying them to small RNA introduces three systematic problems:</p>
-
-    <div class="tools-grid">
-      <div class="tool-card">
-        <div class="tool-name">rastair</div>
-        <div class="tool-tag tag-dna">DNA-oriented</div>
-        <p class="tool-desc" style="margin-top:10px">Designed for TAPS data but optimised for DNA methylation calling. Lacks biotype-aware splitting and uses fixed coverage thresholds inappropriate for short RNA species.</p>
+    <div class="section-card">
+      <div class="section-heading">
+        <span class="section-kicker">Framing</span>
+        <h2>Why existing tools fall short for small RNA</h2>
       </div>
-      <div class="tool-card">
-        <div class="tool-name">asTair</div>
-        <div class="tool-tag tag-rna">RNA-compatible</div>
-        <p class="tool-desc" style="margin-top:10px">Supports RNA TAPS but does not distinguish between RNA biotypes. Applies uniform calling parameters across miRNA, tRNA, and rRNA — which have fundamentally different coverage profiles and multi-mapping characteristics.</p>
-      </div>
-      <div class="tool-card">
-        <div class="tool-name">Bismark</div>
-        <div class="tool-tag tag-bs">Bisulfite</div>
-        <p class="tool-desc" style="margin-top:10px">Built for bisulfite sequencing where unmodified C converts to T. The signal direction is inverted relative to TAPS — modified C stays as C in bisulfite but converts to T in TAPS. Bismark results must be inverted for comparison.</p>
-      </div>
-    </div>
+      <p>Most methylation callers were designed for DNA or for long, abundant RNA species. Applying them to small RNA introduces three systematic problems:</p>
 
-    <div class="callout">
-      <p><strong>sRNA-TAPS addresses all three limitations</strong> — biotype-resolved calling with per-biotype coverage thresholds, TAPS-native C→T logic, fractional multi-mapper weighting, and a three-layer SNP filter applied upstream of any counting.</p>
-    </div>
-  </div>
-</section>
-
-<section>
-  <div class="container">
-    <h2>Head-to-head comparison</h2>
-    <p>Key design differences between sRNA-TAPS and the three benchmark tools:</p>
-
-    <div class="compare-grid">
-      <div class="compare-header highlight">sRNA-TAPS</div>
-      <div class="compare-header">rastair</div>
-      <div class="compare-header">asTair</div>
-      <div class="compare-header">Bismark</div>
-
-      <div class="compare-cell highlight good">TAPS-native ✓</div>
-      <div class="compare-cell good">TAPS-native ✓</div>
-      <div class="compare-cell good">TAPS-native ✓</div>
-      <div class="compare-cell bad">Bisulfite — inverted ✗</div>
-
-      <div class="compare-cell highlight good">Biotype-resolved ✓</div>
-      <div class="compare-cell bad">No biotype split ✗</div>
-      <div class="compare-cell bad">No biotype split ✗</div>
-      <div class="compare-cell bad">No biotype split ✗</div>
-
-      <div class="compare-cell highlight good">Multi-mapper weighting ✓</div>
-      <div class="compare-cell ok">Partial ±</div>
-      <div class="compare-cell bad">No ✗</div>
-      <div class="compare-cell bad">No ✗</div>
-
-      <div class="compare-cell highlight good">3-layer SNP filter ✓</div>
-      <div class="compare-cell ok">Basic ±</div>
-      <div class="compare-cell ok">Basic ±</div>
-      <div class="compare-cell bad">No ✗</div>
-
-      <div class="compare-cell highlight good">Cell-line SNP blacklist ✓</div>
-      <div class="compare-cell bad">No ✗</div>
-      <div class="compare-cell bad">No ✗</div>
-      <div class="compare-cell bad">No ✗</div>
-
-      <div class="compare-cell highlight good">pb_Ctrl background correction ✓</div>
-      <div class="compare-cell bad">No ✗</div>
-      <div class="compare-cell bad">No ✗</div>
-      <div class="compare-cell bad">No ✗</div>
-
-      <div class="compare-cell highlight good">Per-biotype coverage thresholds ✓</div>
-      <div class="compare-cell bad">Fixed ✗</div>
-      <div class="compare-cell bad">Fixed ✗</div>
-      <div class="compare-cell bad">Fixed ✗</div>
-    </div>
-  </div>
-</section>
-
-<section>
-  <div class="container">
-    <h2>Benchmark results</h2>
-    <p>sRNA-TAPS calls were compared against rastair, asTair, and Bismark across all RNA biotypes in HEK293 and Caco2 cell lines. Results show site-level concordance (Jaccard index), modification rate correlation at shared sites (Pearson r), and called site overlap.</p>
-
-    <div class="callout">
-      <p><strong>Note on Bismark:</strong> Bismark uses bisulfite chemistry where the signal direction is inverted — unmodified C converts to T rather than modified C. Bismark mod_rates are therefore 1 − rate before comparison. Negative or near-zero Pearson r for Bismark is expected and confirms correct chemistry inversion.</p>
-    </div>
-
-    <div class="figures-grid">
-      <div class="figure-card" onclick="openLightbox(this.querySelector('img'))">
-        <img src="04a_concordance_heatmap.png" alt="Concordance heatmap">
-        <div class="figure-caption">
-          <h4>Figure 4a — Site concordance (Jaccard index)</h4>
-          <p>Jaccard index between sRNA-TAPS called sites and each benchmark tool, per biotype. Higher values indicate greater overlap in called positions.</p>
+      <div class="tools-grid">
+        <div class="tool-card">
+          <div class="tool-name">rastair</div>
+          <div class="tool-tag tag-dna">DNA-oriented</div>
+          <p class="tool-desc" style="margin-top:10px">Designed for TAPS data but optimised for DNA methylation calling. Lacks biotype-aware splitting and uses fixed coverage thresholds inappropriate for short RNA species.</p>
+        </div>
+        <div class="tool-card">
+          <div class="tool-name">asTair</div>
+          <div class="tool-tag tag-rna">RNA-compatible</div>
+          <p class="tool-desc" style="margin-top:10px">Supports RNA TAPS but does not distinguish between RNA biotypes. Applies uniform calling parameters across miRNA, tRNA, and rRNA &mdash; which have fundamentally different coverage profiles and multi-mapping characteristics.</p>
+        </div>
+        <div class="tool-card">
+          <div class="tool-name">Bismark</div>
+          <div class="tool-tag tag-bs">Bisulfite</div>
+          <p class="tool-desc" style="margin-top:10px">Built for bisulfite sequencing where unmodified C converts to T. The signal direction is inverted relative to TAPS &mdash; modified C stays as C in bisulfite but converts to T in TAPS. Bismark results must be inverted for comparison.</p>
         </div>
       </div>
-      <div class="figure-card" onclick="openLightbox(this.querySelector('img'))">
-        <img src="04b_correlation.png" alt="Pearson correlation">
-        <div class="figure-caption">
-          <h4>Figure 4b — Pearson correlation at shared sites</h4>
-          <p>Pearson r of modification rates at sites called by both sRNA-TAPS and each benchmark tool. rastair and asTair show strong positive correlation; Bismark is near zero or negative (expected — chemistry inversion).</p>
-        </div>
-      </div>
-      <div class="figure-card" onclick="openLightbox(this.querySelector('img'))">
-        <img src="04b_shared_sites_scatter.png" alt="Shared sites scatter">
-        <div class="figure-caption">
-          <h4>Figure 4b — Modification rates at shared sites</h4>
-          <p>Scatter plot of per-site modification rates at positions called by both sRNA-TAPS and each benchmark tool. Points on the diagonal indicate agreement between pipelines.</p>
-        </div>
-      </div>
-      <div class="figure-card" onclick="openLightbox(this.querySelector('img'))">
-        <img src="04c_site_overlap.png" alt="Site overlap">
-        <div class="figure-caption">
-          <h4>Figure 4c — Called site overlap</h4>
-          <p>Number of sites called exclusively by sRNA-TAPS, exclusively by each benchmark tool, and shared between both. sRNA-TAPS recovers a distinct set of high-confidence small RNA m5C sites.</p>
-        </div>
+
+      <div class="callout">
+        <p><strong>sRNA-TAPS addresses all three limitations</strong> &mdash; biotype-resolved calling with per-biotype coverage thresholds, TAPS-native C&rarr;T logic, fractional multi-mapper weighting, and a three-layer SNP filter applied upstream of any counting.</p>
       </div>
     </div>
   </div>
@@ -240,19 +216,99 @@
 
 <section>
   <div class="container">
-    <h2>rastair in small RNA — a context mismatch</h2>
-    <p>rastair was originally designed and validated for genome-wide DNA methylation calling, where CpG is the dominant and biologically most relevant methylation context. In that setting, CpG-only calling is entirely appropriate and the tool performs excellently.</p>
-    <p>However, when applied to small RNA — as we do here for benchmarking purposes — this design choice becomes a fundamental mismatch. The most biologically relevant m5C sites in small RNA occur predominantly in non-CpG contexts: C34 and C38 in tRNA wobble positions (CHH/CHG), internal positions in rRNA, and seed-region cytosines in miRNA are rarely CpG dinucleotides.</p>
-    <p>To confirm this, we ran rastair twice on the same BAMs — once with <code>--cpgs-only</code> and once without. The outputs were <strong>identical</strong>: the same sites, the same modification rates, the same Pearson correlation with sRNA-TAPS. This demonstrates that rastair's CpG restriction is implemented at the core calling level, not just as a post-processing filter, and cannot be bypassed via command-line flags.</p>
-    <div class="callout">
-      <p><strong>This is not a criticism of rastair</strong> — it is working exactly as designed for its intended use case. It is rather a demonstration of why a dedicated small RNA pipeline is needed. sRNA-TAPS is currently the only pipeline that calls m5C in all cytosine contexts across all small RNA biotypes.</p>
+    <div class="section-card">
+      <div class="section-heading">
+        <span class="section-kicker">Design differences</span>
+        <h2>Head-to-head comparison</h2>
+      </div>
+      <p>Key design differences between sRNA-TAPS and the three benchmark tools:</p>
+
+      <div class="compare-grid">
+        <div class="compare-header highlight">sRNA-TAPS</div>
+        <div class="compare-header">rastair</div>
+        <div class="compare-header">asTair</div>
+        <div class="compare-header">Bismark</div>
+
+        <div class="compare-cell highlight good">TAPS-native ✓</div>
+        <div class="compare-cell good">TAPS-native ✓</div>
+        <div class="compare-cell good">TAPS-native ✓</div>
+        <div class="compare-cell bad">Bisulfite &mdash; inverted ✕</div>
+
+        <div class="compare-cell highlight good">Biotype-resolved ✓</div>
+        <div class="compare-cell bad">No biotype split ✕</div>
+        <div class="compare-cell bad">No biotype split ✕</div>
+        <div class="compare-cell bad">No biotype split ✕</div>
+
+        <div class="compare-cell highlight good">Multi-mapper weighting ✓</div>
+        <div class="compare-cell ok">Partial &plusmn;</div>
+        <div class="compare-cell bad">No ✕</div>
+        <div class="compare-cell bad">No ✕</div>
+
+        <div class="compare-cell highlight good">3-layer SNP filter ✓</div>
+        <div class="compare-cell ok">Basic &plusmn;</div>
+        <div class="compare-cell ok">Basic &plusmn;</div>
+        <div class="compare-cell bad">No ✕</div>
+
+        <div class="compare-cell highlight good">Cell-line SNP blacklist ✓</div>
+        <div class="compare-cell bad">No ✕</div>
+        <div class="compare-cell bad">No ✕</div>
+        <div class="compare-cell bad">No ✕</div>
+
+        <div class="compare-cell highlight good">pb_Ctrl background correction ✓</div>
+        <div class="compare-cell bad">No ✕</div>
+        <div class="compare-cell bad">No ✕</div>
+        <div class="compare-cell bad">No ✕</div>
+
+        <div class="compare-cell highlight good">Per-biotype coverage thresholds ✓</div>
+        <div class="compare-cell bad">Fixed ✕</div>
+        <div class="compare-cell bad">Fixed ✕</div>
+        <div class="compare-cell bad">Fixed ✕</div>
+      </div>
     </div>
-    <div class="figures-grid" style="grid-template-columns:1fr;max-width:700px">
-      <div class="figure-card" onclick="openLightbox(this.querySelector('img'))">
-        <img src="04d_rastair_cpg_vs_all.png" alt="rastair CpG vs all-context">
-        <div class="figure-caption">
-          <h4>Figure 4d — rastair CpG-only vs all-context: identical output</h4>
-          <p>Pearson r between sRNA-TAPS and rastair at shared sites, comparing the <code>--cpgs-only</code> run against the all-context run. The two lines are completely overlapping, confirming rastair produces identical output regardless of context flag.</p>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div class="section-card">
+      <div class="section-heading">
+        <span class="section-kicker">Results</span>
+        <h2>Benchmark results</h2>
+      </div>
+      <p>sRNA-TAPS calls were compared against rastair, asTair, and Bismark across all RNA biotypes in HEK293 and Caco2 cell lines. Results show site-level concordance (Jaccard index), modification rate correlation at shared sites (Pearson r), and called site overlap.</p>
+
+      <div class="callout">
+        <p><strong>Note on Bismark:</strong> Bismark uses bisulfite chemistry where the signal direction is inverted &mdash; unmodified C converts to T rather than modified C. Bismark mod_rates are therefore 1 &minus; rate before comparison. Negative or near-zero Pearson r for Bismark is expected and confirms correct chemistry inversion.</p>
+      </div>
+
+      <div class="figures-grid">
+        <div class="figure-card" onclick="openLightbox(this.querySelector('img'))">
+          <img src="04a_concordance_heatmap.png" alt="Concordance heatmap">
+          <div class="figure-caption">
+            <h4>Figure 4a &mdash; Site concordance (Jaccard index)</h4>
+            <p>Jaccard index between sRNA-TAPS called sites and each benchmark tool, per biotype. Higher values indicate greater overlap in called positions.</p>
+          </div>
+        </div>
+        <div class="figure-card" onclick="openLightbox(this.querySelector('img'))">
+          <img src="04b_correlation.png" alt="Pearson correlation">
+          <div class="figure-caption">
+            <h4>Figure 4b &mdash; Pearson correlation at shared sites</h4>
+            <p>Pearson r of modification rates at sites called by both sRNA-TAPS and each benchmark tool. rastair and asTair show strong positive correlation; Bismark is near zero or negative, as expected from chemistry inversion.</p>
+          </div>
+        </div>
+        <div class="figure-card" onclick="openLightbox(this.querySelector('img'))">
+          <img src="04b_shared_sites_scatter.png" alt="Shared sites scatter">
+          <div class="figure-caption">
+            <h4>Figure 4b &mdash; Modification rates at shared sites</h4>
+            <p>Scatter plot of per-site modification rates at positions called by both sRNA-TAPS and each benchmark tool. Points on the diagonal indicate agreement between pipelines.</p>
+          </div>
+        </div>
+        <div class="figure-card" onclick="openLightbox(this.querySelector('img'))">
+          <img src="04c_site_overlap.png" alt="Site overlap">
+          <div class="figure-caption">
+            <h4>Figure 4c &mdash; Called site overlap</h4>
+            <p>Number of sites called exclusively by sRNA-TAPS, exclusively by each benchmark tool, and shared between both. sRNA-TAPS recovers a distinct set of high-confidence small RNA m5C sites.</p>
+          </div>
         </div>
       </div>
     </div>
@@ -261,37 +317,70 @@
 
 <section>
   <div class="container">
-    <h2>Test dataset validation</h2>
-    <p>Using the synthetic test dataset included with sRNA-TAPS, the pipeline correctly recovers seeded m5C positions with high signal-to-noise ratio:</p>
+    <div class="section-card">
+      <div class="section-heading">
+        <span class="section-kicker">Context</span>
+        <h2>rastair in small RNA &mdash; a context mismatch</h2>
+      </div>
+      <p>rastair was originally designed and validated for genome-wide DNA methylation calling, where CpG is the dominant and biologically most relevant methylation context. In that setting, CpG-only calling is entirely appropriate and the tool performs excellently.</p>
+      <p>However, when applied to small RNA &mdash; as we do here for benchmarking purposes &mdash; this design choice becomes a fundamental mismatch. The most biologically relevant m5C sites in small RNA occur predominantly in non-CpG contexts: C34 and C38 in tRNA wobble positions (CHH/CHG), internal positions in rRNA, and seed-region cytosines in miRNA are rarely CpG dinucleotides.</p>
+      <p>To confirm this, we ran rastair twice on the same BAMs &mdash; once with <code>--cpgs-only</code> and once without. The outputs were <strong>identical</strong>: the same sites, the same modification rates, the same Pearson correlation with sRNA-TAPS. This demonstrates that rastair's CpG restriction is implemented at the core calling level, not just as a post-processing filter, and cannot be bypassed via command-line flags.</p>
 
-    <div class="compare-grid" style="grid-template-columns:1fr 1fr 1fr 1fr">
-      <div class="compare-header">Position</div>
-      <div class="compare-header">Gene</div>
-      <div class="compare-header">Condition</div>
-      <div class="compare-header">mod_rate</div>
+      <div class="callout">
+        <p><strong>This is not a criticism of rastair</strong> &mdash; it is working exactly as designed for its intended use case. It is rather a demonstration of why a dedicated small RNA pipeline is needed. sRNA-TAPS is currently the only pipeline that calls m5C in all cytosine contexts across all small RNA biotypes.</p>
+      </div>
 
-      <div class="compare-row-label">chr17:59841313</div>
-      <div class="compare-cell">hsa-miR-21-5p</div>
-      <div class="compare-cell">TET+PB (treat)</div>
-      <div class="compare-cell good">90.9%</div>
-
-      <div class="compare-row-label">chr17:59841313</div>
-      <div class="compare-cell">hsa-miR-21-5p</div>
-      <div class="compare-cell">Untreated</div>
-      <div class="compare-cell">1.7%</div>
-
-      <div class="compare-row-label">chrX:66018955</div>
-      <div class="compare-cell">hsa-miR-223-3p</div>
-      <div class="compare-cell">TET+PB (treat)</div>
-      <div class="compare-cell good">71.6%</div>
-
-      <div class="compare-row-label">chrX:66018955</div>
-      <div class="compare-cell">hsa-miR-223-3p</div>
-      <div class="compare-cell">Untreated</div>
-      <div class="compare-cell">0.2%</div>
+      <div class="figures-grid" style="grid-template-columns:1fr;max-width:700px">
+        <div class="figure-card" onclick="openLightbox(this.querySelector('img'))">
+          <img src="04d_rastair_cpg_vs_all.png" alt="rastair CpG vs all-context">
+          <div class="figure-caption">
+            <h4>Figure 4d &mdash; rastair CpG-only vs all-context: identical output</h4>
+            <p>Pearson r between sRNA-TAPS and rastair at shared sites, comparing the <code>--cpgs-only</code> run against the all-context run. The two lines are completely overlapping, confirming rastair produces identical output regardless of context flag.</p>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
+</section>
 
-    <p style="margin-top:16px">The &gt;40-fold enrichment between treated and untreated conditions at seeded m5C positions confirms accurate TAPS signal detection. See the <a href="tutorial.html">tutorial</a> for step-by-step instructions to reproduce these results.</p>
+<section>
+  <div class="container">
+    <div class="section-card">
+      <div class="section-heading">
+        <span class="section-kicker">Validation</span>
+        <h2>Test dataset validation</h2>
+      </div>
+      <p>Using the synthetic test dataset included with sRNA-TAPS, the pipeline correctly recovers seeded m5C positions with high signal-to-noise ratio:</p>
+
+      <div class="compare-grid" style="grid-template-columns:1fr 1fr 1fr 1fr">
+        <div class="compare-header">Position</div>
+        <div class="compare-header">Gene</div>
+        <div class="compare-header">Condition</div>
+        <div class="compare-header">mod_rate</div>
+
+        <div class="compare-row-label">chr17:59841313</div>
+        <div class="compare-cell">hsa-miR-21-5p</div>
+        <div class="compare-cell">TET+PB (treat)</div>
+        <div class="compare-cell good">90.9%</div>
+
+        <div class="compare-row-label">chr17:59841313</div>
+        <div class="compare-cell">hsa-miR-21-5p</div>
+        <div class="compare-cell">Untreated</div>
+        <div class="compare-cell">1.7%</div>
+
+        <div class="compare-row-label">chrX:66018955</div>
+        <div class="compare-cell">hsa-miR-223-3p</div>
+        <div class="compare-cell">TET+PB (treat)</div>
+        <div class="compare-cell good">71.6%</div>
+
+        <div class="compare-row-label">chrX:66018955</div>
+        <div class="compare-cell">hsa-miR-223-3p</div>
+        <div class="compare-cell">Untreated</div>
+        <div class="compare-cell">0.2%</div>
+      </div>
+
+      <p style="margin-top:16px">The &gt;40-fold enrichment between treated and untreated conditions at seeded m5C positions confirms accurate TAPS signal detection. See the <a href="tutorial.html">tutorial</a> for step-by-step instructions to reproduce these results.</p>
+    </div>
   </div>
 </section>
 
@@ -307,20 +396,14 @@
       <a href="contact.html" style="font-size:.85rem;color:var(--text2);text-decoration:none">Contact</a>
       <a href="https://github.com/HenzelerB/sRNA-TAPS" target="_blank" style="font-size:.85rem;color:var(--text2);text-decoration:none">GitHub</a>
     </div>
-    <div style="font-size:.8rem;color:var(--text3)">© 2026 Schneider Lab, LMU Munich · MIT License</div>
+    <div style="font-size:.8rem;color:var(--text3)">&copy; 2026 Schneider Lab, LMU Munich &middot; MIT License</div>
   </div>
 </footer>
 
-
-<style>
-.lightbox-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:1000;align-items:center;justify-content:center;cursor:zoom-out}
-.lightbox-overlay.active{display:flex}
-.lightbox-overlay img{max-width:90vw;max-height:90vh;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,0.5)}
-.figure-card{cursor:zoom-in}
-</style>
 <div class="lightbox-overlay" id="lightbox" onclick="closeLightbox()">
   <img id="lightbox-img" src="" alt="">
 </div>
+
 <script>
 function openLightbox(img) {
   document.getElementById('lightbox-img').src = img.src;
