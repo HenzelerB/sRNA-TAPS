@@ -164,7 +164,7 @@
       </div>
     </div>
 
-  <div id="prereqs" class="note"><strong>Before you start:</strong> You need a SLURM cluster with the <code>RNA_taps</code> conda environment active, R packages installed (<code>Rscript install_R_packages.R</code>), and the sRNA-TAPS repository cloned. No pre-built genome index is required &mdash; the pipeline downloads GRCh38 automatically.</div>
+  <div id="prereqs" class="note"><strong>Before you start:</strong> You need a SLURM cluster with the <code>RNA_taps</code> conda environment active, R packages installed (<code>Rscript install_R_packages.R</code>), and the sRNA-TAPS repository cloned. No pre-built genome index is required &mdash; the pipeline downloads the configured species reference automatically.</div>
 
   <div id="step1" class="step-header"><div class="step-num">1</div><h2>Generate the test FASTQs</h2></div>
   <div class="step-block">
@@ -191,10 +191,11 @@ ln -sf fastq/samples.tsv samples.tsv</code></pre>
   outdir: /home/user/srnataps_test
 
 reference:
-  genome_fa:       /home/user/srnataps_test/04a.genome/Homo_sapiens.GRCh38.dna.toplevel.fa
-  gtf:             /home/user/srnataps_test/04a.genome/Homo_sapiens.GRCh38.112.gtf
-  bowtie1_index:   /home/user/srnataps_test/04a.genome/genome
+  species:         human
   ensembl_release: 112
+  genome_fa:       ""
+  gtf:             ""
+  bowtie1_index:   ""
   dbsnp_vcf: ""
 
 output:
@@ -217,7 +218,7 @@ benchmark:
       min_baseq: 20
       context:   all</code></pre>
 
-    <div class="note"><strong>Genome paths:</strong> The paths under <code>reference:</code> do not need to exist yet. If the FASTA or GTF are absent, the pipeline downloads them from Ensembl release 112 and builds the Bowtie1 index automatically before any samples are processed.</div>
+    <div class="note"><strong>Reference setup:</strong> This test dataset is human, so the tutorial keeps <code>species: human</code>. Leave <code>genome_fa</code>, <code>gtf</code>, and <code>bowtie1_index</code> empty to let the pipeline download the matching Ensembl reference and build the Bowtie1 index automatically before any samples are processed.</div>
   </div>
 
   <div id="step3" class="step-header"><div class="step-num">3</div><h2>Dry-run to verify the DAG</h2></div>
@@ -274,7 +275,7 @@ ls ~/srnataps_test/07.taps_calls/miRNA/ | wc -l       # expect 100 TSVs
 # Report figures generated?
 ls ~/srnataps_test/report/figures/*.pdf | wc -l</code></pre>
 
-    <div class="note"><strong>Genome download first:</strong> The first stage downloads and indexes the GRCh38 genome (~3 GB). This takes 20&ndash;30 minutes and runs once. All subsequent runs in any project on the same cluster reuse the same genome files if you point <code>genome_fa</code> and <code>bowtie1_index</code> to the same paths.</div>
+    <div class="note"><strong>Reference download first:</strong> The first stage downloads and indexes the configured reference genome (~3 GB for human GRCh38). This takes 20&ndash;30 minutes and runs once. All subsequent runs in any project on the same cluster reuse the same genome files if you point <code>genome_fa</code> and <code>bowtie1_index</code> to the same paths.</div>
 
     <p>The full 100-sample test run takes approximately 2&ndash;4 hours on a standard SLURM cluster, depending on node availability. Report figures for QC and biotype composition appear while later stages are still running.</p>
   </div>
