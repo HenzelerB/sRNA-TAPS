@@ -6,66 +6,81 @@
   <!-- SEO -->
   <meta name="description" content="Step-by-step tutorial for running sRNA-TAPS on the 100-sample synthetic test dataset. From raw FASTQs to called m5C sites using the Snakemake profile-based workflow.">
   <meta name="keywords" content="sRNA-TAPS, sRNA TAPS, RNA m5C detection, small RNA methylation, TAPS sequencing, epitranscriptomics, RNA epigenetics, m5C small RNA, TET-assisted pyridine borane sequencing, bisulfite-free RNA methylation, Snakemake bioinformatics pipeline, miRNA methylation, tRNA modification, rRNA m5C">
-  <meta name="author" content="Bennett Henzeler, Schneider Lab, LMU Munich">
+  <meta name="author" content="sRNA-TAPS project team, Schneider Lab, LMU Munich">
   <link rel="canonical" href="https://henzelerb.github.io/sRNA-TAPS/tutorial.html">
   <!-- Open Graph -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Tutorial — sRNA-TAPS">
+  <meta property="og:title" content="Tutorial &mdash; sRNA-TAPS">
   <meta property="og:description" content="Step-by-step tutorial for running sRNA-TAPS on the 100-sample synthetic test dataset. From raw FASTQs to called m5C sites using the Snakemake profile-based workflow.">
   <meta property="og:url" content="https://henzelerb.github.io/sRNA-TAPS/tutorial.html">
   <meta property="og:image" content="https://henzelerb.github.io/sRNA-TAPS/sRNA-taps_logo.svg">
   <meta property="og:site_name" content="sRNA-TAPS">
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Tutorial — sRNA-TAPS">
+  <meta name="twitter:title" content="Tutorial &mdash; sRNA-TAPS">
   <meta name="twitter:description" content="Step-by-step tutorial for running sRNA-TAPS on the 100-sample synthetic test dataset. From raw FASTQs to called m5C sites using the Snakemake profile-based workflow.">
   <meta name="twitter:image" content="https://henzelerb.github.io/sRNA-TAPS/sRNA-taps_logo.svg">
-  <title>Tutorial — sRNA-TAPS</title>
+  <title>Tutorial &mdash; sRNA-TAPS</title>
   <style>
-  @font-face { font-family: 'Outfit'; src: url('fonts/Outfit-Light.woff2') format('woff2'); font-weight: 300; font-display: block; }
-  @font-face { font-family: 'Outfit'; src: url('fonts/Outfit-Regular.woff2') format('woff2'); font-weight: 400; font-display: block; }
-  @font-face { font-family: 'Outfit'; src: url('fonts/Outfit-Medium.woff2') format('woff2'); font-weight: 500; font-display: block; }
-  @font-face { font-family: 'Outfit'; src: url('fonts/Outfit-SemiBold.woff2') format('woff2'); font-weight: 600; font-display: block; }
-  @font-face { font-family: 'Outfit'; src: url('fonts/Outfit-Bold.woff2') format('woff2'); font-weight: 700; font-display: block; }
-  * { font-family: 'Outfit', sans-serif; }
-</style>
+    @font-face { font-family: 'Outfit'; src: url('fonts/Outfit-Light.woff2') format('woff2'); font-weight: 300; font-display: block; }
+    @font-face { font-family: 'Outfit'; src: url('fonts/Outfit-Regular.woff2') format('woff2'); font-weight: 400; font-display: block; }
+    @font-face { font-family: 'Outfit'; src: url('fonts/Outfit-Medium.woff2') format('woff2'); font-weight: 500; font-display: block; }
+    @font-face { font-family: 'Outfit'; src: url('fonts/Outfit-SemiBold.woff2') format('woff2'); font-weight: 600; font-display: block; }
+    @font-face { font-family: 'Outfit'; src: url('fonts/Outfit-Bold.woff2') format('woff2'); font-weight: 700; font-display: block; }
+    * { font-family: 'Outfit', sans-serif; }
+  </style>
   <style>
     :root{--bg:#f7f6f2;--bg2:#eeecea;--surface:#ffffff;--border:#dedad4;--text:#1a1814;--text2:#5a5650;--text3:#8a8680;--accent:#2C5F8A;--accent2:#e8f0f8;--accent3:#2c5f8a;--green:#2C5F8A;--code-bg:#f0eeea;--nav-h:72px}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     html{scroll-behavior:smooth}
-    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:16px;line-height:1.7;-webkit-font-smoothing:antialiased}
+    body{font-family:'DM Sans',sans-serif;background:
+      radial-gradient(circle at top, rgba(44,95,138,.08), rgba(44,95,138,0) 28%),
+      linear-gradient(180deg, #fbfaf7 0%, var(--bg) 22%, var(--bg) 100%);
+      color:var(--text);font-size:16px;line-height:1.7;-webkit-font-smoothing:antialiased}
     nav{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--nav-h);background:rgba(247,246,242,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 40px}
     .nav-logo{text-decoration:none;margin-right:auto;display:flex;align-items:center;height:100%}
-    .nav-logo span{color:var(--accent)}
     .nav-links{display:flex;gap:8px;align-items:center}
     .nav-links a{font-size:1rem;font-weight:500;color:var(--text2);text-decoration:none;padding:8px 16px;border-radius:6px;transition:all .15s}
     .nav-links a:hover,.nav-links a.active{color:var(--text);background:var(--bg2)}
     .nav-btn{background:var(--accent)!important;color:#fff!important;border-radius:6px;padding:8px 18px!important}
 
-    .layout{display:grid;grid-template-columns:260px 1fr;min-height:100vh;padding-top:var(--nav-h)}
-    .sidebar{position:sticky;top:var(--nav-h);height:calc(100vh - var(--nav-h));overflow-y:auto;background:var(--surface);border-right:1px solid var(--border);padding:32px 0}
-    .sidebar-section{margin-bottom:24px;padding:0 20px}
-    .sidebar-label{font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;padding:0 8px}
-    .sidebar-link{display:block;padding:6px 8px;font-size:.875rem;color:var(--text2);text-decoration:none;border-radius:6px;transition:all .15s;margin-bottom:2px}
+    .page-shell{max-width:1380px;margin:calc(var(--nav-h) + 36px) auto 44px;padding:0 40px}
+    .layout{display:grid;grid-template-columns:270px minmax(0,1fr);min-height:auto;background:linear-gradient(145deg,rgba(255,255,255,.95),rgba(232,240,248,.74));border:1px solid rgba(44,95,138,.14);border-radius:32px;box-shadow:0 30px 70px rgba(26,24,20,.08);overflow:hidden}
+    .sidebar{position:sticky;top:calc(var(--nav-h) + 28px);align-self:start;height:calc(100vh - var(--nav-h) - 56px);overflow-y:auto;background:rgba(255,255,255,.42);backdrop-filter:blur(10px);border-right:1px solid rgba(44,95,138,.12);padding:24px 18px 28px}
+    .sidebar-section{margin-bottom:14px;padding:14px;background:rgba(255,255,255,.62);border:1px solid rgba(44,95,138,.1);border-radius:18px}
+    .sidebar-label{font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;padding:0 6px}
+    .sidebar-link{display:block;padding:8px 10px;font-size:.875rem;color:var(--text2);text-decoration:none;border-radius:10px;transition:all .15s;margin-bottom:2px}
     .sidebar-link:hover{color:var(--text);background:var(--bg)}
     .sidebar-link.active{color:var(--accent);background:var(--accent2);font-weight:500}
-    .content{padding:48px 60px;max-width:820px}
-    h1{font-family:'Outfit',sans-serif;font-size:2.2rem;margin-bottom:12px;line-height:1.2}
-    .lead{font-size:1.05rem;color:var(--text2);margin-bottom:40px;line-height:1.75}
+
+    .content{padding:34px 40px 40px;max-width:none}
+    .content-hero{position:relative;overflow:hidden;background:linear-gradient(145deg,rgba(255,255,255,.9),rgba(232,240,248,.68));border:1px solid rgba(44,95,138,.12);border-radius:28px;padding:32px 32px 28px;margin-bottom:30px;box-shadow:0 18px 44px rgba(26,24,20,.06)}
+    .content-hero::before{content:"";position:absolute;right:-70px;bottom:-100px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(44,95,138,.14),rgba(44,95,138,0) 72%)}
+    .content-hero > *{position:relative;z-index:1}
+    .content-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(44,95,138,.1);border:1px solid rgba(44,95,138,.14);color:#1a3d5c;border-radius:999px;padding:7px 14px;font-size:.78rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:16px}
+    h1{font-family:'Outfit',sans-serif;font-size:2.6rem;margin-bottom:12px;line-height:1.08;letter-spacing:-.03em}
+    .lead{font-size:1.05rem;color:var(--text2);margin-bottom:24px;line-height:1.75;max-width:760px}
+    .summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+    .summary-card{background:rgba(255,255,255,.76);border:1px solid rgba(44,95,138,.12);border-radius:18px;padding:18px 18px 16px;backdrop-filter:blur(8px)}
+    .summary-card strong{display:block;font-size:1rem;color:var(--text);margin-bottom:6px}
+    .summary-card p{margin:0;font-size:.9rem;line-height:1.62}
+
     h2{font-family:'Outfit',sans-serif;font-size:1.5rem;margin-top:52px;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border)}
     h3{font-size:1rem;font-weight:600;margin-top:28px;margin-bottom:10px}
     p{margin-bottom:14px;color:var(--text2)}
     p strong{color:var(--text)}
+    a{color:var(--accent);text-decoration:none}
+    a:hover{text-decoration:underline}
     code{font-family:'DM Mono',monospace;font-size:.85em;background:var(--code-bg);padding:2px 6px;border-radius:4px;color:var(--accent)}
-    pre{background:#1e2d4a;border-radius:10px;padding:20px 22px;overflow-x:auto;margin:16px 0 24px}
+    pre{background:#1e2d4a;border-radius:16px;padding:20px 22px;overflow-x:auto;margin:16px 0 24px;box-shadow:0 14px 30px rgba(18,30,52,.14)}
     pre code{background:none;color:#e8e4de;font-size:.85rem;line-height:1.8;padding:0}
     .step-header{display:flex;align-items:center;gap:16px;margin-bottom:16px}
     .step-num{width:36px;height:36px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-size:.9rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'DM Mono',monospace}
     .step-header h2{margin:0;padding:0;border:none;font-size:1.4rem}
     .step-block{border-left:2px solid var(--border);padding-left:28px;margin-left:18px;margin-bottom:40px}
-    .note{background:var(--accent2);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:14px 18px;margin:16px 0;font-size:.9rem}
+    .note{background:linear-gradient(180deg,rgba(232,240,248,.92),rgba(245,248,252,.9));border:1px solid rgba(44,95,138,.16);border-radius:18px;padding:14px 18px;margin:16px 0;font-size:.9rem}
     .note strong{color:var(--accent)}
-    .tip{background:#e8f0f8;border-left:3px solid #2C5F8A;border-radius:0 8px 8px 0;padding:14px 18px;margin:16px 0;font-size:.9rem}
+    .tip{background:linear-gradient(180deg,rgba(232,240,248,.9),rgba(247,250,253,.92));border:1px solid rgba(44,95,138,.16);border-radius:18px;padding:14px 18px;margin:16px 0;font-size:.9rem}
     .tip strong{color:#2C5F8A}
     table{width:100%;border-collapse:collapse;margin:16px 0;font-size:.875rem}
     th{text-align:left;padding:10px 14px;background:var(--bg2);border-bottom:2px solid var(--border);font-weight:600;font-size:.8rem;letter-spacing:.04em}
@@ -74,9 +89,17 @@
     .result-ok{color:var(--text2)}
     ul,ol{margin:0 0 16px 20px;color:var(--text2)}
     li{margin-bottom:6px;font-size:.925rem}
-    footer{background:var(--bg2);border-top:1px solid var(--border);padding:32px 40px}
+
+    footer{background:var(--bg2);border-top:1px solid var(--border);padding:32px 40px;margin-top:20px}
     .footer-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
-    @media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar{display:none}.content{padding:32px 20px}}
+
+    @media(max-width:900px){
+      .page-shell{padding:0 20px}
+      .layout{grid-template-columns:1fr}
+      .sidebar{display:none}
+      .content{padding:24px 20px 28px}
+      .summary-grid{grid-template-columns:1fr}
+    }
   </style>
   <link rel="stylesheet" href="responsive.css">
 </head>
@@ -94,6 +117,7 @@
   </div>
 </nav>
 
+<div class="page-shell">
 <div class="layout">
   <aside class="sidebar">
     <div class="sidebar-section">
@@ -103,14 +127,14 @@
     </div>
     <div class="sidebar-section">
       <div class="sidebar-label">Steps</div>
-      <a href="#step1" class="sidebar-link">1 — Generate FASTQs</a>
-      <a href="#step2" class="sidebar-link">2 — Project setup</a>
-      <a href="#step3" class="sidebar-link">3 — Dry-run</a>
-      <a href="#step4" class="sidebar-link">4 — Run pipeline</a>
-      <a href="#step5" class="sidebar-link">5 — Monitor</a>
-      <a href="#step6" class="sidebar-link">6 — Verify signal</a>
-      <a href="#step7" class="sidebar-link">7 — Report figures</a>
-      <a href="#step8" class="sidebar-link">8 — Benchmarking</a>
+      <a href="#step1" class="sidebar-link">1 &mdash; Generate FASTQs</a>
+      <a href="#step2" class="sidebar-link">2 &mdash; Project setup</a>
+      <a href="#step3" class="sidebar-link">3 &mdash; Dry-run</a>
+      <a href="#step4" class="sidebar-link">4 &mdash; Run pipeline</a>
+      <a href="#step5" class="sidebar-link">5 &mdash; Monitor</a>
+      <a href="#step6" class="sidebar-link">6 &mdash; Verify signal</a>
+      <a href="#step7" class="sidebar-link">7 &mdash; Report figures</a>
+      <a href="#step8" class="sidebar-link">8 &mdash; Benchmarking</a>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-label">More</div>
@@ -120,15 +144,31 @@
   </aside>
 
   <main class="content">
-    <h1 id="intro">Tutorial</h1>
-    <p class="lead">A complete walkthrough using the 100-sample synthetic test dataset included with sRNA-TAPS. By the end you will have run the full Snakemake pipeline from raw FASTQs to called m5C sites, automatic R report figures, and — optionally — a three-tool benchmarking comparison.</p>
+    <div class="content-hero" id="intro">
+      <div class="content-badge">Walkthrough</div>
+      <h1>Tutorial</h1>
+      <p class="lead">A complete walkthrough using the 100-sample synthetic test dataset included with sRNA-TAPS. By the end you will have run the full Snakemake pipeline from raw FASTQs to called m5C sites, automatic R report figures, and, optionally, a three-tool benchmarking comparison.</p>
+      <div class="summary-grid">
+        <div class="summary-card">
+          <strong>Generate reproducible inputs</strong>
+          <p>Create the synthetic FASTQs, sample sheet, and project structure with the expected chemistry already seeded in.</p>
+        </div>
+        <div class="summary-card">
+          <strong>Launch and monitor the workflow</strong>
+          <p>Move from dry-run validation to full execution, then track progress through SLURM, logs, and output checkpoints.</p>
+        </div>
+        <div class="summary-card">
+          <strong>Verify expected signal</strong>
+          <p>Check seeded miRNA sites, review report figures, and extend the run into optional benchmarking when needed.</p>
+        </div>
+      </div>
+    </div>
 
-  <div id="prereqs" class="note"><strong>Before you start:</strong> You need a SLURM cluster with the <code>RNA_taps</code> conda environment active, R packages installed (<code>Rscript install_R_packages.R</code>), and the sRNA-TAPS repository cloned. No pre-built genome index is required — the pipeline downloads GRCh38 automatically.</div>
+  <div id="prereqs" class="note"><strong>Before you start:</strong> You need a SLURM cluster with the <code>RNA_taps</code> conda environment active, R packages installed (<code>Rscript install_R_packages.R</code>), and the sRNA-TAPS repository cloned. No pre-built genome index is required &mdash; the pipeline downloads GRCh38 automatically.</div>
 
-  <!-- ── STEP 1 ─────────────────────────────────────────────────────────── -->
   <div id="step1" class="step-header"><div class="step-num">1</div><h2>Generate the test FASTQs</h2></div>
   <div class="step-block">
-    <p>The simulator generates 100 samples with accurate TAPS chemistry — seeded m5C positions at 40–80% conversion in <code>treat</code> and 2–5% background in <code>no-treat</code>. Reads are 18–50 nt with the TruSeq small RNA adapter, drawn from real hg38 loci (miRNA 40%, tRNA 25%, rRNA 25%, snoRNA 10%).</p>
+    <p>The simulator generates 100 samples with accurate TAPS chemistry &mdash; seeded m5C positions at 40&ndash;80% conversion in <code>treat</code> and 2&ndash;5% background in <code>no-treat</code>. Reads are 18&ndash;50 nt with the TruSeq small RNA adapter, drawn from real hg38 loci (miRNA 40%, tRNA 25%, rRNA 25%, snoRNA 10%).</p>
     <pre><code>python3 tests/simulate_taps_srna.py \
     --outdir ~/srnataps_test/fastq \
     --samples 100 \
@@ -137,10 +177,9 @@
     <div class="tip"><strong>Tip:</strong> <code>--seed 42</code> makes the simulation fully reproducible. You will get identical results every time.</div>
   </div>
 
-  <!-- ── STEP 2 ─────────────────────────────────────────────────────────── -->
   <div id="step2" class="step-header"><div class="step-num">2</div><h2>Set up the project directory</h2></div>
   <div class="step-block">
-    <p>sRNA-TAPS needs two files in the project root: a <code>config.yaml</code> and a <code>samples.tsv</code>. The simulator writes <code>samples.tsv</code> automatically — link it to the project root and create the config.</p>
+    <p>sRNA-TAPS needs two files in the project root: a <code>config.yaml</code> and a <code>samples.tsv</code>. The simulator writes <code>samples.tsv</code> automatically &mdash; link it to the project root and create the config.</p>
     <pre><code>cd ~/srnataps_test
 
 # Link the generated sample sheet
@@ -181,10 +220,9 @@ benchmark:
     <div class="note"><strong>Genome paths:</strong> The paths under <code>reference:</code> do not need to exist yet. If the FASTA or GTF are absent, the pipeline downloads them from Ensembl release 112 and builds the Bowtie1 index automatically before any samples are processed.</div>
   </div>
 
-  <!-- ── STEP 3 ─────────────────────────────────────────────────────────── -->
   <div id="step3" class="step-header"><div class="step-num">3</div><h2>Dry-run to verify the DAG</h2></div>
   <div class="step-block">
-    <p>Always run a dry-run first. Snakemake prints the complete list of jobs without executing anything — a clean dry-run means your config, sample sheet, and file paths are all correct.</p>
+    <p>Always run a dry-run first. Snakemake prints the complete list of jobs without executing anything &mdash; a clean dry-run means your config, sample sheet, and file paths are all correct.</p>
     <pre><code>cd ~/srnataps_test
 
 snakemake \
@@ -195,17 +233,16 @@ snakemake \
     <p>You should see a job count table listing <code>download_genome_fa</code>, <code>download_gtf</code>, <code>bowtie1_index</code>, <code>fastqc</code>, <code>trim_galore</code>, <code>bowtie1_align</code>, <code>biotype_split</code>, <code>taps_call</code>, the four report rules, and <code>multiqc</code>. No errors means you are ready to launch.</p>
   </div>
 
-  <!-- ── STEP 4 ─────────────────────────────────────────────────────────── -->
   <div id="step4" class="step-header"><div class="step-num">4</div><h2>Run the pipeline</h2></div>
   <div class="step-block">
     <p>Launch the pipeline via the tmux launcher (recommended for SLURM clusters) or directly in the background. The coordinator process runs on the login node and submits all jobs to SLURM automatically.</p>
 
-    <h3>Option A — tmux launcher (recommended)</h3>
+    <h3>Option A &mdash; tmux launcher (recommended)</h3>
     <pre><code>cd ~/srnataps_test
 bash /path/to/sRNA-TAPS/sRNA_taps.bash</code></pre>
-    <p>This opens a named tmux session. Detach at any time with <strong>Ctrl+B then D</strong> — the run continues in the background. Reattach later with <code>tmux attach -t sRNA_TAPS</code>.</p>
+    <p>This opens a named tmux session. Detach at any time with <strong>Ctrl+B then D</strong> &mdash; the run continues in the background. Reattach later with <code>tmux attach -t sRNA_TAPS</code>.</p>
 
-    <h3>Option B — direct background launch</h3>
+    <h3>Option B &mdash; direct background launch</h3>
     <pre><code>cd ~/srnataps_test
 snakemake \
     --snakefile /path/to/sRNA-TAPS/workflow/Snakefile \
@@ -215,7 +252,6 @@ disown %1</code></pre>
     <div class="tip"><strong>disown:</strong> Running <code>disown %1</code> immediately after launch detaches the Snakemake coordinator from your terminal so it survives if you close the session.</div>
   </div>
 
-  <!-- ── STEP 5 ─────────────────────────────────────────────────────────── -->
   <div id="step5" class="step-header"><div class="step-num">5</div><h2>Monitor progress</h2></div>
   <div class="step-block">
     <p>Check on the run at any time from a new terminal without interrupting it.</p>
@@ -226,7 +262,7 @@ squeue -u $USER | wc -l</code></pre>
 
     <h3>Snakemake log</h3>
     <pre><code>tail -f ~/srnataps_test/.snakemake/log/$(ls -t ~/srnataps_test/.snakemake/log/ | head -1)</code></pre>
-    <p>Press <strong>Ctrl+C</strong> to stop watching the log — this does not affect the running pipeline.</p>
+    <p>Press <strong>Ctrl+C</strong> to stop watching the log &mdash; this does not affect the running pipeline.</p>
 
     <h3>Output checkpoints</h3>
     <pre><code># Alignment done?
@@ -238,15 +274,14 @@ ls ~/srnataps_test/07.taps_calls/miRNA/ | wc -l       # expect 100 TSVs
 # Report figures generated?
 ls ~/srnataps_test/report/figures/*.pdf | wc -l</code></pre>
 
-    <div class="note"><strong>Genome download first:</strong> The first stage downloads and indexes the GRCh38 genome (~3 GB). This takes 20–30 minutes and runs once. All subsequent runs in any project on the same cluster reuse the same genome files if you point <code>genome_fa</code> and <code>bowtie1_index</code> to the same paths.</div>
+    <div class="note"><strong>Genome download first:</strong> The first stage downloads and indexes the GRCh38 genome (~3 GB). This takes 20&ndash;30 minutes and runs once. All subsequent runs in any project on the same cluster reuse the same genome files if you point <code>genome_fa</code> and <code>bowtie1_index</code> to the same paths.</div>
 
-    <p>The full 100-sample test run takes approximately 2–4 hours on a standard SLURM cluster, depending on node availability. Report figures for QC and biotype composition appear while later stages are still running.</p>
+    <p>The full 100-sample test run takes approximately 2&ndash;4 hours on a standard SLURM cluster, depending on node availability. Report figures for QC and biotype composition appear while later stages are still running.</p>
   </div>
 
-  <!-- ── STEP 6 ─────────────────────────────────────────────────────────── -->
   <div id="step6" class="step-header"><div class="step-num">6</div><h2>Verify the TAPS signal</h2></div>
   <div class="step-block">
-    <p>Once TAPS calling is complete, check the two seeded m5C positions — <strong>chr17:59841313</strong> in hsa-miR-21-5p and <strong>chrX:66018955</strong> in hsa-miR-223-3p:</p>
+    <p>Once TAPS calling is complete, check the two seeded m5C positions &mdash; <strong>chr17:59841313</strong> in hsa-miR-21-5p and <strong>chrX:66018955</strong> in hsa-miR-223-3p:</p>
     <pre><code># treat sample — expect mod_rate ~0.90
 grep "^17.*59841313" \
     ~/srnataps_test/07.taps_calls/miRNA/treat_HEK_R1_miRNA_taps.tsv
@@ -266,31 +301,29 @@ grep "^17.*59841313" \
     <div class="tip"><strong>The &gt;40-fold enrichment between treat and no-treat confirms the pipeline is working correctly end-to-end.</strong></div>
   </div>
 
-  <!-- ── STEP 7 ─────────────────────────────────────────────────────────── -->
   <div id="step7" class="step-header"><div class="step-num">7</div><h2>Explore the report figures</h2></div>
   <div class="step-block">
-    <p>Report figures are generated automatically at each pipeline stage — no separate steps needed. All figures are written to <code>report/figures/</code> in PDF, PNG, and SVG format.</p>
+    <p>Report figures are generated automatically at each pipeline stage &mdash; no separate steps needed. All figures are written to <code>report/figures/</code> in PDF, PNG, and SVG format.</p>
     <pre><code>ls ~/srnataps_test/report/figures/</code></pre>
 
     <table>
       <tr><th>Figure prefix</th><th>Contents</th></tr>
       <tr><td><code>01a_*</code></td><td>Read length distributions (raw and trimmed)</td></tr>
       <tr><td><code>01b_*</code></td><td>Bowtie1 mapping rates per sample</td></tr>
-      <tr><td><code>02a_*</code></td><td>Biotype composition — all samples</td></tr>
-      <tr><td><code>02b_*</code></td><td>Biotype composition — mean by condition</td></tr>
+      <tr><td><code>02a_*</code></td><td>Biotype composition &mdash; all samples</td></tr>
+      <tr><td><code>02b_*</code></td><td>Biotype composition &mdash; mean by condition</td></tr>
       <tr><td><code>03a_*</code></td><td>Modification rate distributions</td></tr>
-      <tr><td><code>03b_*</code></td><td>Top m5C sites by δ score</td></tr>
+      <tr><td><code>03b_*</code></td><td>Top m5C sites by &delta; score</td></tr>
       <tr><td><code>03c_*</code></td><td>Condition comparison scatter</td></tr>
       <tr><td><code>03d_*</code></td><td>Waterfall plot of called sites</td></tr>
       <tr><td><code>03e_*</code></td><td>Trinucleotide context of called sites</td></tr>
-      <tr><td><code>05_seqlogo_*</code></td><td>Sequence logos ±5 and ±10 nt per biotype</td></tr>
+      <tr><td><code>05_seqlogo_*</code></td><td>Sequence logos &plusmn;5 and &plusmn;10 nt per biotype</td></tr>
     </table>
 
     <p>The aggregated MultiQC report covering FastQC, Trim Galore, and Bowtie1 is at:</p>
     <pre><code>~/srnataps_test/report/multiqc_report.html</code></pre>
   </div>
 
-  <!-- ── STEP 8 ─────────────────────────────────────────────────────────── -->
   <div id="step8" class="step-header"><div class="step-num">8</div><h2>Run benchmarking <span style="font-weight:400;font-size:.9em;color:var(--text3)">(optional)</span></h2></div>
   <div class="step-block">
     <p>The benchmark suite compares sRNA-TAPS calls against rastair (CpG-only and all-context), asTair (all contexts per biotype), and Bismark (bisulfite contrast). It is opt-in because Bismark genome preparation and asTair on large biotypes are slow and not needed for routine analysis.</p>
@@ -310,7 +343,7 @@ mamba create -n astair_env -y python=3.9
     <pre><code># In workflow/rules/benchmark.smk, the astair_call rule shell uses:
 /path/to/conda/envs/astair_env/bin/astair call \</code></pre>
 
-    <div class="note"><strong>Note:</strong> The pipeline calls asTair via its full binary path — no conda activation is needed at runtime. The path is set once in <code>benchmark.smk</code>.</div>
+    <div class="note"><strong>Note:</strong> The pipeline calls asTair via its full binary path &mdash; no conda activation is needed at runtime. The path is set once in <code>benchmark.smk</code>.</div>
 
     <h3>Launch the benchmark</h3>
     <pre><code>cd ~/srnataps_test
@@ -331,27 +364,28 @@ snakemake \
     all_benchmark &
 disown %1</code></pre>
 
-    <p>The benchmark adds rastair (36 jobs), asTair (144 jobs across 8 biotypes × 18 samples), and Bismark (18 align + 1 index). Monitor with <code>squeue -u $USER</code>. When complete, the comparison outputs and benchmark figures will be at:</p>
+    <p>The benchmark adds rastair (36 jobs), asTair (144 jobs across 8 biotypes &times; 18 samples), and Bismark (18 align + 1 index). Monitor with <code>squeue -u $USER</code>. When complete, the comparison outputs and benchmark figures will be at:</p>
     <pre><code>~/srnataps_test/09.compare/concordance_summary.tsv
 ~/srnataps_test/09.compare/correlation_summary.tsv
 ~/srnataps_test/report/figures/04a_concordance_heatmap.pdf
 ~/srnataps_test/report/figures/04b_correlation.pdf
 ~/srnataps_test/report/figures/04c_site_overlap.pdf</code></pre>
 
-    <div class="tip"><strong>Key finding:</strong> rastair produces identical outputs in CpG-only and all-context modes — confirming it is a CpG-only caller by design, regardless of flags. This is why a dedicated small RNA pipeline is needed for non-CpG m5C detection. See the <a href="benchmarking.html">Benchmarking page</a> for full results.</div>
+    <div class="tip"><strong>Key finding:</strong> rastair produces identical outputs in CpG-only and all-context modes &mdash; confirming it is a CpG-only caller by design, regardless of flags. This is why a dedicated small RNA pipeline is needed for non-CpG m5C detection. See the <a href="benchmarking.html">Benchmarking page</a> for full results.</div>
   </div>
 
   <div class="note" style="margin-top:48px">
-    <strong>Next steps:</strong> See the <a href="docs.html" style="color:var(--accent)">full documentation</a> for running on real biological data, interpreting the delta (δ) score, and SNP filtering layers. For benchmarking results and cross-tool comparisons, see the <a href="benchmarking.html" style="color:var(--accent)">Benchmarking page</a>.
+    <strong>Next steps:</strong> See the <a href="docs.html" style="color:var(--accent)">full documentation</a> for running on real biological data, interpreting the delta (&delta;) score, and SNP filtering layers. For benchmarking results and cross-tool comparisons, see the <a href="benchmarking.html" style="color:var(--accent)">Benchmarking page</a>.
   </div>
 
   </main>
+</div>
 </div>
 
 <footer>
   <div class="footer-inner">
     <a href="https://schneider.cup.uni-muenchen.de" target="_blank"><img src="Lab_Logo.png" alt="sRNA-TAPS" style="height:28px;width:auto;"></a>
-    <div style="display:flex;gap:20px">
+    <div style="display:flex;gap:20px;flex-wrap:wrap">
       <a href="docs.html" style="font-size:.85rem;color:var(--text2);text-decoration:none">Docs</a>
       <a href="tutorial.html" style="font-size:.85rem;color:var(--text2);text-decoration:none">Tutorial</a>
       <a href="benchmarking.html" style="font-size:.85rem;color:var(--text2);text-decoration:none">Benchmarking</a>
@@ -360,7 +394,7 @@ disown %1</code></pre>
       <a href="contact.html" style="font-size:.85rem;color:var(--text2);text-decoration:none">Contact</a>
       <a href="https://github.com/HenzelerB/sRNA-TAPS" target="_blank" style="font-size:.85rem;color:var(--text2);text-decoration:none">GitHub</a>
     </div>
-    <div style="font-size:.8rem;color:var(--text3)">© 2026 Schneider Lab, LMU Munich · MIT License</div>
+    <div style="font-size:.8rem;color:var(--text3)">&copy; 2026 Schneider Lab, LMU Munich &middot; MIT License</div>
   </div>
 </footer>
 <script src="site.js"></script>
