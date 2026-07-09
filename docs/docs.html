@@ -226,7 +226,7 @@ snakemake \
     --profile    /path/to/sRNA-TAPS/profile \
     all_benchmark</code></pre>
 
-    <div class="note"><strong>Genome auto-download:</strong> If the genome FASTA or GTF are absent from the paths in <code>config.yaml</code>, the pipeline downloads GRCh38 from Ensembl and builds the Bowtie1 index automatically. No pre-built index is needed for new users.</div>
+    <div class="note"><strong>Reference auto-download:</strong> If <code>genome_fa</code> or <code>gtf</code> are left blank, sRNA-TAPS derives the matching Ensembl files for the configured <code>reference.species</code> and builds the Bowtie1 index automatically. No pre-built index is needed for new users.</div>
 
     <!-- ── CONFIGURATION ───────────────────────────────────────────────── -->
     <h2 id="config">Configuration</h2>
@@ -243,10 +243,11 @@ snakemake \
   outdir: /path/to/my_project
 
 reference:
-  genome_fa:       /path/to/my_project/04a.genome/Homo_sapiens.GRCh38.dna.toplevel.fa
-  gtf:             /path/to/my_project/04a.genome/Homo_sapiens.GRCh38.112.gtf
-  bowtie1_index:   /path/to/my_project/04a.genome/genome
-  ensembl_release: 112   # used for automatic genome download
+  species:         human   # run "srnataps species" to list supported values
+  genome_fa:       ""      # derived and downloaded automatically
+  gtf:             ""      # derived and downloaded automatically
+  bowtie1_index:   ""      # derived and built automatically
+  ensembl_release: 112
   dbsnp_vcf: ""          # optional — leave empty to skip dbSNP layer
 
 output:
@@ -268,6 +269,20 @@ benchmark:
       min_mapq:  20
       min_baseq: 20
       context:   all</code></pre>
+
+    <div class="note"><strong>Built-in references:</strong> Set <code>reference.species</code> and leave <code>genome_fa</code>, <code>gtf</code>, and <code>bowtie1_index</code> empty to use the Ensembl-backed registry. If you already have a matching FASTA and GTF, explicit paths override the automatic download.</div>
+    <p>List supported species and assemblies with <code>srnataps species</code>:</p>
+    <table>
+      <tr><th>Configuration name</th><th>Species</th><th>Assembly</th></tr>
+      <tr><td><code>human</code></td><td><em>Homo sapiens</em></td><td>GRCh38</td></tr>
+      <tr><td><code>mouse</code></td><td><em>Mus musculus</em></td><td>GRCm39</td></tr>
+      <tr><td><code>rat</code></td><td><em>Rattus norvegicus</em></td><td>mRatBN7.2</td></tr>
+      <tr><td><code>zebrafish</code></td><td><em>Danio rerio</em></td><td>GRCz11</td></tr>
+      <tr><td><code>fruit_fly</code></td><td><em>Drosophila melanogaster</em></td><td>BDGP6.46</td></tr>
+      <tr><td><code>c_elegans</code></td><td><em>Caenorhabditis elegans</em></td><td>WBcel235</td></tr>
+      <tr><td><code>chicken</code></td><td><em>Gallus gallus</em></td><td>GRCg7b</td></tr>
+    </table>
+    <div class="tip"><strong>Custom references:</strong> For organisms or assemblies outside the built-in registry, provide matching <code>genome_fa</code> and <code>gtf</code> paths directly in <code>config.yaml</code>.</div>
 
     <h3>samples.tsv</h3>
     <p>Tab-separated, one row per sample. Four columns are required:</p>
@@ -306,9 +321,9 @@ no-treat_Ctrl_Caco2_R1  no-treat   Caco2      /data/rawfiles/no-treat_Ctrl_Caco2
       <tr><td>fastqc</td><td>≥ 0.12</td><td>Quality control</td></tr>
       <tr><td>trim-galore</td><td>≥ 0.6.10</td><td>Adapter trimming</td></tr>
       <tr><td>multiqc</td><td>≥ 1.21</td><td>QC aggregation</td></tr>
-      <tr><td>wget</td><td>any</td><td>Genome auto-download</td></tr>
+      <tr><td>wget</td><td>any</td><td>Reference auto-download</td></tr>
       <tr><td>R</td><td>≥ 4.3</td><td>Report figures (automatic)</td></tr>
-      <tr><td>BSgenome.Hsapiens.UCSC.hg38</td><td>any</td><td>Sequence logos</td></tr>
+      <tr><td>Rsamtools + GenomicRanges</td><td>any</td><td>Sequence logos</td></tr>
       <tr><td>bismark</td><td>≥ 0.24</td><td>Benchmarking only</td></tr>
       <tr><td>rastair</td><td>≥ 2.1</td><td>Benchmarking only</td></tr>
       <tr><td>asTair</td><td>≥ 3.3</td><td>Benchmarking only (separate conda env)</td></tr>
@@ -319,9 +334,9 @@ no-treat_Ctrl_Caco2_R1  no-treat   Caco2      /data/rawfiles/no-treat_Ctrl_Caco2
     <h2 id="overview">Pipeline Overview</h2>
     <pre><code>rawfiles/         Raw FASTQs (SE, TruSeq small RNA)
     ↓
-    [Genome setup — runs once, skipped if files already exist]
-    download_genome   Download GRCh38 FASTA from Ensembl
-    download_gtf      Download GRCh38 GTF from Ensembl
+    [Genome setup — runs once per selected reference]
+    download_genome_fa Download Ensembl FASTA for configured species
+    download_gtf       Download matching Ensembl GTF
     index_genome_fa   samtools faidx
     bowtie1_index     Build Bowtie1 index
     ↓
@@ -350,7 +365,8 @@ no-treat_Ctrl_Caco2_R1  no-treat   Caco2      /data/rawfiles/no-treat_Ctrl_Caco2
     <!-- ── GENOME SETUP ────────────────────────────────────────────────── -->
     <h2 id="genome">Genome Setup</h2>
     <p><strong>Tools:</strong> wget, samtools faidx, bowtie-build</p>
-    <p>If the genome FASTA or GTF do not exist at the paths in <code>config.yaml</code>, the pipeline downloads them from Ensembl automatically. The Ensembl release is set by <code>ensembl_release</code> in config (default: 112). The unmasked <code>dna.toplevel</code> FASTA is always used — the repeat-masked version soft-masks cytosines, which would suppress genuine C→T TAPS modification signal.</p>
+    <div class="note"><strong>Species-aware references:</strong> The default registry includes human, mouse, rat, zebrafish, fruit fly, <code>c_elegans</code>, and chicken. Human still defaults to GRCh38, but any supported species can be selected through <code>reference.species</code>.</div>
+    <p>If the genome FASTA or GTF do not exist at the paths in <code>config.yaml</code>, the pipeline derives them from <code>reference.species</code> and downloads the matching Ensembl release automatically. The Ensembl release is set by <code>ensembl_release</code> in config (default: 112). The unmasked <code>dna.toplevel</code> FASTA is always used — the repeat-masked version soft-masks cytosines, which would suppress genuine C→T TAPS modification signal.</p>
     <p>If your genome files already exist on disk, all download and indexing steps are skipped. The Bowtie1 index is built once from the FASTA and reused for all samples.</p>
     <div class="tip"><strong>Existing index:</strong> Point <code>genome_fa</code>, <code>gtf</code>, and <code>bowtie1_index</code> in <code>config.yaml</code> to your existing files. Snakemake will skip download automatically.</div>
 
@@ -367,7 +383,7 @@ no-treat_Ctrl_Caco2_R1  no-treat   Caco2      /data/rawfiles/no-treat_Ctrl_Caco2
     <!-- ── STEP 3 ───────────────────────────────────────────────────────── -->
     <h2 id="step3">Step 3 — TAPS-aware Alignment</h2>
     <p><strong>Tool:</strong> Bowtie 1.3.1, SAMtools</p>
-    <p>Alignment is to the whole GRCh38 genome rather than a transcriptome — tRNA families (~600 gene copies), piRNA clusters, and snoRNA loci need genomic coordinates for correct downstream annotation. Four parameters are set specifically for TAPS data:</p>
+    <p>Alignment is to the whole reference genome rather than a transcriptome — tRNA families (~600 gene copies), piRNA clusters, and snoRNA loci need genomic coordinates for correct downstream annotation. Four parameters are set specifically for TAPS data:</p>
     <table>
       <tr><th>Parameter</th><th>Purpose</th></tr>
       <tr><td><code>-v 2</code></td><td>Up to 2 total mismatches — tolerates C→T modifications without penalising them</td></tr>
@@ -378,7 +394,7 @@ no-treat_Ctrl_Caco2_R1  no-treat   Caco2      /data/rawfiles/no-treat_Ctrl_Caco2
 
     <!-- ── STEP 4 ───────────────────────────────────────────────────────── -->
     <h2 id="step4">Step 4 — Biotype Annotation</h2>
-    <p><strong>Tool:</strong> Custom Python script (pysam), Ensembl GRCh38 GTF</p>
+    <p><strong>Tool:</strong> Custom Python script (pysam), Ensembl GTF for the configured species</p>
     <p>Reads are assigned to the highest-priority overlapping biotype using the Ensembl GTF, and separate sorted BAMs are written per biotype per sample:</p>
     <pre><code>miRNA > tRNA > piRNA > snoRNA > snRNA > rRNA > lncRNA > other</code></pre>
     <p>A biotype composition summary (<code>05.biotype_bams/*_biotype_summary.txt</code>) is written alongside each BAM for downstream QC figures.</p>
@@ -420,12 +436,12 @@ no-treat_Ctrl_Caco2_R1  no-treat   Caco2      /data/rawfiles/no-treat_Ctrl_Caco2
 
     <!-- ── STEP 8 ───────────────────────────────────────────────────────── -->
     <h2 id="step8">Step 8 — Genomic Annotation</h2>
-    <p><strong>Tool:</strong> bedtools intersect, Ensembl GRCh38 GTF</p>
+    <p><strong>Tool:</strong> bedtools intersect, Ensembl GTF for the configured species</p>
     <p>Called sites are intersected with the Ensembl annotation to assign gene name, biotype, and feature. miRNA gene names follow miRBase nomenclature. Where a site overlaps multiple features, the most specific annotation is kept using the priority hierarchy from Step 4.</p>
 
     <!-- ── STEP 9 ───────────────────────────────────────────────────────── -->
     <h2 id="step9">Step 9 — Report Generation</h2>
-    <p><strong>Tools:</strong> R (ggplot2, ggseqlogo, BSgenome.Hsapiens.UCSC.hg38), MultiQC</p>
+    <p><strong>Tools:</strong> R (ggplot2, ggseqlogo, Rsamtools), MultiQC</p>
     <p>Report figures are generated <strong>automatically as part of the pipeline</strong> — no manual steps needed. Each report stage runs immediately after its upstream data are ready, so QC figures appear while alignment is still running for the remaining samples.</p>
     <table>
       <tr><th>Rule</th><th>Script</th><th>Figures</th></tr>
@@ -478,12 +494,13 @@ snakemake \
 
     <!-- ── OUTPUT FILES ────────────────────────────────────────────────── -->
     <h2 id="output">Output Files</h2>
+    <p>The reference bundle in <code>04a.genome/</code> reflects the configured species and Ensembl release for the run.</p>
     <pre><code>outdir/
 ├── 02.fastqc/
 │   ├── pre_trim/       FastQC HTML + data per sample (raw)
 │   └── post_trim/      FastQC HTML + data per sample (trimmed)
 ├── 03.trimGalore/      Trimmed FASTQs + trimming reports
-├── 04a.genome/         GRCh38 FASTA + GTF + Bowtie1 index
+├── 04a.genome/         Selected reference FASTA + GTF + Bowtie1 index
 │                       (auto-downloaded if not present)
 ├── 04b.aligned/        Sorted BAMs per sample + flagstat logs
 ├── 05.biotype_bams/    Per-biotype BAMs + *_biotype_summary.txt per sample
