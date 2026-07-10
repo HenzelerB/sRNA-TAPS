@@ -56,16 +56,14 @@
     h1{font-family:'Outfit',sans-serif;font-size:2.7rem;line-height:1.08;letter-spacing:-.03em;margin-bottom:14px}
     .lead{font-size:1.08rem;color:var(--text2);line-height:1.78;max-width:none}
     .hero-logo-ribbon{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:28px;max-width:520px}
-    .logo-card{background:rgba(255,255,255,.8);border:1px solid rgba(44,95,138,.12);border-radius:22px;padding:18px 18px 16px;backdrop-filter:blur(10px);box-shadow:0 10px 24px rgba(26,24,20,.05);min-height:168px;display:flex;flex-direction:column;justify-content:space-between}
-    .logo-kicker{display:block;font-size:.74rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
-    .logo-name{font-size:1rem;font-weight:700;color:var(--text);margin-bottom:10px}
-    .logo-frame{display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,rgba(247,246,242,.9),rgba(255,255,255,.96));border:1px solid rgba(44,95,138,.08);border-radius:18px;padding:14px;min-height:92px;overflow:hidden}
+    .logo-card{background:linear-gradient(180deg,#2f6796,#244f77);border:1px solid rgba(33,74,110,.72);border-radius:22px;padding:16px;backdrop-filter:blur(10px);box-shadow:0 14px 28px rgba(26,24,20,.1);min-height:152px;display:flex;flex-direction:column;justify-content:space-between}
+    .logo-kicker{display:block;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:rgba(232,240,248,.82);margin-bottom:8px}
+    .logo-name{font-size:1rem;font-weight:700;color:#fff;margin-bottom:10px}
+    .logo-frame{display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.96);border:1px solid rgba(255,255,255,.4);border-radius:18px;padding:12px;min-height:88px;overflow:hidden}
     .logo-frame img{display:block;max-width:100%;height:auto}
-    .logo-frame.bismark img{width:88px}
-    .logo-frame.rastair{padding:12px 16px}
-    .rastair-wordmark{font-size:1.32rem;font-weight:700;letter-spacing:.04em;color:#9f63b0;line-height:1}
-    .rastair-accent{display:block;width:116px;height:auto;margin-top:10px}
-    .logo-note{font-size:.8rem;line-height:1.55;color:var(--text3);margin-top:12px}
+    .logo-frame.bismark img{width:82px}
+    .logo-frame.rastair{padding:0}
+    .logo-frame.rastair img{width:1900px;max-width:none;transform:translate(-116px,-248px)}
     .hero-highlights{display:grid;grid-template-columns:1fr;gap:16px;align-content:start}
     .highlight-card{background:rgba(255,255,255,.76);border:1px solid rgba(44,95,138,.12);border-radius:20px;padding:18px 18px 16px;backdrop-filter:blur(10px);box-shadow:0 10px 24px rgba(26,24,20,.05)}
     .highlight-kicker{display:block;font-size:.76rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
@@ -178,7 +176,6 @@
             <div class="logo-frame bismark">
               <img src="bismark.png" alt="Bismark logo">
             </div>
-            <p class="logo-note">Bisulfite-oriented comparison baseline with inverted chemistry relative to TAPS.</p>
           </div>
           <div class="logo-card">
             <div>
@@ -186,12 +183,8 @@
               <div class="logo-name">rastair</div>
             </div>
             <div class="logo-frame rastair">
-              <div>
-                <div class="rastair-wordmark">rastair</div>
-                <img class="rastair-accent" src="Rastair.png" alt="rastair logo accent">
-              </div>
+              <img src="Rastair.png" alt="rastair logo">
             </div>
-            <p class="logo-note">TAPS-native comparator included alongside sRNA-TAPS and asTair in the benchmark set.</p>
           </div>
         </div>
       </div>
