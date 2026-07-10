@@ -55,6 +55,13 @@
     .hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(44,95,138,.1);border:1px solid rgba(44,95,138,.14);color:#1a3d5c;border-radius:999px;padding:7px 14px;font-size:.78rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:18px}
     h1{font-family:'Outfit',sans-serif;font-size:2.7rem;line-height:1.08;letter-spacing:-.03em;margin-bottom:14px}
     .lead{font-size:1.08rem;color:var(--text2);line-height:1.78;max-width:none}
+    .hero-actions-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:24px}
+    .hero-action-card{background:rgba(255,255,255,.82);border:1px solid rgba(44,95,138,.12);border-radius:18px;padding:18px 18px 16px;box-shadow:0 10px 24px rgba(26,24,20,.05)}
+    .hero-action-label{display:block;font-size:.76rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+    .hero-action-card strong{display:block;font-size:1rem;color:var(--text);margin-bottom:6px}
+    .hero-action-card p{font-size:.9rem;line-height:1.6;margin:0 0 14px}
+    .hero-action-link{display:inline-flex;align-items:center;gap:8px;font-size:.9rem;font-weight:600;color:var(--accent);text-decoration:none}
+    .hero-action-link:hover{text-decoration:none;opacity:.86}
     .hero-highlights{display:grid;grid-template-columns:1fr;gap:16px;align-content:start}
     .highlight-card{background:rgba(255,255,255,.76);border:1px solid rgba(44,95,138,.12);border-radius:20px;padding:18px 18px 16px;backdrop-filter:blur(10px);box-shadow:0 10px 24px rgba(26,24,20,.05)}
     .highlight-kicker{display:block;font-size:.76rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
@@ -121,6 +128,9 @@
       .contact-grid{grid-template-columns:1fr}
       nav{padding:0 20px}
     }
+    @media(max-width:640px){
+      .hero-actions-grid{grid-template-columns:1fr}
+    }
   </style>
   <link rel="stylesheet" href="responsive.css">
 </head>
@@ -148,6 +158,20 @@
         <div class="hero-badge">Support</div>
         <h1>Contact &amp; FAQ</h1>
         <p class="lead">Found a bug, need help running the pipeline, or want to talk through experimental design? This page keeps the support paths clear, practical, and easy to act on.</p>
+        <div class="hero-actions-grid">
+          <div class="hero-action-card">
+            <span class="hero-action-label">Quick route</span>
+            <strong>Bug report or feature request</strong>
+            <p>Use GitHub Issues when the problem is reproducible or the request belongs in the public project history.</p>
+            <a class="hero-action-link" href="https://github.com/HenzelerB/sRNA-TAPS/issues/new" target="_blank">Open an issue &nearr;</a>
+          </div>
+          <div class="hero-action-card">
+            <span class="hero-action-label">Direct route</span>
+            <strong>Private or experimental questions</strong>
+            <p>Use email for interpretation, project-specific discussion, collaboration, or experimental design questions.</p>
+            <a class="hero-action-link" href="mailto:bennett.henzeler@cup.lmu.de">Email Bennett</a>
+          </div>
+        </div>
       </div>
       <div class="hero-highlights">
         <div class="highlight-card">
