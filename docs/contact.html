@@ -55,13 +55,23 @@
     .hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(44,95,138,.1);border:1px solid rgba(44,95,138,.14);color:#1a3d5c;border-radius:999px;padding:7px 14px;font-size:.78rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:18px}
     h1{font-family:'Outfit',sans-serif;font-size:2.7rem;line-height:1.08;letter-spacing:-.03em;margin-bottom:14px}
     .lead{font-size:1.08rem;color:var(--text2);line-height:1.78;max-width:none}
-    .hero-actions-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:24px}
-    .hero-action-card{background:rgba(255,255,255,.82);border:1px solid rgba(44,95,138,.12);border-radius:18px;padding:18px 18px 16px;box-shadow:0 10px 24px rgba(26,24,20,.05)}
-    .hero-action-label{display:block;font-size:.76rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
-    .hero-action-card strong{display:block;font-size:1rem;color:var(--text);margin-bottom:6px}
-    .hero-action-card p{font-size:.9rem;line-height:1.6;margin:0 0 14px}
-    .hero-action-link{display:inline-flex;align-items:center;gap:8px;font-size:.9rem;font-weight:600;color:var(--accent);text-decoration:none}
-    .hero-action-link:hover{text-decoration:none;opacity:.86}
+    .hero-visual{margin-top:26px;position:relative;overflow:hidden;background:linear-gradient(180deg,rgba(255,255,255,.86),rgba(244,248,252,.78));border:1px solid rgba(44,95,138,.12);border-radius:22px;padding:22px 22px 18px;box-shadow:0 14px 30px rgba(26,24,20,.05)}
+    .hero-visual::before{content:"";position:absolute;inset:auto -80px -120px auto;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(44,95,138,.12),rgba(44,95,138,0) 72%)}
+    .hero-visual-label{position:relative;z-index:1;display:block;font-size:.76rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+    .hero-visual-title{position:relative;z-index:1;font-size:1.02rem;font-weight:600;color:var(--text);margin-bottom:14px}
+    .hero-chip-grid{position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+    .hero-chip{display:flex;align-items:center;justify-content:center;text-align:center;min-height:64px;padding:14px 12px;border-radius:16px;background:rgba(255,255,255,.9);border:1px solid rgba(44,95,138,.1);box-shadow:0 10px 22px rgba(26,24,20,.04);font-size:.88rem;font-weight:500;color:var(--text2);animation:heroFloat 5.6s ease-in-out infinite}
+    .hero-chip strong{color:var(--text);font-weight:600}
+    .hero-chip:nth-child(2){animation-delay:.6s}
+    .hero-chip:nth-child(3){animation-delay:1.2s}
+    .hero-chip:nth-child(4){animation-delay:1.8s}
+    .hero-chip:nth-child(5){animation-delay:2.4s}
+    .hero-chip:nth-child(6){animation-delay:3s}
+    .hero-visual-note{position:relative;z-index:1;margin-top:14px;font-size:.88rem;color:var(--text3);line-height:1.65}
+    @keyframes heroFloat{
+      0%,100%{transform:translateY(0)}
+      50%{transform:translateY(-6px)}
+    }
     .hero-highlights{display:grid;grid-template-columns:1fr;gap:16px;align-content:start}
     .highlight-card{background:rgba(255,255,255,.76);border:1px solid rgba(44,95,138,.12);border-radius:20px;padding:18px 18px 16px;backdrop-filter:blur(10px);box-shadow:0 10px 24px rgba(26,24,20,.05)}
     .highlight-kicker{display:block;font-size:.76rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
@@ -129,7 +139,10 @@
       nav{padding:0 20px}
     }
     @media(max-width:640px){
-      .hero-actions-grid{grid-template-columns:1fr}
+      .hero-chip-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    }
+    @media(max-width:480px){
+      .hero-chip-grid{grid-template-columns:1fr}
     }
   </style>
   <link rel="stylesheet" href="responsive.css">
@@ -158,19 +171,18 @@
         <div class="hero-badge">Support</div>
         <h1>Contact &amp; FAQ</h1>
         <p class="lead">Found a bug, need help running the pipeline, or want to talk through experimental design? This page keeps the support paths clear, practical, and easy to act on.</p>
-        <div class="hero-actions-grid">
-          <div class="hero-action-card">
-            <span class="hero-action-label">Quick route</span>
-            <strong>Bug report or feature request</strong>
-            <p>Use GitHub Issues when the problem is reproducible or the request belongs in the public project history.</p>
-            <a class="hero-action-link" href="https://github.com/HenzelerB/sRNA-TAPS/issues/new" target="_blank">Open an issue &nearr;</a>
+        <div class="hero-visual">
+          <span class="hero-visual-label">Support topics</span>
+          <div class="hero-visual-title">Questions usually fall into one of these areas.</div>
+          <div class="hero-chip-grid">
+            <div class="hero-chip"><strong>Bug reports</strong></div>
+            <div class="hero-chip"><strong>Pipeline help</strong></div>
+            <div class="hero-chip"><strong>Experimental design</strong></div>
+            <div class="hero-chip"><strong>Result interpretation</strong></div>
+            <div class="hero-chip"><strong>Collaboration</strong></div>
+            <div class="hero-chip"><strong>FAQ guidance</strong></div>
           </div>
-          <div class="hero-action-card">
-            <span class="hero-action-label">Direct route</span>
-            <strong>Private or experimental questions</strong>
-            <p>Use email for interpretation, project-specific discussion, collaboration, or experimental design questions.</p>
-            <a class="hero-action-link" href="mailto:bennett.henzeler@cup.lmu.de">Email Bennett</a>
-          </div>
+          <div class="hero-visual-note">A subtle motion panel keeps the hero balanced while pointing to the main reasons people land on this page.</div>
         </div>
       </div>
       <div class="hero-highlights">
