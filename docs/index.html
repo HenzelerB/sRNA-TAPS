@@ -4,21 +4,21 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- SEO -->
-  <meta name="description" content="sRNA-TAPS is an open-source Snakemake pipeline for detecting 5-methylcytosine (m5C) and 5-hydroxymethylcytosine (hm5C) in small RNA using TET-assisted pyridine borane sequencing (TAPS). Covers miRNA, tRNA, rRNA, snoRNA, snRNA, piRNA and lncRNA from human samples (GRCh38).">
+  <meta name="description" content="sRNA-TAPS is an open-source Snakemake pipeline for detecting 5-methylcytosine (m5C) and 5-hydroxymethylcytosine (hm5C) in small RNA using TET-assisted pyridine borane sequencing (TAPS). Covers miRNA, tRNA, rRNA, snoRNA, snRNA, piRNA and lncRNA across species-aware reference workflows.">
   <meta name="keywords" content="sRNA-TAPS, sRNA TAPS, RNA m5C detection, small RNA methylation, TAPS sequencing, epitranscriptomics, RNA epigenetics, m5C small RNA, TET-assisted pyridine borane sequencing, bisulfite-free RNA methylation, Snakemake bioinformatics pipeline, miRNA methylation, tRNA modification, rRNA m5C">
   <meta name="author" content="Bennett Henzeler, Schneider Lab, LMU Munich">
   <link rel="canonical" href="https://henzelerb.github.io/sRNA-TAPS/">
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="sRNA-TAPS — m5C detection in small RNA">
-  <meta property="og:description" content="sRNA-TAPS is an open-source Snakemake pipeline for detecting 5-methylcytosine (m5C) and 5-hydroxymethylcytosine (hm5C) in small RNA using TET-assisted pyridine borane sequencing (TAPS). Covers miRNA, tRNA, rRNA, snoRNA, snRNA, piRNA and lncRNA from human samples (GRCh38).">
+  <meta property="og:description" content="sRNA-TAPS is an open-source Snakemake pipeline for detecting 5-methylcytosine (m5C) and 5-hydroxymethylcytosine (hm5C) in small RNA using TET-assisted pyridine borane sequencing (TAPS). Covers miRNA, tRNA, rRNA, snoRNA, snRNA, piRNA and lncRNA across species-aware reference workflows.">
   <meta property="og:url" content="https://henzelerb.github.io/sRNA-TAPS/">
   <meta property="og:image" content="https://henzelerb.github.io/sRNA-TAPS/sRNA-taps_logo.svg">
   <meta property="og:site_name" content="sRNA-TAPS">
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="sRNA-TAPS — m5C detection in small RNA">
-  <meta name="twitter:description" content="sRNA-TAPS is an open-source Snakemake pipeline for detecting 5-methylcytosine (m5C) and 5-hydroxymethylcytosine (hm5C) in small RNA using TET-assisted pyridine borane sequencing (TAPS). Covers miRNA, tRNA, rRNA, snoRNA, snRNA, piRNA and lncRNA from human samples (GRCh38).">
+  <meta name="twitter:description" content="sRNA-TAPS is an open-source Snakemake pipeline for detecting 5-methylcytosine (m5C) and 5-hydroxymethylcytosine (hm5C) in small RNA using TET-assisted pyridine borane sequencing (TAPS). Covers miRNA, tRNA, rRNA, snoRNA, snRNA, piRNA and lncRNA across species-aware reference workflows.">
   <meta name="twitter:image" content="https://henzelerb.github.io/sRNA-TAPS/sRNA-taps_logo.svg">
   <title>sRNA-TAPS — m5C detection in small RNA</title>
   <style>
@@ -626,7 +626,7 @@
   <img src="sRNA-taps_logo.svg" alt="sRNA-TAPS logo" class="hero-logo">
   <div class="hero-badge">🧬 New · v0.3.0 released</div>
   <h1><span class="hero-title-main">m5C detection in <span class="hero-accent">small RNA</span></span><span class="hero-qualifier">without bisulfite conversion</span></h1>
-  <p class="hero-desc">sRNA-TAPS detects m5C and hm5C across miRNA, tRNA, rRNA, snoRNA, and related small-RNA biotypes using TET-assisted pyridine borane sequencing on human GRCh38 data.</p>
+  <p class="hero-desc">sRNA-TAPS detects m5C and hm5C across miRNA, tRNA, rRNA, snoRNA, and related small-RNA biotypes using TET-assisted pyridine borane sequencing with species-aware reference support.</p>
   <div class="hero-actions">
     <a href="docs.html#installation" class="btn btn-primary">Get started →</a>
     <a href="tutorial.html" class="btn btn-secondary">Run tutorial</a>
@@ -667,7 +667,7 @@
       <div class="hero-status">
         <div class="badge"><div class="dot dot-green"></div> MIT License</div>
         <div class="badge"><div class="dot dot-blue"></div> Python 3.11+</div>
-        <div class="badge"><div class="dot dot-blue"></div> GRCh38</div>
+        <div class="badge"><div class="dot dot-blue"></div> Multi-species</div>
         <div class="badge"><div class="dot dot-orange"></div> In Development</div>
         <div class="badge"><div class="dot dot-green"></div> 66/66 tests passing</div>
         <div class="badge"><div class="dot dot-teal"></div> Available on bioconda</div>
@@ -799,7 +799,7 @@
       <div class="feature-card"><div class="feature-icon">📊</div><h3>75 publication figures</h3><p>R-generated PDF, PNG, and SVG figures at 300 dpi — generated automatically at each pipeline stage. QC, biotype composition, modification rates, benchmarking, and sequence logos.</p></div>
       <div class="feature-card"><div class="feature-icon">🔄</div><h3>Benchmarking suite</h3><p>Built-in comparison against rastair, asTair, and Bismark with concordance heatmaps and Pearson correlation at shared sites.</p></div>
       <div class="feature-card"><div class="feature-icon">🧪</div><h3>CpG vs non-CpG proof</h3><p>rastair is run in both CpG-only and all-context mode — producing identical results, proving it cannot detect the non-CpG m5C sites that dominate tRNA, rRNA, and miRNA biology.</p></div>
-      <div class="feature-card"><div class="feature-icon">⬇️</div><h3>Genome auto-download</h3><p>No pre-built index needed. The pipeline downloads GRCh38 from Ensembl and builds the Bowtie1 index automatically on first run — skipped when files already exist.</p></div>
+      <div class="feature-card"><div class="feature-icon">⬇️</div><h3>Reference auto-download</h3><p>No pre-built index needed. The pipeline downloads the selected Ensembl reference and builds the Bowtie1 index automatically on first run — skipped when files already exist.</p></div>
       <div class="feature-card"><div class="feature-icon">🧬</div><h3>Synthetic test dataset</h3><p>FASTQ simulator with accurate TAPS chemistry — 100 samples, 4 biotypes, seeded m5C positions for end-to-end pipeline validation at scale.</p></div>
     </div>
     <div class="stats-row">

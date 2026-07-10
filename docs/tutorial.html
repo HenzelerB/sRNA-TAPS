@@ -275,7 +275,7 @@ ls ~/srnataps_test/07.taps_calls/miRNA/ | wc -l       # expect 100 TSVs
 # Report figures generated?
 ls ~/srnataps_test/report/figures/*.pdf | wc -l</code></pre>
 
-    <div class="note"><strong>Reference download first:</strong> The first stage downloads and indexes the configured reference genome (~3 GB for human GRCh38). This takes 20&ndash;30 minutes and runs once. All subsequent runs in any project on the same cluster reuse the same genome files if you point <code>genome_fa</code> and <code>bowtie1_index</code> to the same paths.</div>
+    <div class="note"><strong>Reference download first:</strong> The first stage downloads and indexes the configured reference genome. For the human tutorial dataset this is ~3 GB for GRCh38. This takes 20&ndash;30 minutes and runs once. All subsequent runs in any project on the same cluster reuse the same genome files if you point <code>genome_fa</code> and <code>bowtie1_index</code> to the same paths.</div>
 
     <p>The full 100-sample test run takes approximately 2&ndash;4 hours on a standard SLURM cluster, depending on node availability. Report figures for QC and biotype composition appear while later stages are still running.</p>
   </div>

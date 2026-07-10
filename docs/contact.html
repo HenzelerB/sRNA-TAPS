@@ -250,7 +250,7 @@
             <div class="faq-answer-inner">
               <p>The "other" category captures reads that do not overlap a uniquely annotated Ensembl feature, or that map to regions where multiple biotypes share equal priority in the annotation hierarchy. This is common in small RNA-seq data and does not indicate a pipeline problem.</p>
               <p>Several factors can contribute to a high "other" fraction: reads mapping to unannotated intergenic regions, reads overlapping antisense transcripts or pseudogenes not classified under the main biotypes, and multi-mapping reads that cannot be confidently assigned to a single locus. In TAPS-treated samples, the chemical conversion step can also affect alignment scores at modified positions, occasionally pushing reads into ambiguous mapping territory.</p>
-              <p>To reduce the "other" fraction, ensure you are using a current Ensembl GRCh38 GTF (v112 or later), that your alignment is to the full genome rather than a transcriptome, and that your GTF biotype priority list covers the RNA species most relevant to your experiment.</p>
+              <p>To reduce the "other" fraction, ensure you are using a current Ensembl GTF for your selected species and release, that your alignment is to the full genome rather than a transcriptome, and that your GTF biotype priority list covers the RNA species most relevant to your experiment.</p>
             </div>
           </div>
         </div>
@@ -274,7 +274,7 @@
           </div>
           <div class="faq-answer">
             <div class="faq-answer-inner">
-              <p>The pipeline is currently designed and validated for human samples (GRCh38). The core calling logic is genome-agnostic, but the SNP filtering relies on dbSNP (human) and the biotype annotation uses the Ensembl human GTF. Adaptation to mouse (GRCm39) or other genomes is possible by providing the appropriate genome FASTA, Bowtie1 index, and Ensembl GTF. Please open a GitHub Issue if you need guidance on this.</p>
+              <p>Yes. sRNA-TAPS now supports species-aware reference setup, with built-in Ensembl-backed configurations for human, mouse, rat, zebrafish, fruit fly, <code>c_elegans</code>, and chicken, plus custom FASTA/GTF inputs for other organisms. For non-human runs, use the matching genome FASTA, annotation, and any species-appropriate variant resources you need for filtering.</p>
             </div>
           </div>
         </div>
