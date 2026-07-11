@@ -516,10 +516,12 @@
       padding: 18px;
       min-height: 100%;
       box-shadow: none;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
     }
     .section-card-features .section-desc {
-      margin-bottom: 26px;
-      max-width: 640px;
+      display: none;
     }
     .feature-icon {
       width: 38px;
@@ -530,7 +532,7 @@
     }
     .feature-card h3 {
       font-size: .94rem;
-      margin-bottom: 6px;
+      margin-bottom: 0;
     }
     .feature-card p {
       font-size: .82rem;
@@ -813,16 +815,15 @@
     <div class="section-card section-card-features">
     <div class="section-label">Features</div>
     <h2 class="section-title">Built for small RNA</h2>
-    <p class="section-desc">Every design decision accounts for the specific challenges of short, strand-specific, multimapping RNA molecules.</p>
     <div class="features-grid">
-      <div class="feature-card"><div class="feature-icon">🎯</div><h3>7 RNA biotypes</h3><p>miRNA, tRNA, rRNA, snoRNA, snRNA, piRNA, lncRNA — each processed separately with biotype-appropriate coverage thresholds.</p></div>
-      <div class="feature-card"><div class="feature-icon">🛡️</div><h3>3-layer SNP filtering</h3><p>dbSNP variants, cell-line-specific SNPs from no-treat BAMs, and heterozygosity detection — all applied before any C→T counting.</p></div>
-      <div class="feature-card"><div class="feature-icon">⚖️</div><h3>Multi-mapper weighting</h3><p>Reads with XA:i:N tags contribute 1/N to each locus, preventing inflation at tRNA gene copies and rRNA repeats.</p></div>
-      <div class="feature-card"><div class="feature-icon">📊</div><h3>75 publication figures</h3><p>R-generated PDF, PNG, and SVG figures at 300 dpi — generated automatically at each pipeline stage. QC, biotype composition, modification rates, benchmarking, and sequence logos.</p></div>
-      <div class="feature-card"><div class="feature-icon">🔄</div><h3>Benchmarking suite</h3><p>Built-in comparison against rastair, asTair, and Bismark with concordance heatmaps and Pearson correlation at shared sites.</p></div>
-      <div class="feature-card"><div class="feature-icon">🧪</div><h3>CpG vs non-CpG proof</h3><p>rastair is run in both CpG-only and all-context mode — producing identical results, proving it cannot detect the non-CpG m5C sites that dominate tRNA, rRNA, and miRNA biology.</p></div>
-      <div class="feature-card"><div class="feature-icon">⬇️</div><h3>Reference auto-download</h3><p>No pre-built index needed. The pipeline downloads the selected Ensembl reference and builds the Bowtie1 index automatically on first run — skipped when files already exist.</p></div>
-      <div class="feature-card"><div class="feature-icon">🧬</div><h3>Synthetic test dataset</h3><p>FASTQ simulator with accurate TAPS chemistry — 100 samples, 4 biotypes, seeded m5C positions for end-to-end pipeline validation at scale.</p></div>
+      <div class="feature-card"><div class="feature-icon">🎯</div><h3>7 RNA biotypes</h3></div>
+      <div class="feature-card"><div class="feature-icon">🛡️</div><h3>3-layer SNP filtering</h3></div>
+      <div class="feature-card"><div class="feature-icon">⚖️</div><h3>Multi-mapper weighting</h3></div>
+      <div class="feature-card"><div class="feature-icon">📊</div><h3>75 publication figures</h3></div>
+      <div class="feature-card"><div class="feature-icon">🔄</div><h3>Benchmarking suite</h3></div>
+      <div class="feature-card"><div class="feature-icon">🧪</div><h3>CpG vs non-CpG proof</h3></div>
+      <div class="feature-card"><div class="feature-icon">⬇️</div><h3>Reference auto-download</h3></div>
+      <div class="feature-card"><div class="feature-icon">🧬</div><h3>Synthetic test dataset</h3></div>
     </div>
     <div class="stats-row">
       <div class="stat-card"><div class="stat-num">7</div><div class="stat-label">RNA biotypes</div></div>
