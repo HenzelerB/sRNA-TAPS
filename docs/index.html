@@ -101,14 +101,42 @@
     /* CHEMISTRY */
     .chemistry-bg { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
     .chem-grid { display: grid; grid-template-columns: 1fr; gap: 48px; align-items: start; }
-    .chem-steps { display: flex; flex-direction: column; gap: 20px; }
-    .chem-step { display: flex; gap: 16px; align-items: flex-start; }
+    .chem-copy, .chem-side { display: flex; flex-direction: column; gap: 20px; }
+    .chem-intro { font-size: .98rem; color: var(--text2); line-height: 1.75; max-width: 56ch; }
+    .chem-steps { display: flex; flex-direction: column; gap: 14px; }
+    .chem-step { display: flex; gap: 16px; align-items: flex-start; padding: 18px; border-radius: 18px; border: 1.5px solid rgba(44,95,138,.12); background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(247,246,242,.92)); box-shadow: 0 10px 22px rgba(26,24,20,.04); }
     .chem-icon { width: 40px; height: 40px; flex-shrink: 0; border-radius: 10px; background: var(--accent2); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
     .chem-step h4 { font-weight: 600; font-size: .95rem; margin-bottom: 4px; }
     .chem-step p { font-size: .875rem; color: var(--text2); line-height: 1.6; }
-    .chem-callout { background: var(--bg); border: 1.5px solid var(--border); border-left: 4px solid var(--accent); border-radius: 0 10px 10px 0; padding: 20px 24px; margin-top: 24px; }
+    .chem-callout { background: var(--bg); border: 1.5px solid var(--border); border-left: 4px solid var(--accent); border-radius: 0 18px 18px 0; padding: 20px 24px; margin-top: 4px; }
     .chem-callout p { font-size: .925rem; color: var(--text); line-height: 1.65; }
     .chem-callout strong { color: #1a3d5c; }
+    .chem-visual-card { position: relative; overflow: hidden; padding: 24px; border-radius: 24px; border: 1.5px solid rgba(44,95,138,.14); background:
+      radial-gradient(circle at top right, rgba(44,95,138,.12), transparent 34%),
+      linear-gradient(180deg, rgba(255,255,255,.98), rgba(243,246,250,.94)); box-shadow: 0 18px 34px rgba(26,24,20,.06); }
+    .chem-visual-card::after { content: ''; position: absolute; inset: auto -70px -90px auto; width: 220px; height: 220px; border-radius: 50%; border: 1px solid rgba(44,95,138,.08); box-shadow: 0 0 0 28px rgba(44,95,138,.03); pointer-events: none; }
+    .chem-visual-head { position: relative; z-index: 1; display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+    .chem-mini-label, .chem-compare-label { margin-bottom: 0; }
+    .chem-visual-note { font-size: .84rem; color: var(--text3); text-align: right; max-width: 24ch; line-height: 1.45; }
+    .chem-figure-wrap { position: relative; z-index: 1; padding: 12px 10px 6px; border-radius: 20px; background: rgba(255,255,255,.72); border: 1px solid rgba(44,95,138,.10); box-shadow: inset 0 1px 0 rgba(255,255,255,.8); }
+    .chem-figure { display: block; width: 100%; height: auto; }
+    .chem-flow { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(80px, .72fr) minmax(0, 1fr) minmax(88px, .78fr) minmax(0, 1fr) minmax(86px, .74fr) minmax(0, .84fr); gap: 10px; align-items: center; }
+    .chem-node { min-height: 132px; padding: 16px 14px; border-radius: 20px; border: 1px solid rgba(44,95,138,.12); background: rgba(255,255,255,.86); display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; box-shadow: 0 10px 22px rgba(26,24,20,.04); }
+    .chem-node-kicker { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--accent); font-weight: 600; }
+    .chem-node strong { font-family: 'Outfit', sans-serif; font-size: 1.18rem; line-height: 1.1; color: #173250; }
+    .chem-node small { font-size: .8rem; color: var(--text2); line-height: 1.45; }
+    .chem-node.source { background: linear-gradient(180deg, rgba(233,241,249,.96), rgba(255,255,255,.94)); }
+    .chem-node.mid { background: linear-gradient(180deg, rgba(242,247,251,.98), rgba(255,255,255,.94)); }
+    .chem-node.final { background: linear-gradient(180deg, rgba(225,248,241,.98), rgba(246,255,252,.96)); }
+    .chem-link { position: relative; display: flex; align-items: center; justify-content: center; min-height: 2px; }
+    .chem-link::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 2px; transform: translateY(-50%); background: linear-gradient(90deg, rgba(44,95,138,.16), rgba(44,95,138,.72)); border-radius: 999px; }
+    .chem-link::after { content: ''; position: absolute; right: -1px; top: 50%; width: 10px; height: 10px; transform: translateY(-50%) rotate(45deg); border-top: 2px solid rgba(44,95,138,.72); border-right: 2px solid rgba(44,95,138,.72); }
+    .chem-link span { position: relative; z-index: 1; padding: 5px 10px; border-radius: 999px; background: rgba(255,255,255,.9); border: 1px solid rgba(44,95,138,.12); font-size: .72rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--accent); box-shadow: 0 4px 14px rgba(26,24,20,.04); }
+    .chem-outcomes { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px; }
+    .chem-outcome { padding: 14px 16px; border-radius: 16px; border: 1px solid rgba(44,95,138,.12); background: rgba(255,255,255,.78); }
+    .chem-outcome span { display: block; font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--text3); margin-bottom: 6px; }
+    .chem-outcome strong { font-size: .95rem; color: #173250; }
+    .chem-legacy-visual, .chem-legacy-compare-label, .chem-legacy-comparison { display: none; }
     .chem-comparison { background: var(--bg); border: 1.5px solid var(--border); border-radius: 12px; overflow: hidden; }
     .chem-comparison-header { display: grid; grid-template-columns: 1fr 1fr; background: var(--bg2); border-bottom: 1px solid var(--border); }
     .chem-col-head { padding: 12px 20px; font-size: .8rem; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--text2); }
@@ -500,8 +528,11 @@
       opacity: .8;
     }
     .chemistry-bg, .install-bg { background: transparent; border: 0; }
-    .chem-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.04fr); gap: 34px; }
+    .chem-grid { grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr); gap: 30px; }
     .chem-comparison, .chem-callout { background: rgba(247,246,242,.92); }
+    .chem-comparison { border-radius: 20px; }
+    .chem-comparison-header { background: rgba(232,240,248,.82); }
+    .chem-row:nth-child(even) { background: rgba(255,255,255,.52); }
     .features-grid {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -616,6 +647,13 @@
       .hero-copy { display: block; }
       .hero-actions, .hero-status, .tools-float, .cta-actions { justify-content: flex-start; }
       .chem-grid, .install-grid { grid-template-columns: 1fr; }
+      .chem-flow { grid-template-columns: 1fr; gap: 12px; }
+      .chem-link { min-height: 42px; }
+      .chem-link::before { left: 50%; right: auto; top: 0; bottom: 0; width: 2px; height: auto; transform: translateX(-50%); background: linear-gradient(180deg, rgba(44,95,138,.16), rgba(44,95,138,.72)); }
+      .chem-link::after { right: 50%; top: auto; bottom: 2px; transform: translateX(50%) rotate(135deg); }
+      .chem-visual-head { align-items: flex-start; flex-direction: column; }
+      .chem-visual-note { max-width: none; text-align: left; }
+      .chem-outcomes { grid-template-columns: 1fr; }
       .features-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
     @media (max-width: 560px) {
@@ -715,29 +753,61 @@
   <div class="container">
     <div class="section-card">
     <div class="chem-grid">
-      <div>
+      <div class="chem-copy">
         <div class="section-label">Chemistry</div>
         <h2 class="section-title">How TAPS works</h2>
+        <p class="chem-intro">TAPS keeps the chemistry readable: modified cytosines are selectively converted, while unmodified cytosines remain unchanged. That preserves short-RNA sequence complexity from the first alignment step.</p>
         <div class="chem-steps">
           <div class="chem-step">
-            <div class="chem-icon">🧫</div>
-            <div><h4>Step 1 — TET oxidation</h4><p>TET oxidises m5C and hm5C to ca5C, marking modified bases for conversion.</p></div>
+            <div class="chem-icon">01</div>
+            <div><h4>Step 1 — TET oxidation</h4><p>m5C and hm5C are oxidised to ca5C, marking modified sites for conversion.</p></div>
           </div>
           <div class="chem-step">
-            <div class="chem-icon">⚗️</div>
-            <div><h4>Step 2 — Pyridine borane reduction</h4><p>Pyridine borane reduces ca5C to DHU, which is read as T during PCR.</p></div>
+            <div class="chem-icon">02</div>
+            <div><h4>Step 2 — Pyridine borane reduction</h4><p>ca5C is reduced to DHU, creating the conversion intermediate read by sequencing.</p></div>
           </div>
           <div class="chem-step">
-            <div class="chem-icon">🔬</div>
-            <div><h4>Result — C→T at modified sites</h4><p>Unmodified cytosines stay C. Modified sites read as T.</p></div>
+            <div class="chem-icon">03</div>
+            <div><h4>Result — selective C→T readout</h4><p>Modified sites read as T, while unmodified cytosines remain C.</p></div>
           </div>
         </div>
         <div class="chem-callout">
-          <p><strong>Inverse of bisulfite sequencing.</strong> In TAPS, modified C converts to T while unmodified C stays protected, preserving short-RNA sequence complexity.</p>
+          <p><strong>Why it matters.</strong> TAPS flips the bisulfite logic: modified C becomes T, while unmodified C stays protected. Short RNA keeps more sequence complexity and aligns more cleanly.</p>
         </div>
       </div>
-      <div>
-        <div style="text-align:center;margin-bottom:24px">
+      <div class="chem-side">
+        <div class="chem-visual-card">
+          <div class="chem-visual-head">
+            <div class="section-label chem-mini-label">Chemistry scheme</div>
+            <div class="chem-visual-note">Adapted directly from the manuscript reaction scheme.</div>
+          </div>
+          <div class="chem-figure-wrap">
+            <img src="TAPS_Chemistry.svg" alt="TAPS chemistry showing m5C and hm5C oxidation to ca5C, reduction to DHU, and PCR readout as thymine." class="chem-figure">
+          </div>
+          <div class="chem-outcomes">
+            <div class="chem-outcome">
+              <span>Modified C</span>
+              <strong>read as T</strong>
+            </div>
+            <div class="chem-outcome">
+              <span>Unmodified C</span>
+              <strong>stays C</strong>
+            </div>
+          </div>
+        </div>
+        <div class="section-label chem-compare-label">TAPS vs Bisulfite</div>
+        <div class="chem-comparison">
+          <div class="chem-comparison-header">
+            <div class="chem-col-head">TAPS</div>
+            <div class="chem-col-head">Bisulfite</div>
+          </div>
+          <div class="chem-row"><div class="chem-cell good">m5C → T ✓</div><div class="chem-cell bad">m5C protected ✕</div></div>
+          <div class="chem-row"><div class="chem-cell good">Unmodified C stays C ✓</div><div class="chem-cell bad">Unmodified C → T ✕</div></div>
+          <div class="chem-row"><div class="chem-cell good">Mild chemistry ✓</div><div class="chem-cell bad">Harsh — degrades short RNA ✕</div></div>
+          <div class="chem-row"><div class="chem-cell good">Higher sequence complexity ✓</div><div class="chem-cell bad">Lower complexity ✕</div></div>
+          <div class="chem-row"><div class="chem-cell good">Cleaner short-RNA alignment ✓</div><div class="chem-cell bad">Poorer alignment behaviour ✕</div></div>
+        </div>
+        <div class="chem-legacy-visual" style="text-align:center;margin-bottom:24px">
           <div style="width:100%;display:block;">
 <style>
 @keyframes chemNodeIn{0%{opacity:0;transform:translateY(10px) scale(.96)}100%{opacity:1;transform:translateY(0) scale(1)}}
@@ -789,8 +859,8 @@
 </svg>
           </div>
         </div>
-        <div class="section-label" style="margin-bottom:16px">TAPS vs Bisulfite</div>
-        <div class="chem-comparison">
+        <div class="section-label chem-legacy-compare-label" style="margin-bottom:16px">TAPS vs Bisulfite</div>
+        <div class="chem-comparison chem-legacy-comparison">
           <div class="chem-comparison-header">
             <div class="chem-col-head">TAPS</div>
             <div class="chem-col-head">Bisulfite</div>
