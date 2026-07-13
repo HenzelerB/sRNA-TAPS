@@ -653,7 +653,7 @@
   <img src="sRNA-taps_logo.svg" alt="sRNA-TAPS logo" class="hero-logo">
   <div class="hero-badge">🧬 New · v0.3.0 released</div>
   <h1><span class="hero-title-main">m5C detection in <span class="hero-accent">small RNA</span></span><span class="hero-qualifier">without bisulfite conversion</span></h1>
-  <p class="hero-desc">sRNA-TAPS detects m5C and hm5C across miRNA, tRNA, rRNA, snoRNA, and related small-RNA biotypes using TET-assisted pyridine borane sequencing with species-aware reference support.</p>
+  <p class="hero-desc">sRNA-TAPS calls m5C and hm5C in small RNA using TET-assisted pyridine borane sequencing with species-aware references.</p>
   <div class="hero-actions">
     <a href="docs.html#installation" class="btn btn-primary">Get started →</a>
     <a href="tutorial.html" class="btn btn-secondary">Run tutorial</a>
@@ -665,28 +665,27 @@
       <aside class="hero-proof">
         <div>
           <div class="proof-eyebrow">Signal overview</div>
-          <div class="proof-title">Short-RNA m5C calls, with chemistry and controls made clear.</div>
-          <p class="proof-desc">Chemistry, controls, and outputs are surfaced immediately.</p>
+          <div class="proof-title">Chemistry, controls, and outputs - kept in view.</div>
         </div>
         <div class="proof-list">
           <div class="proof-item">
             <span class="proof-step">01</span>
-            <div><strong>Chemistry-first readout</strong><p>Modified C converts while unmodified C stays stable.</p></div>
+            <div><strong>Chemistry-first readout</strong><p>Modified C converts. Unmodified C stays stable.</p></div>
           </div>
           <div class="proof-item">
             <span class="proof-step">02</span>
-            <div><strong>Controls stay explicit</strong><p>The treat, pb_Ctrl, and no-treat logic appears early.</p></div>
+            <div><strong>Controls stay explicit</strong><p>treat, pb_Ctrl, and no-treat appear from the start.</p></div>
           </div>
           <div class="proof-item">
             <span class="proof-step">03</span>
-            <div><strong>Outputs stay central</strong><p>Benchmarking, reports, and figures read as core outputs.</p></div>
+            <div><strong>Outputs stay central</strong><p>Reports, figures, and benchmarking stay close.</p></div>
           </div>
         </div>
       </aside>
       <div class="hero-metrics hero-metrics-side">
-        <div class="hero-metric"><strong>7</strong> RNA biotypes handled with biotype-aware thresholds.</div>
-        <div class="hero-metric"><strong>3</strong> control conditions separate chemistry background from true signal.</div>
-        <div class="hero-metric"><strong>75</strong> figures generated automatically for QC, biology, and benchmarking.</div>
+        <div class="hero-metric"><strong>7</strong> biotypes with biotype-aware thresholds.</div>
+        <div class="hero-metric"><strong>3</strong> conditions separate background from signal.</div>
+        <div class="hero-metric"><strong>75</strong> figures generated automatically.</div>
       </div>
       </div>
     </div>
@@ -695,8 +694,6 @@
         <div class="badge"><div class="dot dot-green"></div> MIT License</div>
         <div class="badge"><div class="dot dot-blue"></div> Python 3.11+</div>
         <div class="badge"><div class="dot dot-blue"></div> Multi-species</div>
-        <div class="badge"><div class="dot dot-orange"></div> In Development</div>
-        <div class="badge"><div class="dot dot-green"></div> 66/66 tests passing</div>
         <div class="badge"><div class="dot dot-teal"></div> Available on bioconda</div>
         <div class="badge"><div class="dot dot-teal"></div> Available on PyPI</div>
       </div>
@@ -707,11 +704,8 @@
         <div class="tool-badge highlight"><span class="tool-step">03</span> Bowtie1</div>
         <div class="tool-badge highlight"><span class="tool-step">04</span> SAMtools</div>
         <div class="tool-badge highlight"><span class="tool-step">05</span> pysam</div>
-        <div class="tool-badge"><span class="tool-step">06</span> rastair</div>
-        <div class="tool-badge"><span class="tool-step">06</span> asTair</div>
-        <div class="tool-badge"><span class="tool-step">06</span> Bismark</div>
-        <div class="tool-badge"><span class="tool-step">07</span> ggplot2</div>
-        <div class="tool-badge"><span class="tool-step">07</span> Plotly</div>
+        <div class="tool-badge"><span class="tool-step">06</span> 3 benchmark callers</div>
+        <div class="tool-badge"><span class="tool-step">07</span> ggplot2 + Plotly</div>
       </div>
     </div>
   </div>
@@ -727,19 +721,19 @@
         <div class="chem-steps">
           <div class="chem-step">
             <div class="chem-icon">🧫</div>
-            <div><h4>Step 1 — TET oxidation</h4><p>TET enzymes oxidise m5C and hm5C to 5-carboxylcytosine (ca5C), marking modified bases for conversion.</p></div>
+            <div><h4>Step 1 — TET oxidation</h4><p>TET oxidises m5C and hm5C to ca5C, marking modified bases for conversion.</p></div>
           </div>
           <div class="chem-step">
             <div class="chem-icon">⚗️</div>
-            <div><h4>Step 2 — Pyridine borane reduction</h4><p>Pyridine borane reduces ca5C to dihydrouracil (DHU), which is read as T during PCR amplification.</p></div>
+            <div><h4>Step 2 — Pyridine borane reduction</h4><p>Pyridine borane reduces ca5C to DHU, which is read as T during PCR.</p></div>
           </div>
           <div class="chem-step">
             <div class="chem-icon">🔬</div>
-            <div><h4>Result — C→T at modified sites</h4><p>Unmodified cytosines remain as C. Only m5C and hm5C appear as T in the sequencing reads.</p></div>
+            <div><h4>Result — C→T at modified sites</h4><p>Unmodified cytosines stay C. Modified sites read as T.</p></div>
           </div>
         </div>
         <div class="chem-callout">
-          <p><strong>Inverse of bisulfite sequencing.</strong> In bisulfite, unmodified C converts to T and m5C is protected. In TAPS, modified C converts to T and unmodified C is protected — making short RNA reads far easier to align.</p>
+          <p><strong>Inverse of bisulfite sequencing.</strong> In TAPS, modified C converts to T while unmodified C stays protected, preserving short-RNA sequence complexity.</p>
         </div>
       </div>
       <div>
@@ -843,14 +837,14 @@
     <div class="section-card">
     <div class="section-label">Experimental Design</div>
     <h2 class="section-title">Three-condition framework</h2>
-    <p class="section-desc">Three sample conditions are required to separate genuine m5C signal from chemistry background and sequencing noise.</p>
+    <p class="section-desc">Three conditions separate true m5C signal from chemistry background and sequencing noise.</p>
     <div class="conditions-grid">
-      <div class="condition-card treat"><div class="condition-tag">treat</div><h3>TET + Pyridine Borane + PCR</h3><p>Full TAPS chemistry. Both m5C and hm5C are oxidised by TET to 5-carboxylcytosine (ca5C), reduced to dihydrouracil (DHU) by pyridine borane, and subsequently read as T during PCR amplification. This is your signal condition.</p></div>
-      <div class="condition-card pb"><div class="condition-tag">pb_Ctrl</div><h3>Pyridine Borane + PCR</h3><p>No TET oxidation. Pyridine borane converts unprotected cytosines non-specifically, and any C→T signal in these samples represents chemistry background. Used for δ score calculation.</p></div>
-      <div class="condition-card notx"><div class="condition-tag">no-treat</div><h3>PCR only (No treatment)</h3><p>Untreated baseline. C→T at this level reflects sequencing errors and SNPs. Used to build the cell-line SNP blacklist.</p></div>
+      <div class="condition-card treat"><div class="condition-tag">treat</div><h3>TET + Pyridine Borane + PCR</h3><p>Full TAPS chemistry. This is the signal condition.</p></div>
+      <div class="condition-card pb"><div class="condition-tag">pb_Ctrl</div><h3>Pyridine Borane + PCR</h3><p>No TET oxidation. This captures chemistry background.</p></div>
+      <div class="condition-card notx"><div class="condition-tag">no-treat</div><h3>PCR only (No treatment)</h3><p>Untreated baseline for sequencing noise and SNP filtering.</p></div>
     </div>
     <div class="chem-callout">
-      <p>The <strong>delta (δ) score</strong> = treat_mod_rate − pb_Ctrl_mod_rate. Subtracting the pb_Ctrl background isolates only TET-dependent signal, removing both global chemistry noise and sequence-context-specific biases.</p>
+      <p>The <strong>delta (δ) score</strong> subtracts pb_Ctrl background from treat signal to isolate TET-dependent conversion.</p>
     </div>
     </div>
   </div>
@@ -863,7 +857,7 @@
       <div>
         <div class="section-label">Installation</div>
         <h2 class="section-title">Up and running in minutes</h2>
-        <p class="section-desc">Available on bioconda, PyPI, and from source. Conda is recommended for automatic dependency resolution.</p>
+        <p class="section-desc">Available on bioconda, PyPI, and from source. Conda is the quickest start.</p>
       </div>
       <div>
         <div class="code-block">
@@ -1000,7 +994,7 @@
     <div class="cta-inner">
       <div class="section-label">Get started</div>
       <h2 class="section-title">Ready to detect m5C in your small RNA?</h2>
-      <p class="section-desc">Run the synthetic test dataset to validate your installation, then point the pipeline at your own data.</p>
+      <p class="section-desc">Run the test dataset first, then move to your own data.</p>
       <div class="cta-actions">
         <a href="tutorial.html" class="btn btn-white">Run the tutorial →</a>
         <a href="docs.html" class="btn btn-outline-white">Read the docs</a>
