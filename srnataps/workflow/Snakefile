@@ -88,6 +88,7 @@ CONTRAST_DIR = OUTDIR / config["output"].get("control_contrast", "07c.control_co
 REPLICATE_DIR = OUTDIR / config["output"].get("replicate_calls", "07d.replicate_calls")
 STRINGENT_DIR = OUTDIR / config["output"].get("stringent_calls", "07e.stringent_calls")
 EVIDENCE_AUDIT_DIR = OUTDIR / config["output"].get("evidence_audit", "10.evidence_audit")
+UMAP_DIR    = OUTDIR / config["output"]["umap"]
 BENCH_DIR   = OUTDIR / config["output"]["benchmark"]
 COMPARE_DIR = OUTDIR / config["output"]["compare"]
 LOG_DIR     = OUTDIR / config["output"]["logs"]
@@ -166,6 +167,7 @@ include: "rules/benchmark.smk"
 include: "rules/compare.smk"
 include: "rules/multiqc.smk"
 include: "rules/report.smk"
+include: "rules/umap.smk"
 
 # ── Target rules ──────────────────────────────────────────────────────────────
 rule all:
@@ -191,6 +193,8 @@ rule all:
         str(OUTDIR / "report" / "figures" / ".report_biotype.done"),
         str(OUTDIR / "report" / "figures" / ".report_modification.done"),
         str(OUTDIR / "report" / "figures" / ".report_seqlogos.done"),
+        str(OUTDIR / "report" / "figures" / ".report_mirna_atlas.done") if CONDITION_ANALYSIS_ENABLED else [],
+        str(OUTDIR / "report" / "figures" / ".report_global_distribution.done") if CONDITION_ANALYSIS_ENABLED else [],
         expand(
             str(REPLICATE_DIR / "{biotype}" / "treat_{cell_line}_replicate_{biotype}_taps.tsv"),
             cell_line=CELL_LINES, biotype=BIOTYPES,
@@ -294,3 +298,13 @@ rule module_compare:
     input:
         str(COMPARE_DIR / "concordance_summary.tsv"),
         str(COMPARE_DIR / "correlation_summary.tsv"),
+
+
+rule module_umap:
+    """Stage target: UMAP dimensionality reduction and cluster analysis."""
+    input:
+        str(UMAP_DIR / "umap_coordinates.tsv"),
+        str(UMAP_DIR / "outlier_classification.tsv"),
+        str(UMAP_DIR / "neighbors.json"),
+        str(UMAP_DIR / "pb_tet_comparison" / "umap_coordinates.tsv"),
+        str(UMAP_DIR / "pb_tet_comparison" / "condition_statistics.tsv"),

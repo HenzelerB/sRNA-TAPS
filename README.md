@@ -225,6 +225,7 @@ output:
   biotypes:  05.biotype_bams
   snp:       06.snp_resources
   calls:     07.taps_calls
+  umap:      07a.umap
   pooled_calls: 07b.pooled_calls
   control_contrast: 07c.control_contrast
   replicate_calls: 07d.replicate_calls
@@ -237,6 +238,13 @@ output:
 alignment:
   strategy: three_letter
   threads: 8
+
+umap:
+  enabled: true
+  method: umap        # umap (default), pacmap, or pca
+  n_neighbors: 15
+  eps: 0.5
+  random_state: 42
 
 condition_analysis:
   enabled: true
@@ -399,6 +407,7 @@ rawfiles/           Raw FASTQs (SE, TruSeq small RNA)
 05. Biotype split       miRNA > tRNA > piRNA > snoRNA > snRNA > rRNA > lncRNA > other
 06. SNP filter          3-layer: cell-line-specific + heterozygosity [+ dbSNP]
 07. TAPS calling        Strand-aware C/T counting and per-sample calls
+07a. Sample-profile QC  UMAP/PCA of per-sample modification profiles
 07b. Pool conditions    Pool counts within condition and cell line
 07c. Control contrast   Treat versus PB-only and no-treatment controls
 07d. Replicate calls    Unbiased beta-binomial testing with BH correction
@@ -423,6 +432,25 @@ rawfiles/           Raw FASTQs (SE, TruSeq small RNA)
 ---
 
 ## 🔍 Pipeline Steps in Detail
+
+### Stage 07a: Sample-profile QC
+
+Stage 07a is an early QC checkpoint that uses the unfiltered, per-sample calls
+from stage 07. It embeds modification-rate profiles across biotypes before
+pooling or differential filtering, allowing sample relationships and unusual
+replicates to be inspected without downstream selection effects.
+
+The default three-condition figure encodes `PB- TET-`, `PB+ TET-`, and
+`PB+ TET+` using the Aurora palette. Cell line is encoded by point shape.
+Cluster membership, nearest neighbours, outliers, and statistics are written as
+separate machine-readable outputs rather than overloaded onto the figure.
+
+For the direct `PB+ TET-` versus `PB+ TET+` comparison, use the focused PCA
+analysis. PCA is deterministic and labels axes with explained variance, making
+it preferable to a nonlinear embedding for this two-group comparison. A
+four-of-six replicate sensitivity analysis may retain the four profiles closest
+to each condition-by-cell-line centroid; it is a QC sensitivity analysis only
+and must not replace the prespecified six-replicate primary analysis.
 
 ### Genome Setup
 **Tools:** wget, samtools faidx, bowtie-build
@@ -612,6 +640,13 @@ outdir/
 ├── 07.taps_calls/      Per-biotype TAPS TSVs
 │                       (chrom, start, end, context, mod_count, unmod_count,
 │                        coverage, mod_rate, pvalue, padj, snp_flag)
+├── 07a.umap/           Sample-profile QC outputs
+│   ├── 01_umap_clusters.{png,pdf}
+│   ├── umap_coordinates.tsv
+│   ├── dbscan_membership.tsv
+│   ├── condition_statistics.tsv · pairwise_statistics.tsv
+│   ├── global_statistics.json
+│   └── pb_tet_comparison/ · pb_tet_pca/ (focused two-condition analyses)
 ├── 07b.pooled_calls/   Condition-pooled test universes
 ├── 07c.control_contrast/ Pooled dual-control calls
 ├── 07d.replicate_calls/  Replicate-supported discovery calls

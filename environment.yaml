@@ -15,6 +15,9 @@ dependencies:
   - fastqc=0.12.1
   - trim-galore=0.6.10
   - multiqc=1.21
+  # MultiQC 1.21 accesses Rich submodules through package attributes when
+  # rendering exceptions; Rich 15 removed that compatibility behavior.
+  - rich>=13,<14
   - bismark=0.24.2
 
   # Workflow
@@ -26,4 +29,10 @@ dependencies:
   - pip:
     - rastair
     - astair
+    - umap-learn
+    - pacmap
+    - matplotlib
+    - seaborn
+    - scikit-learn
+    - scipy
     - setuptools<72
