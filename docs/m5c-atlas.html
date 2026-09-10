@@ -171,9 +171,21 @@
      its own angle -- an SVG transform swap (base vs. exploded), not a redraw. */
   .donut-wrap { position: relative; width: 268px; height: 268px; flex: none; }
   .donut-svg { width: 100%; height: 100%; overflow: visible; }
+  /* Entrance pop plays once on page load (staggered per wedge via an inline animation-delay
+     set in JS). It deliberately does NOT use fill-mode:forwards -- holding transform:scale(1)
+     there would permanently override the SVG transform attribute the explode click handler
+     writes to later. Without forwards, the animation just hands control back to that
+     attribute once it ends, and scale(1)/translate(0,0) look identical, so there's no jump. */
+  @keyframes donutPop {
+    from { opacity: 0; transform: scale(0.35); }
+    to { opacity: 1; transform: scale(1); }
+  }
   .donut-svg path {
     cursor: pointer;
     outline: none;
+    transform-box: view-box;
+    transform-origin: 50px 50px;
+    animation: donutPop 0.6s cubic-bezier(.34, 1.56, .64, 1) backwards;
     transition: transform 0.22s cubic-bezier(.34,1.56,.64,1), filter 0.12s ease;
   }
   .donut-svg path:hover, .donut-svg path:focus-visible { filter: brightness(1.12); }
@@ -1084,10 +1096,13 @@
         ' Z';
     }
 
-    function donutParts(items, sum) {
+    // Page-load reveal: each wedge carries its own animation-delay (chart index * 130ms +
+    // segment index * 70ms), so the four donuts pop in one after another left-to-right,
+    // and within each one the segments cascade in the same clockwise order they're drawn.
+    function donutParts(items, sum, chartIndex) {
       var cumulativeDeg = 0;
       var wedges = [], labels = [];
-      items.forEach(function (it) {
+      items.forEach(function (it, i) {
         var share = sum > 0 ? it.value / sum : 0;
         var sweepDeg = share * 360;
         var startDeg = cumulativeDeg, endDeg = cumulativeDeg + sweepDeg;
@@ -1098,8 +1113,9 @@
         var seg = it.cls;
         var baseTransform = 'translate(0 0)';
         var explodeTransform = 'translate(' + (dir.x * EXPLODE_DIST).toFixed(2) + ' ' + (dir.y * EXPLODE_DIST).toFixed(2) + ')';
+        var delayMs = chartIndex * 130 + i * 70;
         wedges.push('<path d="' + wedgePath(startDeg, endDeg) + '" ' +
-          'style="fill:' + it.color + '" transform="' + baseTransform + '" data-seg="' + seg + '" ' +
+          'style="fill:' + it.color + ';animation-delay:' + delayMs + 'ms" transform="' + baseTransform + '" data-seg="' + seg + '" ' +
           'data-explode-transform="' + explodeTransform + '" data-base-transform="' + baseTransform + '" ' +
           'data-biotype="' + it.label + '" class="donut-explode-target" ' +
           'role="button" tabindex="0" title="' + it.label + ': ' + it.display + ' -- click for statistics"></path>');
@@ -1109,12 +1125,12 @@
           'style="left:' + left.toFixed(2) + '%;top:' + top.toFixed(2) + '%;color:' + it.color + '" ' +
           'role="button" tabindex="0" title="' + it.label + ': ' + it.display + ' -- click for statistics">' + it.display + '</span>');
       });
-      return { circles: wedges.join(''), labels: labels.join('') };
+      return { circles: wedges.join(''), labels: labels.join(''), delayEnd: chartIndex * 130 };
     }
 
-    function figureCard(title, note, centerValue, centerUnit, items) {
+    function figureCard(chartIndex, title, note, rawValue, decimals, suffix, centerUnit, items) {
       var sum = items.reduce(function (s, it) { return s + it.value; }, 0);
-      var parts2 = donutParts(items, sum);
+      var parts2 = donutParts(items, sum, chartIndex);
       return '<div class="cohort-figure">' +
         '<div class="cohort-figure-head"><span class="cohort-title">' + title + '</span>' +
           (note ? '<span class="cohort-figure-note">' + note + '</span>' : '') +
@@ -1122,10 +1138,34 @@
         '<div class="donut-wrap">' +
           '<svg viewBox="0 0 100 100" class="donut-svg">' + parts2.circles + '</svg>' +
           parts2.labels +
-          '<div class="donut-center"><span class="donut-total figure">' + centerValue + '</span>' +
+          '<div class="donut-center"><span class="donut-total figure" ' +
+            'data-count-to="' + rawValue + '" data-decimals="' + decimals + '" data-suffix="' + suffix + '" ' +
+            'data-delay="' + parts2.delayEnd + '">0' + suffix + '</span>' +
             '<span class="donut-label">' + centerUnit + '</span></div>' +
         '</div>' +
         '</div>';
+    }
+
+    // Counts each donut's center figure up from 0 once its wedges have finished popping in,
+    // easing out so it settles right as the ring itself does.
+    function animateCounters(root) {
+      root.querySelectorAll('.donut-total[data-count-to]').forEach(function (el) {
+        var target = parseFloat(el.getAttribute('data-count-to'));
+        var decimals = parseInt(el.getAttribute('data-decimals'), 10) || 0;
+        var suffix = el.getAttribute('data-suffix') || '';
+        var delay = parseFloat(el.getAttribute('data-delay')) || 0;
+        var duration = 700;
+        var start = null;
+        function frame(ts) {
+          if (start === null) start = ts;
+          var t = Math.max(0, Math.min(1, (ts - start) / duration));
+          var eased = 1 - Math.pow(1 - t, 3);
+          var v = target * eased;
+          el.textContent = (decimals > 0 ? v.toFixed(decimals) : Math.round(v).toLocaleString()) + suffix;
+          if (t < 1) requestAnimationFrame(frame);
+        }
+        setTimeout(function () { requestAnimationFrame(frame); }, delay + 180);
+      });
     }
 
     function items(valueKey, fmt) {
@@ -1138,13 +1178,15 @@
     var fmtPct = function (v) { return v.toFixed(1) + '%'; };
     var fmtCov = function (v) { return Math.round(v).toLocaleString() + '&times;'; };
 
-    document.getElementById('statSummary').innerHTML =
+    var statSummaryEl = document.getElementById('statSummary');
+    statSummaryEl.innerHTML =
       '<div class="cohort-grid">' +
-        figureCard('Sites', null, total.toLocaleString(), 'total sites', items('n', fmtInt)) +
-        figureCard('Genes / loci', null, Object.keys(allGenes).length.toLocaleString(), 'total genes', items('genes', fmtInt)) +
-        figureCard('Median mod. rate', 'relative share across biotypes', overallMedRate.toFixed(1) + '%', 'overall median', items('medRate', fmtPct)) +
-        figureCard('Median coverage', 'relative share across biotypes', Math.round(overallMedCov).toLocaleString() + '&times;', 'overall median', items('medCov', fmtCov)) +
+        figureCard(0, 'Sites', null, total, 0, '', 'total sites', items('n', fmtInt)) +
+        figureCard(1, 'Genes / loci', null, Object.keys(allGenes).length, 0, '', 'total genes', items('genes', fmtInt)) +
+        figureCard(2, 'Median mod. rate', 'relative share across biotypes', overallMedRate, 1, '%', 'overall median', items('medRate', fmtPct)) +
+        figureCard(3, 'Median coverage', 'relative share across biotypes', Math.round(overallMedCov), 0, '×', 'overall median', items('medCov', fmtCov)) +
       '</div>';
+    animateCounters(statSummaryEl);
 
     document.getElementById('mastheadTotal').textContent = total.toLocaleString();
   }
