@@ -102,6 +102,11 @@
     transition: all 0.15s;
   }
   .nav-links a:hover, .nav-links a.active { color: var(--text); background: var(--surface-2); }
+  /* The <sup> in "m5C Atlas" otherwise makes that one link's line box taller than its plain-
+     text siblings (vertical-align:super extends the box upward), which throws off the row's
+     shared baseline under align-items:center. Zeroing the sup's own line-height keeps its
+     contribution out of the line-box calculation entirely. */
+  nav sup, footer sup { line-height: 0; }
   .nav-btn { background: var(--accent) !important; color: #fff !important; border-radius: 6px; padding: 8px 18px !important; }
 
   .page-head { margin-bottom: 22px; }
