@@ -1228,21 +1228,21 @@ if (_hero) {
 <div style="position:fixed;bottom:20px;right:20px;z-index:99999;display:flex;flex-direction:column;align-items:center;gap:4px">
   <div id="srna-bubble" style="background:#2C5F8A;color:white;font-family:Outfit,sans-serif;font-size:0.78rem;font-weight:600;padding:5px 12px;border-radius:20px;box-shadow:0 2px 8px rgba(44,95,138,0.3);white-space:nowrap;animation:bubble-pulse 4s ease-in-out infinite;">Need help?</div>
   
-  <button id="srna-chat-btn" onclick="toggleChat()" title="Ask sRNA-TAPS AI">
-<img src="robot_icon.svg" alt="AI Assistant" style="width:80px;height:80px;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(44,95,138,0.2));">
+  <button id="srna-chat-btn" onclick="toggleChat()" title="Ask TAPSy">
+<img src="robot_icon.svg" alt="TAPSy assistant" style="width:80px;height:80px;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(44,95,138,0.2));">
 </button>
 </div>
 <div id="srna-chat-window">
   <div class="chat-header">
     <div class="chat-header-avatar" style="background:none;padding:2px;"><img src="sRNA-taps_logo_centre.svg" alt="sRNA-TAPS" style="width:32px;height:32px;object-fit:contain;"></div>
     <div class="chat-header-info">
-      <div class="chat-header-name">sRNA-TAPS Assistant</div>
+      <div class="chat-header-name">TAPSy</div>
       <div class="chat-header-status">&#9679; Online</div>
     </div>
     <button class="chat-close" onclick="toggleChat()">&#10005;</button>
   </div>
   <div class="chat-messages" id="srna-chat-messages">
-    <div class="chat-msg bot"><div class="chat-avatar" style="background:none;padding:0;"><img src="robot_icon.svg" style="width:28px;height:28px;object-fit:contain;"></div><div class="chat-bubble">Hi! I am the sRNA-TAPS assistant. Ask me anything about the pipeline, RNA methylation, or general bioinformatics!</div></div>
+    <div class="chat-msg bot"><div class="chat-avatar" style="background:none;padding:0;"><img src="robot_icon.svg" style="width:28px;height:28px;object-fit:contain;"></div><div class="chat-bubble">Hi! I am TAPSy, your sRNA-TAPS assistant. Ask me anything about the pipeline, RNA methylation, or general bioinformatics!</div></div>
   </div>
   <div class="chat-input-row">
     <input type="text" id="srna-chat-input" placeholder="Ask a question..." onkeydown="if(event.key==='Enter')srnaChat()">
@@ -1262,7 +1262,7 @@ window.srnaChat=async function(){
   srnaHistory.push({role:'user',content:msg});
   var t=srnaTyping();
   try{
-    var r=await fetch('https://srna-taps-chat.bennett-henzeler.workers.dev',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:1000,system:'You are the sRNA-TAPS assistant. You are an expert in the sRNA-TAPS pipeline for detecting RNA m5C using TAPS chemistry, small RNA biology (miRNA, tRNA, rRNA, snoRNA), RNA epigenetics, and general bioinformatics. Be concise and helpful.',messages:srnaHistory})});
+    var r=await fetch('https://srna-taps-chat.bennett-henzeler.workers.dev',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:1000,system:'You are TAPSy, the sRNA-TAPS assistant. You are an expert in the sRNA-TAPS pipeline for detecting RNA m5C using TAPS chemistry, small RNA biology (miRNA, tRNA, rRNA, snoRNA), RNA epigenetics, and general bioinformatics. Be concise and helpful.',messages:srnaHistory})});
     var txt=await r.text();
     
     t.remove();
