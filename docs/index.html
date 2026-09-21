@@ -645,6 +645,7 @@
     }
   </style>
   <link rel="stylesheet" href="responsive.css">
+  <link rel="stylesheet" href="tapsy.css">
 </head>
 <body>
 
@@ -1191,108 +1192,7 @@ if (_hero) {
 
 
 
-<!-- sRNA-TAPS AI Chat Widget -->
-<style>
-@keyframes bubble-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.85;transform:scale(1.05)}}@keyframes robot-bounce{0%{transform:translateX(0) translateY(0) rotate(0deg) scale(1)}10%{transform:translateX(-30px) translateY(-5px) rotate(-8deg) scale(1.02)}20%{transform:translateX(-50px) translateY(0) rotate(-5deg) scale(1)}30%{transform:translateX(-35px) translateY(-8px) rotate(-6deg) scale(1.03)}40%{transform:translateX(-10px) translateY(-3px) rotate(-3deg) scale(1.01)}50%{transform:translateX(0) translateY(0) rotate(0deg) scale(1)}65%{transform:translateX(0) translateY(-14px) rotate(3deg) scale(1.04)}80%{transform:translateX(0) translateY(-6px) rotate(-2deg) scale(0.98)}100%{transform:translateX(0) translateY(0) rotate(0deg) scale(1)}}#srna-chat-btn{position:relative;bottom:auto;right:auto;z-index:1;width:80px;height:80px;border-radius:0;background:none;border:none;cursor:pointer;box-shadow:none;padding:0;animation:robot-bounce 4s ease-in-out infinite}
-#srna-chat-btn:hover{transform:scale(1.08)}
-#srna-chat-btn svg{width:26px;height:26px;fill:white}
-@keyframes chat-pulse{0%,100%{box-shadow:0 4px 20px rgba(44,95,138,0.4)}50%{box-shadow:0 4px 28px rgba(0,212,170,0.5)}}
-#srna-chat-window{position:fixed;bottom:96px;right:28px;z-index:9998;width:360px;max-height:520px;border-radius:16px;background:#f7f6f2;border:1.5px solid #dedad4;box-shadow:0 12px 48px rgba(0,0,0,0.15);display:flex;flex-direction:column;overflow:hidden;transform:scale(0.95) translateY(10px);opacity:0;pointer-events:none;transition:transform 0.2s ease,opacity 0.2s ease}
-#srna-chat-window.open{transform:scale(1) translateY(0);opacity:1;pointer-events:all}
-.chat-header{background:#ffffff;border-bottom:1.5px solid #dedad4;padding:14px 18px;display:flex;align-items:center;gap:10px}
-.chat-header-avatar{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-.chat-header-info{flex:1}
-.chat-header-name{color:#1a1814;font-weight:600;font-size:0.9rem;font-family:Outfit,sans-serif}
-.chat-header-status{color:#2C5F8A;font-size:0.75rem;font-family:Outfit,sans-serif}
-.chat-close{background:none;border:none;color:#8a8680;cursor:pointer;font-size:1.2rem;padding:4px;line-height:1}
-.chat-close:hover{color:white}
-.chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;min-height:200px;max-height:340px}
-.chat-msg{display:flex;gap:8px;align-items:flex-start}
-.chat-msg.user{flex-direction:row-reverse}
-.chat-bubble{max-width:80%;padding:10px 14px;border-radius:14px;font-size:0.875rem;line-height:1.55;font-family:Outfit,sans-serif;color:#1a1814}
-.chat-msg.bot .chat-bubble{background:white;border:1.5px solid #dedad4;border-bottom-left-radius:4px}
-.chat-msg.user .chat-bubble{background:#2C5F8A;color:white;border-bottom-right-radius:4px}
-.chat-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#2C5F8A,#00d4aa);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;margin-top:2px}
-.chat-typing{display:flex;gap:4px;padding:10px 14px;background:white;border:1.5px solid #dedad4;border-radius:14px;border-bottom-left-radius:4px;width:fit-content}
-.chat-typing span{width:6px;height:6px;background:#2C5F8A;border-radius:50%;animation:ctyping 1.2s ease-in-out infinite}
-.chat-typing span:nth-child(2){animation-delay:0.2s}
-.chat-typing span:nth-child(3){animation-delay:0.4s}
-@keyframes ctyping{0%,60%,100%{transform:translateY(0);opacity:0.4}30%{transform:translateY(-5px);opacity:1}}
-.chat-input-row{padding:12px 14px;border-top:1px solid #dedad4;display:flex;gap:8px;background:white}
-#srna-chat-input{flex:1;border:1.5px solid #dedad4;border-radius:8px;padding:8px 12px;font-size:0.875rem;font-family:Outfit,sans-serif;outline:none;background:#f7f6f2;color:#1a1814;transition:border-color 0.15s}
-#srna-chat-input:focus{border-color:#2C5F8A}
-#srna-chat-send{background:#2C5F8A;border:none;border-radius:8px;width:36px;height:36px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-#srna-chat-send:hover{background:#1a3a5c}
-#srna-chat-send svg{width:16px;height:16px;fill:white}
-</style>
-<div style="position:fixed;bottom:20px;right:20px;z-index:99999;display:flex;flex-direction:column;align-items:center;gap:4px">
-  <div id="srna-bubble" style="background:#2C5F8A;color:white;font-family:Outfit,sans-serif;font-size:0.78rem;font-weight:600;padding:5px 12px;border-radius:20px;box-shadow:0 2px 8px rgba(44,95,138,0.3);white-space:nowrap;animation:bubble-pulse 4s ease-in-out infinite;">Need help from TAPSy?</div>
-  
-  <button id="srna-chat-btn" onclick="toggleChat()" title="Ask TAPSy">
-<img src="robot_icon.svg" alt="TAPSy assistant" style="width:80px;height:80px;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(44,95,138,0.2));">
-</button>
-</div>
-<div id="srna-chat-window">
-  <div class="chat-header">
-    <div class="chat-header-avatar" style="background:none;padding:2px;"><img src="sRNA-taps_logo_centre.svg" alt="sRNA-TAPS" style="width:32px;height:32px;object-fit:contain;"></div>
-    <div class="chat-header-info">
-      <div class="chat-header-name">TAPSy</div>
-      <div class="chat-header-status">&#9679; Online</div>
-    </div>
-    <button class="chat-close" onclick="toggleChat()">&#10005;</button>
-  </div>
-  <div class="chat-messages" id="srna-chat-messages">
-    <div class="chat-msg bot"><div class="chat-avatar" style="background:none;padding:0;"><img src="robot_icon.svg" style="width:28px;height:28px;object-fit:contain;"></div><div class="chat-bubble">Hi! I am TAPSy, your sRNA-TAPS assistant. Ask me anything about the pipeline, RNA methylation, or general bioinformatics!</div></div>
-  </div>
-  <div class="chat-input-row">
-    <input type="text" id="srna-chat-input" placeholder="Ask a question..." onkeydown="if(event.key==='Enter')srnaChat()">
-    <button id="srna-chat-send" onclick="srnaChat()"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
-  </div>
-</div>
-<script>
-var srnaOpen=false;
-var srnaHistory=[];
-window.toggleChat=function(){srnaOpen=!srnaOpen;document.getElementById('srna-chat-window').classList.toggle('open',srnaOpen);if(srnaOpen){setTimeout(function(){document.getElementById('srna-chat-input').focus();},200);var b=document.getElementById('srna-bubble');if(b)b.style.display='none';}else{var b=document.getElementById('srna-bubble');if(b)b.style.display='block';}}
-window.srnaChat=async function(){
-  var input=document.getElementById('srna-chat-input');
-  var msg=input.value.trim();
-  if(!msg)return;
-  input.value='';
-  srnaAddMsg('user',msg);
-  srnaHistory.push({role:'user',content:msg});
-  var t=srnaTyping();
-  try{
-    var r=await fetch('https://srna-taps-chat.bennett-henzeler.workers.dev',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:1000,system:'You are TAPSy, the sRNA-TAPS assistant. You are an expert in the sRNA-TAPS pipeline for detecting RNA m5C using TAPS chemistry, small RNA biology (miRNA, tRNA, rRNA, snoRNA), RNA epigenetics, and general bioinformatics. Be concise and helpful.',messages:srnaHistory})});
-    var txt=await r.text();
-    
-    t.remove();
-    var d=JSON.parse(txt);
-    var reply=(d.content&&d.content[0]&&d.content[0].text)||(d.error&&d.error.message)||('RAW: '+txt);
-    srnaHistory.push({role:'assistant',content:reply});
-    srnaAddMsg('bot',reply);
-  }catch(e){t.remove();srnaAddMsg('bot','Error: '+e.message);}
-}
-function srnaAddMsg(role,text){
-  var m=document.getElementById('srna-chat-messages');
-  var d=document.createElement('div');
-  d.className='chat-msg '+role;
-  var av=role==='bot'?'<div class="chat-avatar" style="background:none;padding:0;"><img src="robot_icon.svg" style="width:28px;height:28px;object-fit:contain;"></div>':{};
-  var f=text.replace(/`([^`]+)`/g,'<code style="background:#f0eeea;padding:1px 4px;border-radius:3px;font-family:monospace">$1</code>').replace(/\n/g,'<br>');
-  d.innerHTML=av+'<div class="chat-bubble">'+f+'</div>';
-  m.appendChild(d);
-  m.scrollTop=m.scrollHeight;
-  return d;
-}
-function srnaTyping(){
-  var m=document.getElementById('srna-chat-messages');
-  var d=document.createElement('div');
-  d.className='chat-msg bot';
-  d.innerHTML='<div class="chat-avatar" style="background:none;padding:0;"><img src="robot_icon.svg" style="width:28px;height:28px;object-fit:contain;"></div><div class="chat-typing"><span></span><span></span><span></span></div>';
-  m.appendChild(d);
-  m.scrollTop=m.scrollHeight;
-  return d;
-}
-</script>
 <script src="site.js"></script>
+<script src="tapsy.js"></script>
 </body>
 </html>
