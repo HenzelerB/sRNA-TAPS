@@ -46,3 +46,7 @@
 @media (prefers-reduced-motion: reduce) {
  #tapsy-widget *, #tapsy-widget *::before, #tapsy-widget *::after { animation: none !important; transition: none !important; }
 }
+
+#tapsy-widget .chat-sources { margin-top: 10px; font-size: .78rem; }
+#tapsy-widget .chat-sources summary { cursor: pointer; }
+#tapsy-widget .chat-sources a { display: block; margin-top: 6px; color: #2C5F8A; overflow-wrap: anywhere; }

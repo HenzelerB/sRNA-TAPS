@@ -28,14 +28,18 @@ async function srnaChat(){
   srnaHistory.push({role:'user',content:msg});
   var t=srnaTyping();
   try{
-    var r=await fetch('https://srna-taps-chat.bennett-henzeler.workers.dev',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:1000,system:'You are TAPSy, the sRNA-TAPS assistant. You are an expert in the sRNA-TAPS pipeline for detecting RNA m5C using TAPS chemistry, small RNA biology (miRNA, tRNA, rRNA, snoRNA), RNA epigenetics, and general bioinformatics. Be concise and helpful.',messages:srnaHistory})});
+    var recent=srnaHistory.slice(-5).filter(function(m){return m.role==='user';}).map(function(m){return m.content;}).join(' ');
+    var knowledge=await TAPSyKnowledge.context(recent);
+    var r=await fetch('https://srna-taps-chat.bennett-henzeler.workers.dev',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:1800,system:knowledge.system,messages:srnaHistory.slice(-16)})});
+    if(!r.ok)throw new Error('Chat service returned HTTP '+r.status);
     var txt=await r.text();
     
     t.remove();
     var d=JSON.parse(txt);
     var reply=(d.content&&d.content[0]&&d.content[0].text)||(d.error&&d.error.message)||('RAW: '+txt);
     srnaHistory.push({role:'assistant',content:reply});
-    srnaAddMsg('bot',reply);
+    var answer=srnaAddMsg('bot',reply);
+    addReferences(answer,knowledge.references);
   }catch(e){t.remove();srnaAddMsg('bot','Error: '+e.message);}finally{pending=false;}
 }
 function srnaAddMsg(role,text){
@@ -49,6 +53,17 @@ function srnaAddMsg(role,text){
   m.appendChild(d);
   m.scrollTop=m.scrollHeight;
   return d;
+}
+function addReferences(answer,refs){
+ if(!refs.length)return;
+ var details=document.createElement('details');
+ details.className='chat-sources';
+ var summary=document.createElement('summary');summary.textContent='Reference material supplied to TAPSy';details.appendChild(summary);
+ refs.forEach(function(ref){
+  if(!/^https:\/\//.test(ref.url))return;
+  var link=document.createElement('a');link.href=ref.url;link.textContent=ref.title;link.target='_blank';link.rel='noopener noreferrer';details.appendChild(link);
+ });
+ answer.querySelector('.chat-bubble').appendChild(details);
 }
 function srnaTyping(){
   var m=document.getElementById('srna-chat-messages');

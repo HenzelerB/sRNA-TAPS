@@ -1540,6 +1540,7 @@
     document.getElementById('detailLit').innerHTML = renderLiterature(r);
     document.getElementById('detailLinks').innerHTML = renderDetailLinks(r);
 
+    document.getElementById('detailOverlay').dataset.siteId=String(id);
     document.getElementById('detailOverlay').classList.add('open');
     document.getElementById('detailClose').focus();
   }
@@ -1755,6 +1756,7 @@
 </script>
 
 <script src="site.js"></script>
+<script src="tapsy-knowledge.js"></script>
 <script src="tapsy.js"></script>
 </body>
 </html>
