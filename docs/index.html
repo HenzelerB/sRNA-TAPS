@@ -693,7 +693,7 @@
           </div>
           <div class="proof-item">
             <span class="proof-step">02</span>
-            <div><strong>Controls stay explicit</strong><p>treat, pb_Ctrl, and no-treat appear from the start.</p></div>
+            <div><strong>Controls stay explicit</strong><p>TET + PB, PB, and Ctrl appear from the start.</p></div>
           </div>
           <div class="proof-item">
             <span class="proof-step">03</span>
@@ -872,12 +872,12 @@
     <h2 class="section-title">Three-condition framework</h2>
     <p class="section-desc">Three conditions separate true m<sup>5</sup>C signal from chemistry background and sequencing noise.</p>
     <div class="conditions-grid">
-      <div class="condition-card treat"><div class="condition-tag">treat</div><h3>TET + Pyridine Borane + PCR</h3><p>Full TAPS chemistry. This is the signal condition.</p></div>
-      <div class="condition-card pb"><div class="condition-tag">pb_Ctrl</div><h3>Pyridine Borane + PCR</h3><p>No TET oxidation. This captures chemistry background.</p></div>
-      <div class="condition-card notx"><div class="condition-tag">no-treat</div><h3>PCR only (No treatment)</h3><p>Untreated baseline for sequencing noise and SNP filtering.</p></div>
+      <div class="condition-card treat"><div class="condition-tag">TET + PB</div><h3>TET + Pyridine Borane + PCR</h3><p>Full TAPS chemistry. This is the signal condition.</p></div>
+      <div class="condition-card pb"><div class="condition-tag">PB</div><h3>Pyridine Borane + PCR</h3><p>No TET oxidation. This captures chemistry background.</p></div>
+      <div class="condition-card notx"><div class="condition-tag">Ctrl</div><h3>PCR only (No treatment)</h3><p>Ctrl baseline for sequencing noise and SNP filtering.</p></div>
     </div>
     <div class="chem-callout">
-      <p>The <strong>delta score</strong> subtracts pb_Ctrl background from treat signal to isolate TET-dependent conversion.</p>
+      <p>The <strong>delta score</strong> subtracts PB background from TET + PB signal to isolate TET-dependent conversion.</p>
     </div>
     </div>
   </div>
