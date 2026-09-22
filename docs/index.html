@@ -150,6 +150,19 @@
     .code-body .cmd { color: #2C5F8A; }
     .code-body .comment { color: #928374; font-style: italic; }
 
+    /* ATLAS DEMO */
+    .atlas-demo-body { padding: 20px 22px 22px; background: var(--surface); }
+    .atlas-demo-search { display: flex; align-items: center; gap: 8px; background: var(--bg); border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 14px; font-family: 'DM Mono', monospace; font-size: .85rem; color: var(--text); margin-bottom: 16px; min-height: 1.3em; }
+    .atlas-demo-search-icon { color: var(--text3); }
+    .atlas-demo-table { display: flex; flex-direction: column; gap: 3px; }
+    .atlas-demo-row { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 8px; align-items: center; padding: 8px 10px; border-radius: 6px; font-size: .78rem; opacity: 1; transform: translateY(0); transition: opacity .4s ease, transform .4s ease, background .3s ease; }
+    .atlas-demo-row.is-hidden { opacity: 0; transform: translateY(6px); }
+    .atlas-demo-row.is-scanning { background: var(--accent2); }
+    .atlas-demo-head { font-size: .68rem; text-transform: uppercase; letter-spacing: .05em; color: var(--text3); font-weight: 600; }
+    .atlas-demo-status { display: inline-block; padding: 2px 8px; border-radius: 100px; font-size: .68rem; font-weight: 600; text-align: center; }
+    .atlas-demo-status.is-reported { background: #dce8f5; color: var(--accent3); }
+    .atlas-demo-status.is-novel { background: rgba(0,212,170,.15); color: #0a8f74; }
+
     /* CONDITIONS */
     .conditions-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px; }
     .condition-card { border-radius: 12px; padding: 24px; border: 1.5px solid var(--border); }
@@ -218,6 +231,7 @@
       .chem-grid, .install-grid, .features-grid { grid-template-columns: 1fr; }
       .conditions-grid { grid-template-columns: 1fr; }
       .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .atlas-demo-row { grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 6px; font-size: .72rem; }
       nav { padding: 0 20px; }
       .container { padding: 0 20px; }
       .hero { padding-left: 20px; padding-right: 20px; }
@@ -878,6 +892,107 @@
     </div>
     <div class="chem-callout">
       <p>The <strong>delta score</strong> subtracts PB background from TET + PB signal to isolate TET-dependent conversion.</p>
+    </div>
+    </div>
+  </div>
+</section>
+
+<section class="chemistry-bg">
+  <div class="container">
+    <div class="section-card">
+    <div class="install-grid">
+      <div>
+        <div class="section-label">Explore the data</div>
+        <h2 class="section-title">The m<sup>5</sup>C Site Atlas</h2>
+        <p class="section-desc">Every high-confidence m<sup>5</sup>C site sRNA-TAPS has called across Caco2 and HEK293 cells, browsable and cross-referenced against the literature. Search by gene or transcript, filter by biotype and reported/novel status, and click any site for its full sequence, structure, and literature support.</p>
+        <div><a href="m5c-atlas.html" class="btn btn-primary">Browse the Atlas →</a></div>
+      </div>
+      <div>
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-dots"><div class="code-dot dot-r"></div><div class="code-dot dot-y"></div><div class="code-dot dot-g"></div></div>
+            <span class="code-title">m5c-atlas.html</span>
+          </div>
+          <div class="atlas-demo-body">
+            <div class="atlas-demo-search">
+              <span class="atlas-demo-search-icon">⌕</span><span id="atlasDemoQuery"></span><span class="type-caret"></span>
+            </div>
+            <div class="atlas-demo-table" id="atlasDemoTable">
+              <div class="atlas-demo-row atlas-demo-head"><span>Transcript</span><span>Position</span><span>Mod. rate</span><span>Status</span></div>
+              <div class="atlas-demo-row" data-row><span>hsa-miR-21-5p</span><span>nt 4</span><span>21.6%</span><span class="atlas-demo-status is-reported">Reported</span></div>
+              <div class="atlas-demo-row" data-row><span>hsa-miR-21-5p</span><span>nt 13</span><span>18.1%</span><span class="atlas-demo-status is-reported">Reported</span></div>
+              <div class="atlas-demo-row" data-row><span>hsa-miR-21-3p</span><span>nt 7</span><span>21.3%</span><span class="atlas-demo-status is-novel">Novel</span></div>
+              <div class="atlas-demo-row" data-row><span>hsa-miR-21-3p</span><span>nt 11</span><span>15.9%</span><span class="atlas-demo-status is-novel">Novel</span></div>
+            </div>
+          </div>
+        </div>
+<script>
+(function(){
+  const query = 'MIR21';
+  const table = document.getElementById('atlasDemoTable');
+  const queryEl = document.getElementById('atlasDemoQuery');
+  if (!table || !queryEl) return;
+  const rows = table.querySelectorAll('.atlas-demo-row[data-row]');
+
+  let charIdx = 0, rowIdx = 0;
+
+  function typeChar() {
+    if (charIdx < query.length) {
+      queryEl.textContent += query[charIdx++];
+      setTimeout(typeChar, 90 + Math.random() * 70);
+    } else {
+      setTimeout(revealRows, 450);
+    }
+  }
+
+  function revealRows() {
+    if (rowIdx < rows.length) {
+      const row = rows[rowIdx++];
+      row.classList.remove('is-hidden');
+      row.classList.add('is-scanning');
+      setTimeout(() => row.classList.remove('is-scanning'), 550);
+      setTimeout(revealRows, 420);
+    } else {
+      setTimeout(reset, 2800);
+    }
+  }
+
+  function reset() {
+    rows.forEach(r => { r.classList.add('is-hidden'); r.classList.remove('is-scanning'); });
+    queryEl.textContent = '';
+    charIdx = 0; rowIdx = 0;
+    setTimeout(typeChar, 400);
+  }
+
+  // Rows are visible by default in CSS (safe with JS off). Only hide them
+  // right before animating them back in, and if that throws, immediately
+  // undo it — content can never end up stuck blank.
+  function begin() {
+    try {
+      rows.forEach(r => r.classList.add('is-hidden'));
+      queryEl.textContent = '';
+      typeChar();
+    } catch (e) {
+      rows.forEach(r => r.classList.remove('is-hidden'));
+      queryEl.textContent = query;
+    }
+  }
+
+  if (typeof IntersectionObserver === 'function') {
+    const obs = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) { begin(); obs.disconnect(); }
+    }, { threshold: 0.3 });
+    obs.observe(table);
+  }
+})();
+</script>
+      </div>
+    </div>
+    <div class="stats-row" style="margin-top:40px">
+      <div class="stat-card"><div class="stat-num">6524</div><div class="stat-label">HC-called sites</div></div>
+      <div class="stat-card"><div class="stat-num">905</div><div class="stat-label">genes / loci</div></div>
+      <div class="stat-card"><div class="stat-num">580</div><div class="stat-label">novel sites</div></div>
+      <div class="stat-card"><div class="stat-num">232</div><div class="stat-label">reported in literature</div></div>
     </div>
     </div>
   </div>
