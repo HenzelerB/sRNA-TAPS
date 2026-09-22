@@ -1061,9 +1061,17 @@
 const _obs = new IntersectionObserver((entries) => {
   entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
 }, { threshold: 0.12 });
-document.querySelectorAll('section, .feature-card, .stat-card, .condition-card, .chem-step, .tool-badge').forEach(el => {
+const _fadeUpEls = document.querySelectorAll('section, .feature-card, .stat-card, .condition-card, .chem-step, .tool-badge');
+_fadeUpEls.forEach(el => {
   el.classList.add('fade-up'); _obs.observe(el);
 });
+/* Safety net: IntersectionObserver can occasionally miss an element that's
+   already in view at observe()-time (seen in headless/automated capture, and
+   possible on real page loads too). Force-reveal anything still hidden after
+   2s so content can never stay permanently invisible. */
+setTimeout(() => {
+  _fadeUpEls.forEach(el => el.classList.add('visible'));
+}, 2000);
 
 /* Professional, one-time typewriter reveal for the hero heading */
 const _h1 = document.querySelector('.hero h1');
@@ -1075,6 +1083,21 @@ if (_h1) {
   const qualifierText = qualifierSpan ? qualifierSpan.textContent.trim() : '';
   _h1.setAttribute('aria-label', qualifierText ? `${finalText} ${qualifierText}` : finalText);
 
+  // Safety net: if anything in the typewriter logic below throws, or a
+  // timer in its setTimeout chain never fires, this guarantees the heading
+  // ends up showing its real, final text rather than staying blank
+  // (the block clears _h1.innerHTML synchronously before typing it back in).
+  let _h1TypingDone = false;
+  const _h1Restore = () => {
+    if (_h1TypingDone) return;
+    _h1TypingDone = true;
+    _h1.innerHTML = qualifierText
+      ? `<span class="hero-title-main">${finalMainHTML}</span><span class="hero-qualifier is-visible">${qualifierText}</span>`
+      : finalMainHTML;
+  };
+  setTimeout(_h1Restore, 4000);
+
+  try {
   if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     _h1.style.minHeight = `${_h1.offsetHeight}px`;
     _h1.innerHTML = '';
@@ -1132,10 +1155,16 @@ if (_h1) {
           }, 180);
         }
         setTimeout(() => finalCaret.classList.add('done'), 700);
+        _h1TypingDone = true;
       }
     };
 
     setTimeout(typeNext, 350);
+  } else {
+    _h1TypingDone = true;
+  }
+  } catch (e) {
+    _h1Restore();
   }
 }
 
