@@ -780,11 +780,11 @@
           <div class="chemistry-structure-grid">
             <div class="chemistry-structure-tile">
               <img class="chemistry-structure" src="f5C.svg?v=2" alt="f5C chemical structure">
-              <div class="chemistry-structure-caption">f5C</div>
+              <div class="chemistry-structure-caption">f<sup>5</sup>C</div>
             </div>
             <div class="chemistry-structure-tile">
               <img class="chemistry-structure" src="ca5C.svg?v=2" alt="ca5C chemical structure">
-              <div class="chemistry-structure-caption">ca5C</div>
+              <div class="chemistry-structure-caption">ca<sup>5</sup>C</div>
             </div>
           </div>
           <p>TET oxidation moves modified cytosines into convertible forms.</p>
@@ -1117,10 +1117,35 @@ if (_h1) {
     const accentStart = finalText.indexOf(accentText);
     const accentEnd = accentStart + accentText.length;
 
+    // Locate any <sup> run (e.g. the "5" in "m5C") so it can be typed back
+    // in as a real <sup> instead of flattening to a plain digit.
+    const supEl = mainSpan ? mainSpan.querySelector('sup') : null;
+    let supStart = -1, supEnd = -1;
+    if (supEl) {
+      let offset = 0;
+      for (const node of mainSpan.childNodes) {
+        if (node === supEl) { supStart = offset; supEnd = offset + supEl.textContent.length; break; }
+        offset += node.textContent.length;
+      }
+    }
+
     const renderTypedText = (length) => {
       liveMainSpan.textContent = '';
-      const beforeAccent = finalText.slice(0, Math.min(length, accentStart));
-      if (beforeAccent) liveMainSpan.appendChild(document.createTextNode(beforeAccent));
+      const beforeAccentEnd = Math.min(length, accentStart);
+      let cursor = 0;
+      while (cursor < beforeAccentEnd) {
+        if (supStart >= 0 && cursor >= supStart && cursor < supEnd) {
+          const chunkEnd = Math.min(beforeAccentEnd, supEnd);
+          const sup = document.createElement('sup');
+          sup.textContent = finalText.slice(cursor, chunkEnd);
+          liveMainSpan.appendChild(sup);
+          cursor = chunkEnd;
+        } else {
+          const nextBoundary = supStart >= 0 && cursor < supStart ? Math.min(beforeAccentEnd, supStart) : beforeAccentEnd;
+          liveMainSpan.appendChild(document.createTextNode(finalText.slice(cursor, nextBoundary)));
+          cursor = nextBoundary;
+        }
+      }
 
       if (length > accentStart) {
         const accent = document.createElement('span');
