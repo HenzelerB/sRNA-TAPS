@@ -471,7 +471,7 @@ no-treat_Ctrl_Caco2_R1  no-treat   Caco2      /data/rawfiles/no-treat_Ctrl_Caco2
       <tr><td><code>multiqc</code></td><td>MultiQC 1.21</td><td>Aggregated FastQC + Trim Galore + Bowtie1 HTML report</td></tr>
     </table>
     <p>All figures are saved in PDF, PNG, and SVG at 300 dpi (Arial 8pt, sRNA-TAPS navy-to-teal palette). The R scripts read condition and cell line metadata directly from <code>samples.tsv</code> and adapt colour palettes, axis labels, and condition comparisons to any experimental design — not just HEK/Caco2.</p>
-    <div class="tip"><strong>Custom condition labels:</strong> Set <code>SRNATAPS_CONDITION_LABELS="treat=TET+PB,pb_Ctrl=PB only,no-treat=Untreated"</code> before running to override display names in figures.</div>
+    <div class="tip"><strong>Custom condition labels:</strong> Set <code>SRNATAPS_CONDITION_LABELS="treat=TET + PB,pb_Ctrl=PB,no-treat=Ctrl"</code> before running to override display names in figures.</div>
 
     <!-- ── BENCHMARKING ────────────────────────────────────────────────── -->
     <h2 id="benchmark">Benchmarking</h2>
@@ -581,10 +581,10 @@ snakemake \
     <p>Around 80% of trimmed reads should align to hg38. At the two seeded miRNA m5C sites:</p>
     <table>
       <tr><th>Position</th><th>Gene</th><th>Condition</th><th>mod_rate</th></tr>
-      <tr><td>chr17:59841313</td><td>hsa-miR-21-5p</td><td>TET+PB</td><td><strong>~90%</strong></td></tr>
-      <tr><td>chr17:59841313</td><td>hsa-miR-21-5p</td><td>Untreated</td><td>~2%</td></tr>
-      <tr><td>chrX:66018955</td><td>hsa-miR-223-3p</td><td>TET+PB</td><td><strong>~72%</strong></td></tr>
-      <tr><td>chrX:66018955</td><td>hsa-miR-223-3p</td><td>Untreated</td><td>~0.2%</td></tr>
+      <tr><td>chr17:59841313</td><td>hsa-miR-21-5p</td><td>TET + PB</td><td><strong>~90%</strong></td></tr>
+      <tr><td>chr17:59841313</td><td>hsa-miR-21-5p</td><td>Ctrl</td><td>~2%</td></tr>
+      <tr><td>chrX:66018955</td><td>hsa-miR-223-3p</td><td>TET + PB</td><td><strong>~72%</strong></td></tr>
+      <tr><td>chrX:66018955</td><td>hsa-miR-223-3p</td><td>Ctrl</td><td>~0.2%</td></tr>
     </table>
     <pre><code># Quick verification
 grep "^17.*59841313" 07.taps_calls/miRNA/treat_HEK_R1_miRNA_taps.tsv
