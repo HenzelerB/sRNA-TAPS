@@ -375,7 +375,7 @@
       align-content: center;
     }
     .hero-metrics-side {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
     .hero-metric {
       padding: 12px 14px;
@@ -385,6 +385,8 @@
       color: var(--text2);
       font-size: .84rem;
     }
+    a.hero-metric { text-decoration: none; color: var(--text2); transition: border-color .15s ease, transform .15s ease; }
+    a.hero-metric:hover { border-color: var(--accent); transform: translateY(-2px); }
     .hero-metrics-side .hero-metric {
       padding: 13px 12px;
       background: rgba(255,255,255,.92);
@@ -737,6 +739,7 @@
         <div class="hero-metric"><strong>7</strong> biotypes with biotype-aware thresholds.</div>
         <div class="hero-metric"><strong>3</strong> conditions separate background from signal.</div>
         <div class="hero-metric"><strong>75</strong> figures generated automatically.</div>
+        <a href="m5c-atlas.html" class="hero-metric"><strong>6,524</strong> m<sup>5</sup>C sites in the Atlas →</a>
       </div>
       </div>
     </div>
