@@ -17,6 +17,7 @@ htmlcov/
 *.gz
 *.tsv
 !srnataps/config/samples.tsv
+!benchmark/fig2c_truth_set.tsv
 bioconda-recipes/
 bioconda-recipes/
 
