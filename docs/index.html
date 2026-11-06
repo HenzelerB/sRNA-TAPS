@@ -1084,7 +1084,7 @@
       <div>
         <div class="section-label">Installation</div>
         <h2 class="section-title">Up and running in minutes</h2>
-        <p class="section-desc">Install from source using the tagged release.</p>
+        <p class="section-desc">Install from PyPI or from source using the tagged release.</p>
       </div>
       <div>
         <div class="code-block">
@@ -1097,7 +1097,10 @@
 <script>
 (function(){
   const lines = [
-    { text: '# install from source', type: 'comment', delay: 400 },
+    { text: '# install from PyPI', type: 'comment', delay: 400 },
+    { text: 'python -m pip install sRNA-TAPS', type: 'cmd', delay: 100 },
+    { text: '', type: 'br', delay: 0 },
+    { text: '# or from source', type: 'comment', delay: 200 },
     { text: 'git clone https://github.com/HenzelerB/sRNA-TAPS', type: 'cmd', delay: 100 },
     { text: 'cd sRNA-TAPS && git checkout v0.1.0', type: 'cmd', delay: 100 },
     { text: 'python -m pip install -e .', type: 'cmd', delay: 100 },

@@ -83,6 +83,14 @@ git checkout v0.1.0
 python -m pip install -e .
 ```
 
+#### From PyPI
+
+```bash
+python -m pip install sRNA-TAPS
+```
+
+The PyPI package `0.1.0.post1` is the same code as the `v0.1.0` tag. Its version number differs because PyPI does not allow a file name to be reused. Pipeline tools such as Bowtie and samtools are installed separately, for example with the full environment below.
+
 #### Full environment
 
 ```bash
