@@ -134,6 +134,12 @@ SRNATAPS_TEAL  <- "#3898BD"
 SRNATAPS_LIGHT <- "#7CBBD4"
 SRNATAPS_PALE  <- "#A8CADA"
 
+# Canonical Aurora palette used throughout all report figures.
+AURORA_NAVY <- "#1C4062"
+AURORA_MINT <- "#4DDEB8"
+AURORA_BLUE <- "#5BAFD0"
+AURORA_GOLD <- "#FFD680"
+
 # Base palette in order (6 steps from dark to light)
 .BASE_PALETTE <- c(SRNATAPS_NAVY, SRNATAPS_BLUE, SRNATAPS_MID,
                    SRNATAPS_TEAL, SRNATAPS_LIGHT, SRNATAPS_PALE)
@@ -176,10 +182,14 @@ if (nchar(.env_labels) > 0) {
 # Single source of truth for all report figures. Condition colours below;
 # biotype spectrum (BIOTYPE_COLOURS) is interpolated from the same three anchors.
 # Known TAPS conditions get fixed colours; custom sets fall back to srnataps_palette.
+COND_NO_TREAT_COLOUR <- "#43E7C8"  # PB- & TET-
+COND_PB_CTRL_COLOUR  <- "#FFC23F"  # PB+ & TET-
+COND_TREAT_COLOUR    <- "#389ABD"  # PB+ & TET+
+
 .KNOWN_CONDITION_COLOURS <- c(
-  "treat"    = "#FFD680",   # light gold  — TET+PB
-  "pb_ctrl"  = "#5BAFD0",   # light blue  — PB
-  "no_treat" = "#4DDEB8"    # light mint  — UNTREATED
+  "treat"    = COND_TREAT_COLOUR,    # PB+ & TET+
+  "pb_ctrl"  = COND_PB_CTRL_COLOUR,  # PB+ & TET-
+  "no_treat" = COND_NO_TREAT_COLOUR  # PB- & TET-
 )
 CONDITION_COLOURS <- setNames(
   sapply(CONDITIONS, function(c) {
@@ -209,8 +219,8 @@ CONDITION_LABELS <- setNames(
 # than the navy->teal gradient) keep multi-cell-line scatters (e.g. fig 3c)
 # legible. Mirrors the CONDITION_COLOURS known-plus-fallback pattern above.
 .KNOWN_CELL_COLOURS <- c(
-  "Caco2" = "#06D6A0",   # teal-green
-  "HEK"   = "#FFD166"    # gold
+  "Caco2" = AURORA_MINT,
+  "HEK"   = AURORA_GOLD
 )
 CELL_COLOURS <- setNames(
   sapply(CELL_LINES, function(cl) {
@@ -231,17 +241,25 @@ CELL_SHAPES <- setNames(
 # =============================================================================
 
 # Okabe-Ito colorblind-safe palette (8 colours)
-# Biotype colours: spectrum derived from Aurora Borealis condition palette
-BIOTYPE_COLOURS <- setNames(
-  colorRampPalette(c("#FFD680", "#5BAFD0", "#4DDEB8"))(8),
-  c("miRNA", "tRNA", "rRNA", "snoRNA", "snRNA", "piRNA", "lncRNA", "other")
+# Biotype colours: categorical extensions of the same four Aurora anchors used
+# in Figure 3. Exact anchors are retained for the dominant categories, while
+# intermediate shades provide separation without introducing unrelated hues.
+BIOTYPE_COLOURS <- c(
+  "miRNA"  = "#4E9A78",
+  "tRNA"   = "#7C9DFF",
+  "rRNA"   = "#8EA64F",
+  "snRNA"  = "#B39B78",
+  "snoRNA" = "#7CC7D2",
+  "piRNA"  = AURORA_NAVY,
+  "lncRNA" = "#B86F4A",
+  "other"  = "#919191"
 )
 
 TOOL_COLOURS_BENCH <- c(
-  "sRNA-TAPS" = "#1C4062",   # brand navy
-  "rastair"   = "#CC79A7",   # Okabe-Ito reddish-purple
-  "astair"    = "#009E73",   # Okabe-Ito bluish-green
-  "bismark"   = "#E69F00"    # Okabe-Ito orange
+  "sRNA-TAPS" = AURORA_NAVY,
+  "rastair"   = AURORA_MINT,
+  "astair"    = AURORA_BLUE,
+  "bismark"   = AURORA_GOLD
 )
 
 CONF_COLOURS <- c(
@@ -266,10 +284,9 @@ theme_arial8 <- theme_bw(base_size = 8, base_family = "Arial") +
                                       face = "plain"),
     legend.text        = element_text(size = 8, family = "Arial", colour = "black"),
     legend.title       = element_text(size = 8, family = "Arial", colour = "black"),
-    strip.text         = element_text(size = 8, family = "Arial", colour = "black",
+    strip.text         = element_text(size = 8, family = "Arial", colour = "white",
                                       face = "bold"),
-    strip.background   = element_rect(fill = "grey95", colour = "grey60",
-                                      linewidth = 0.3),
+    strip.background   = element_rect(fill = AURORA_NAVY, colour = NA),
     panel.grid.major.x = element_blank(),
     panel.grid.minor   = element_blank(),
     panel.border       = element_rect(colour = "black", fill = NA, linewidth = 0.4),
@@ -339,4 +356,3 @@ if (is.na(UNTR_COND))  UNTR_COND  <- CONDITIONS[1]
 message("  Treat cond : ", TREAT_COND)
 message("  Ctrl cond  : ", CTRL_COND)
 message("  Untr cond  : ", UNTR_COND)
-

@@ -92,6 +92,9 @@ rule replicate_condition_call:
         min_cov=CONDITION_CONFIG.get("test_min_coverage", 5),
         min_qual=config["calling"]["min_base_quality"],
         min_mapq=config["calling"]["min_mapping_quality"],
+        statistical_test=CONDITION_CONFIG.get("replicate_test", "beta_binomial"),
+        primary_control=CONDITION_CONFIG.get("primary_control", "both"),
+        min_posterior=CONDITION_CONFIG.get("minimum_posterior_probability", 0.95),
     resources:
         mem_mb=12000,
         runtime=480,
@@ -109,7 +112,9 @@ rule replicate_condition_call:
             --cell-line {wildcards.cell_line} \
             --out {output.passing} \
             --all-out {output.audit} \
-            --statistical-test beta_binomial \
+            --statistical-test {params.statistical_test} \
+            --primary-control {params.primary_control} \
+            --minimum-posterior-probability {params.min_posterior} \
             --minimum-replicates {params.min_reps} \
             --minimum-delta {params.min_delta} \
             --maximum-padj {params.max_padj} \

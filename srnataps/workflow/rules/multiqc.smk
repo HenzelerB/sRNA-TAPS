@@ -14,7 +14,11 @@ rule multiqc:
         outdir   = str(OUTDIR / "report"),
         trim_dir = str(TRIM_DIR),
         qc_dir   = str(QC_DIR),
-        log_dir  = str(LOG_DIR),
+        # Limit log discovery to the files emitted by the alignment rules.
+        # Searching LOG_DIR recursively also feeds MultiQC unrelated condition
+        # and benchmark logs (and this rule's own output), which can be
+        # misidentified as malformed Bowtie reports.
+        align_log_dir = str(LOG_DIR / "align"),
     log:
         str(LOG_DIR / "multiqc.log"),
     shell:
@@ -23,7 +27,7 @@ rule multiqc:
         multiqc \
             {params.qc_dir} \
             {params.trim_dir} \
-            {params.log_dir} \
+            {params.align_log_dir} \
             --outdir {params.outdir} \
             --filename multiqc_report.html \
             --force \

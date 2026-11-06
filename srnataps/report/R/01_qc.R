@@ -89,7 +89,7 @@ if (dir.exists(pre_dir)) {
                                 colour = condition, group = sample)) +
     geom_vline(xintercept = 178, linetype = "dashed",
                colour = "grey40", linewidth = 0.4) +
-    geom_line(alpha = 0.6, linewidth = 0.4) +
+    geom_line(alpha = 0.85, linewidth = 0.45) +
     facet_wrap(~ cell_line) +
     scale_colour_manual(values = CONDITION_COLOURS, labels = CONDITION_LABELS,
                         name = "Condition") +

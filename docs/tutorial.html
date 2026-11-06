@@ -167,59 +167,26 @@
       </div>
     </div>
 
-  <div id="prereqs" class="note"><strong>Before you start:</strong> You need a SLURM cluster with the <code>RNA_taps</code> conda environment active, R packages installed (<code>Rscript install_R_packages.R</code>), and the sRNA-TAPS repository cloned. No pre-built genome index is required &mdash; the pipeline downloads the configured species reference automatically.</div>
+  <div id="prereqs" class="note"><strong>Before you start:</strong> You need a SLURM cluster with the <code>sRNA-TAPS</code> conda environment active, R packages installed (<code>Rscript install_R_packages.R</code>), and the sRNA-TAPS repository cloned. No pre-built genome index is required &mdash; the pipeline downloads the configured species reference automatically.</div>
 
   <div id="step1" class="step-header"><div class="step-num">1</div><h2>Generate the test FASTQs</h2></div>
   <div class="step-block">
-    <p>The simulator generates 100 samples with accurate TAPS chemistry &mdash; seeded m5C positions at 40&ndash;80% conversion in <code>treat</code> and 2&ndash;5% background in <code>no-treat</code>. Reads are 18&ndash;50 nt with the TruSeq small RNA adapter, drawn from real hg38 loci (miRNA 40%, tRNA 25%, rRNA 25%, snoRNA 10%).</p>
+    <p>The simulator generates 100 samples with accurate TAPS chemistry &mdash; seeded m5C positions at 60 to 90% conversion in <code>treat</code> and 1 to 3% background in <code>no-treat</code>. Reads are 18&ndash;50 nt with the TruSeq small RNA adapter, drawn from real hg38 loci (miRNA 40%, tRNA 25%, rRNA 25%, snoRNA 10%).</p>
     <pre><code>python3 tests/simulate_taps_srna.py \
-    --outdir ~/srnataps_test/fastq \
-    --samples 100 \
+    --outdir ~/srnataps_sim \
+    --reads 1000000 \
     --seed 42</code></pre>
-    <p>You should see 100 <code>.fq.gz</code> files and a <code>samples.tsv</code> written to the output directory.</p>
+    <p>You should see 100 <code>.fastq.gz</code> files and a <code>samples.tsv</code> written to the output directory.</p>
     <div class="tip"><strong>Tip:</strong> <code>--seed 42</code> makes the simulation fully reproducible. You will get identical results every time.</div>
   </div>
 
   <div id="step2" class="step-header"><div class="step-num">2</div><h2>Set up the project directory</h2></div>
   <div class="step-block">
-    <p>sRNA-TAPS needs two files in the project root: a <code>config.yaml</code> and a <code>samples.tsv</code>. The simulator writes <code>samples.tsv</code> automatically &mdash; link it to the project root and create the config.</p>
-    <pre><code>cd ~/srnataps_test
-
-# Link the generated sample sheet
-ln -sf fastq/samples.tsv samples.tsv</code></pre>
-
-    <p>Create <code>config.yaml</code>:</p>
-    <pre><code>project:
-  name: srnataps_test
-  outdir: /home/user/srnataps_test
-
-reference:
-  species:         human
-  ensembl_release: 112
-  genome_fa:       ""
-  gtf:             ""
-  bowtie1_index:   ""
-  dbsnp_vcf: ""
-
-output:
-  fastqc:    02.fastqc
-  trimmed:   03.trimGalore
-  genome:    04a.genome
-  aligned:   04b.aligned
-  biotypes:  05.biotype_bams
-  snp:       06.snp_resources
-  calls:     07.taps_calls
-  benchmark: 08.benchmark
-  compare:   09.compare
-  logs:      logs
-
-benchmark:
-  tools:
-    astair:
-      min_depth: 5
-      min_mapq:  20
-      min_baseq: 20
-      context:   all</code></pre>
+    <p>sRNA-TAPS needs two files in the project root: a <code>config.yaml</code> and a <code>samples.tsv</code>. <code>srnataps init</code> writes a complete config, and the simulator has already written the sample sheet.</p>
+    <pre><code>srnataps init --outdir ~/srnataps_test --species human --fastq-dir ~/srnataps_sim
+cp ~/srnataps_sim/samples.tsv ~/srnataps_test/samples.tsv
+cd ~/srnataps_test</code></pre>
+    <p>Open <code>config.yaml</code> and set any paths marked <code>&lt;REQUIRED&gt;</code>.</p>
 
     <div class="note"><strong>Reference setup:</strong> This test dataset is human, so the tutorial keeps <code>species: human</code>. Leave <code>genome_fa</code>, <code>gtf</code>, and <code>bowtie1_index</code> empty to let the pipeline download the matching Ensembl reference and build the Bowtie1 index automatically before any samples are processed.</div>
   </div>
@@ -230,11 +197,11 @@ benchmark:
     <pre><code>cd ~/srnataps_test
 
 snakemake \
-    --snakefile /path/to/sRNA-TAPS/workflow/Snakefile \
+    --snakefile /path/to/sRNA-TAPS/srnataps/workflow/Snakefile \
     --configfile config.yaml \
-    --profile    /path/to/sRNA-TAPS/profile \
+    --profile    /path/to/sRNA-TAPS/srnataps/workflow/profiles/slurm \
     --dry-run 2>&1 | tail -20</code></pre>
-    <p>You should see a job count table listing <code>download_genome_fa</code>, <code>download_gtf</code>, <code>bowtie1_index</code>, <code>fastqc</code>, <code>trim_galore</code>, <code>bowtie1_align</code>, <code>biotype_split</code>, <code>taps_call</code>, the four report rules, and <code>multiqc</code>. No errors means you are ready to launch.</p>
+    <p>You should see a job count table listing <code>download_genome_fa</code>, <code>download_gtf</code>, the three-letter index rules, <code>fastqc_pretrim</code>, <code>trim_galore</code>, <code>bowtie1_align</code>, <code>biotype_split</code>, <code>taps_call</code>, the condition rules, the report rules, and <code>multiqc</code>. No errors means you are ready to launch.</p>
   </div>
 
   <div id="step4" class="step-header"><div class="step-num">4</div><h2>Run the pipeline</h2></div>
@@ -249,9 +216,9 @@ bash /path/to/sRNA-TAPS/sRNA_taps.bash</code></pre>
     <h3>Option B &mdash; direct background launch</h3>
     <pre><code>cd ~/srnataps_test
 snakemake \
-    --snakefile /path/to/sRNA-TAPS/workflow/Snakefile \
+    --snakefile /path/to/sRNA-TAPS/srnataps/workflow/Snakefile \
     --configfile config.yaml \
-    --profile    /path/to/sRNA-TAPS/profile &
+    --profile    /path/to/sRNA-TAPS/srnataps/workflow/profiles/slurm &
 disown %1</code></pre>
     <div class="tip"><strong>disown:</strong> Running <code>disown %1</code> immediately after launch detaches the Snakemake coordinator from your terminal so it survives if you close the session.</div>
   </div>
@@ -285,24 +252,20 @@ ls ~/srnataps_test/report/figures/*.pdf | wc -l</code></pre>
 
   <div id="step6" class="step-header"><div class="step-num">6</div><h2>Verify the TAPS signal</h2></div>
   <div class="step-block">
-    <p>Once TAPS calling is complete, check the two seeded m5C positions &mdash; <strong>chr17:59841313</strong> in hsa-miR-21-5p and <strong>chrX:66018955</strong> in hsa-miR-223-3p:</p>
-    <pre><code># treat sample — expect mod_rate ~0.90
-grep "^17.*59841313" \
-    ~/srnataps_test/07.taps_calls/miRNA/treat_HEK_R1_miRNA_taps.tsv
+    <p>Seeded positions are defined by the templates in <code>tests/simulate_taps_srna.py</code>. Once calling is complete, compare a treatment and an untreated sample:</p>
+    <pre><code>head ~/srnataps_test/07.taps_calls/miRNA/treat_HEK_R1_miRNA_taps.tsv
+head ~/srnataps_test/07.taps_calls/miRNA/no-treat_Ctrl_HEK_R1_miRNA_taps.tsv
 
-# no-treat sample — expect mod_rate ~0.02
-grep "^17.*59841313" \
-    ~/srnataps_test/07.taps_calls/miRNA/no-treat_Ctrl_HEK_R1_miRNA_taps.tsv</code></pre>
-
-    <p>Expected results:</p>
+# Replicate-supported calls
+ls ~/srnataps_test/07d.replicate_calls/miRNA/</code></pre>
+    <p>Expected rates at seeded positions:</p>
     <table>
-      <tr><th>Position</th><th>Gene</th><th>Condition</th><th>mod_rate</th></tr>
-      <tr><td>chr17:59841313</td><td>hsa-miR-21-5p</td><td>TET + PB</td><td class="result-good">~90%</td></tr>
-      <tr><td>chr17:59841313</td><td>hsa-miR-21-5p</td><td>Ctrl</td><td class="result-ok">~2%</td></tr>
-      <tr><td>chrX:66018955</td><td>hsa-miR-223-3p</td><td>TET + PB</td><td class="result-good">~72%</td></tr>
-      <tr><td>chrX:66018955</td><td>hsa-miR-223-3p</td><td>Ctrl</td><td class="result-ok">~0.2%</td></tr>
+      <tr><th>Condition</th><th>mod_rate</th></tr>
+      <tr><td>TET + PB</td><td class="result-good">60 to 90%</td></tr>
+      <tr><td>PB</td><td class="result-ok">5 to 10%</td></tr>
+      <tr><td>Ctrl</td><td class="result-ok">1 to 3%</td></tr>
     </table>
-    <div class="tip"><strong>The &gt;40-fold enrichment between TET and pyridine borane treated (TET + PB) and Untreated (Ctrl) confirms the pipeline is working correctly end-to-end.</strong></div>
+    <div class="tip"><strong>Treatment rates well above Ctrl at seeded positions show that the pipeline is working from end to end.</strong></div>
   </div>
 
   <div id="step7" class="step-header"><div class="step-num">7</div><h2>Explore the report figures</h2></div>
@@ -354,17 +317,17 @@ mamba create -n astair_env -y python=3.9
 
 # Dry-run first
 snakemake \
-    --snakefile /path/to/sRNA-TAPS/workflow/Snakefile \
+    --snakefile /path/to/sRNA-TAPS/srnataps/workflow/Snakefile \
     --configfile config.yaml \
-    --profile    /path/to/sRNA-TAPS/profile \
+    --profile    /path/to/sRNA-TAPS/srnataps/workflow/profiles/slurm \
     --dry-run \
     all_benchmark 2>&1 | tail -15
 
 # Launch
 snakemake \
-    --snakefile /path/to/sRNA-TAPS/workflow/Snakefile \
+    --snakefile /path/to/sRNA-TAPS/srnataps/workflow/Snakefile \
     --configfile config.yaml \
-    --profile    /path/to/sRNA-TAPS/profile \
+    --profile    /path/to/sRNA-TAPS/srnataps/workflow/profiles/slurm \
     all_benchmark &
 disown %1</code></pre>
 

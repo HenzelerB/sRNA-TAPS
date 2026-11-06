@@ -162,3 +162,16 @@ class TestCliModule:
             ])
             assert result.exit_code == 0, \
                 f"Module '{mod}' should be accepted, got: {result.output}"
+
+
+class TestInitConfigComplete:
+    def test_init_writes_keys_required_by_rules(self, runner, tmp_path):
+        import yaml
+        out = tmp_path / "project"
+        result = runner.invoke(cli, ["init", "--outdir", str(out)])
+        assert result.exit_code == 0
+        config = yaml.safe_load((out / "config.yaml").read_text())
+        for tool in ("rastair", "astair", "bismark"):
+            assert {"min_mapq", "min_baseq"} <= set(config["benchmark"]["tools"][tool])
+        assert config["condition_analysis"]["replicate_test"] == "bayesian"
+        assert config["condition_analysis"]["primary_control"] == "no_treat"

@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import minimize
 from scipy.special import betaln, gammaln
+from scipy.stats import beta as beta_distribution
 from scipy.stats import chi2, mannwhitneyu
 from statsmodels.stats.multitest import multipletests
 
@@ -259,11 +260,68 @@ def beta_binomial_lrt(treat, control, minimum_replicates):
     return float(min(1.0, 0.5 * chi2.sf(statistic, 1)))
 
 
-def replicate_pvalue(treat, control, minimum_replicates, statistical_test):
+def _pooled_beta_posterior(observations, prior_alpha=1.0, prior_beta=1.0):
+    modified = float(sum(item[0] for item in observations))
+    unmodified = float(sum(item[1] for item in observations))
+    return prior_alpha + modified, prior_beta + unmodified
+
+
+def bayesian_shift_probability(
+    treat,
+    control,
+    minimum_replicates,
+    minimum_delta=0.1,
+    prior_alpha=1.0,
+    prior_beta=1.0,
+    quadrature_points=128,
+):
+    """Posterior P(treat_rate - control_rate >= minimum_delta).
+
+    A conjugate beta-binomial model is used for each condition's pooled
+    replicate counts. The probability is computed by Gauss-Legendre quadrature
+    over the treatment posterior density and the control posterior CDF.
+    """
+    if len(treat) < minimum_replicates or len(control) < minimum_replicates:
+        return 0.0
+
+    treat_alpha, treat_beta = _pooled_beta_posterior(
+        treat, prior_alpha=prior_alpha, prior_beta=prior_beta
+    )
+    control_alpha, control_beta = _pooled_beta_posterior(
+        control, prior_alpha=prior_alpha, prior_beta=prior_beta
+    )
+    if minimum_delta >= 1.0:
+        return 0.0
+
+    lower = max(float(minimum_delta), 0.0)
+    upper = 1.0
+    nodes, weights = np.polynomial.legendre.leggauss(quadrature_points)
+    theta_treat = 0.5 * (upper - lower) * nodes + 0.5 * (upper + lower)
+    control_limit = np.clip(theta_treat - minimum_delta, 0.0, 1.0)
+    density = beta_distribution.pdf(theta_treat, treat_alpha, treat_beta)
+    control_cdf = beta_distribution.cdf(control_limit, control_alpha, control_beta)
+    probability = 0.5 * (upper - lower) * np.sum(weights * density * control_cdf)
+    return float(np.clip(probability, 0.0, 1.0))
+
+
+def replicate_pvalue(
+    treat,
+    control,
+    minimum_replicates,
+    statistical_test,
+    minimum_delta=0.1,
+):
     if statistical_test == "mannwhitney":
         return one_sided_mann_whitney(treat, control, minimum_replicates)
     if statistical_test == "beta_binomial":
         return beta_binomial_lrt(treat, control, minimum_replicates)
+    if statistical_test == "bayesian":
+        return 1.0 - bayesian_shift_probability(
+            treat,
+            control,
+            minimum_replicates,
+            minimum_delta=minimum_delta,
+        )
     raise ValueError(f"unknown replicate test: {statistical_test}")
 
 
@@ -306,8 +364,12 @@ def run_replicate_contrast(
     statistical_test="beta_binomial",
     prefilter_effect=False,
     require_no_treat_significance=True,
+    primary_control="both",
+    minimum_posterior_probability=0.95,
     cell_line=None,
 ):
+    if primary_control not in {"both", "pb_ctrl", "no_treat"}:
+        raise ValueError("primary_control must be one of: both, pb_ctrl, no_treat")
     audit = pd.read_csv(
         audit_path, sep="\t", dtype={"chrom": "string"}, low_memory=False
     )
@@ -399,11 +461,31 @@ def run_replicate_contrast(
                 "no_treat_median_rate": untreated_median,
                 "replicate_delta_pb_ctrl": treat_median - pb_median,
                 "replicate_delta_no_treat": treat_median - untreated_median,
+                "replicate_pb_ctrl_posterior_probability": bayesian_shift_probability(
+                    treat,
+                    pb_ctrl,
+                    minimum_replicates,
+                    minimum_delta=minimum_delta,
+                ),
+                "replicate_no_treat_posterior_probability": bayesian_shift_probability(
+                    treat,
+                    no_treat,
+                    minimum_replicates,
+                    minimum_delta=minimum_delta,
+                ),
                 "replicate_pb_pvalue": replicate_pvalue(
-                    treat, pb_ctrl, minimum_replicates, statistical_test
+                    treat,
+                    pb_ctrl,
+                    minimum_replicates,
+                    statistical_test,
+                    minimum_delta=minimum_delta,
                 ),
                 "replicate_no_treat_pvalue": replicate_pvalue(
-                    treat, no_treat, minimum_replicates, statistical_test
+                    treat,
+                    no_treat,
+                    minimum_replicates,
+                    statistical_test,
+                    minimum_delta=minimum_delta,
                 ),
                 "replicate_test": statistical_test,
                 "pb_available": pb_available,
@@ -420,21 +502,57 @@ def run_replicate_contrast(
         candidates["replicate_no_treat_pvalue"],
         candidates["no_treat_available"],
     )
-    significance_mask = candidates["replicate_pb_padj"] <= maximum_padj
-    if require_no_treat_significance:
-        significance_mask &= candidates["replicate_no_treat_padj"] <= maximum_padj
+    if statistical_test == "bayesian":
+        pb_support = (
+            candidates["pb_available"]
+            & (
+                candidates["replicate_pb_ctrl_posterior_probability"]
+                >= minimum_posterior_probability
+            )
+        )
+        no_treat_support = (
+            candidates["no_treat_available"]
+            & (
+                candidates["replicate_no_treat_posterior_probability"]
+                >= minimum_posterior_probability
+            )
+        )
+    else:
+        pb_support = candidates["pb_available"] & (
+            candidates["replicate_pb_padj"] <= maximum_padj
+        )
+        no_treat_support = candidates["no_treat_available"] & (
+            candidates["replicate_no_treat_padj"] <= maximum_padj
+        )
+        if not require_no_treat_significance:
+            no_treat_support = candidates["no_treat_available"]
+
+    if primary_control == "both":
+        significance_mask = pb_support & no_treat_support
+        availability_mask = candidates["pb_available"] & candidates["no_treat_available"]
+        delta_mask = (
+            (candidates["replicate_delta_pb_ctrl"] >= minimum_delta)
+            & (candidates["replicate_delta_no_treat"] >= minimum_delta)
+        )
+    elif primary_control == "pb_ctrl":
+        significance_mask = pb_support
+        availability_mask = candidates["pb_available"] & candidates["no_treat_available"]
+        delta_mask = candidates["replicate_delta_pb_ctrl"] >= minimum_delta
+    else:
+        significance_mask = no_treat_support
+        availability_mask = candidates["no_treat_available"]
+        delta_mask = candidates["replicate_delta_no_treat"] >= minimum_delta
+
     candidates["replicate_pass"] = (
-        candidates["pb_available"]
-        & candidates["no_treat_available"]
-        & (candidates["replicate_delta_pb_ctrl"] >= minimum_delta)
-        & (candidates["replicate_delta_no_treat"] >= minimum_delta)
+        availability_mask
+        & delta_mask
         & significance_mask
     )
+    candidates["primary_control_available"] = availability_mask
     candidates["confidence_status"] = [
-        confidence_status(True, pb and untreated, passed)
-        for pb, untreated, passed in zip(
-            candidates["pb_available"],
-            candidates["no_treat_available"],
+        confidence_status(True, available, passed)
+        for available, passed in zip(
+            candidates["primary_control_available"],
             candidates["replicate_pass"],
         )
     ]
@@ -443,6 +561,10 @@ def run_replicate_contrast(
     candidates["pooled_padj"] = candidates["padj"]
     candidates["pvalue"] = candidates["replicate_pb_pvalue"]
     candidates["padj"] = candidates["replicate_pb_padj"]
+    if primary_control == "no_treat":
+        candidates["pvalue"] = candidates["replicate_no_treat_pvalue"]
+        candidates["padj"] = candidates["replicate_no_treat_padj"]
+    candidates["primary_control"] = primary_control
     candidates = candidates.drop(columns=["site_key"])
     passing = candidates[candidates["replicate_pass"]].copy()
 
@@ -458,8 +580,7 @@ def run_replicate_contrast(
     audit_output["confidence_status"] = audit_output.apply(
         lambda row: confidence_status(
             bool(row["candidate_eligible"]),
-            bool(row.get("pb_available", False))
-            and bool(row.get("no_treat_available", False)),
+            bool(row.get("primary_control_available", False)),
             bool(row["replicate_pass"]),
         ),
         axis=1,
@@ -495,8 +616,20 @@ def parse_args():
     parser.add_argument("--minimum-sample-coverage", type=float, default=1)
     parser.add_argument(
         "--statistical-test",
-        choices=["beta_binomial", "mannwhitney"],
+        choices=["beta_binomial", "mannwhitney", "bayesian"],
         default="beta_binomial",
+    )
+    parser.add_argument(
+        "--primary-control",
+        choices=["both", "pb_ctrl", "no_treat"],
+        default="both",
+        help="control evidence used as the hard replicate gate; PB is still reported",
+    )
+    parser.add_argument(
+        "--minimum-posterior-probability",
+        type=float,
+        default=0.95,
+        help="Bayesian mode: require posterior P(treat-control >= delta) at least this high",
     )
     parser.add_argument(
         "--prefilter-effect",
@@ -531,6 +664,8 @@ def main():
         statistical_test=args.statistical_test,
         prefilter_effect=args.prefilter_effect,
         require_no_treat_significance=not args.allow_nonsignificant_no_treat,
+        primary_control=args.primary_control,
+        minimum_posterior_probability=args.minimum_posterior_probability,
         cell_line=args.cell_line,
     )
     print(f"Replicate-tested sites: {len(tested):,}")

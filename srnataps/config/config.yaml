@@ -89,15 +89,27 @@ calling:
     - ALL             # report all C contexts (CpG, CHH, CHG)
     # - CpG           # CpG only
 
+# ── Stage 07a sample-profile QC ──────────────────────────────────────────────
+umap:
+  enabled: true
+  method: "umap"       # umap, pacmap, or pca
+  n_neighbors: 15
+  min_dist: 0.1
+  eps: 0.5
+  random_state: 42
+
 # Condition-level evidence analysis. Requires treat, pb_ctrl, and no_treat
-# samples for each analysed cell line. The discovery tier uses unbiased
-# beta-binomial testing; stringent thresholds are intentionally configurable.
+# samples for each analysed cell line. The discovery tier uses the replicate
+# Bayesian model gated on no_treat; stringent thresholds are configurable.
 condition_analysis:
   enabled: true
   pooled_min_coverage: 1
   test_min_coverage: 5
   minimum_replicates: 3
   minimum_delta: 0.10
+  replicate_test: "bayesian"       # bayesian, beta_binomial, or mannwhitney
+  primary_control: "no_treat"      # no_treat keeps PB as process background
+  minimum_posterior_probability: 0.95
   discovery_max_padj: 0.05
   stringent_max_padj: 1.0e-20
   stringent_min_coverage: 5
@@ -121,6 +133,8 @@ benchmark:
       astair_env: ""
     bismark:
       bismark_index: ""    # leave blank to auto-build into outdir/benchmark/bismark_index/
+      min_mapq: 20
+      min_baseq: 10
 
 # ── SLURM cluster settings ────────────────────────────────────────────────────
 slurm:
@@ -161,6 +175,7 @@ output:
   biotypes:  "05.biotype_bams"
   snp:       "06.snp_resources"
   calls:     "07.taps_calls"
+  umap:      "07a.umap"
   pooled_calls: "07b.pooled_calls"
   control_contrast: "07c.control_contrast"
   replicate_calls: "07d.replicate_calls"

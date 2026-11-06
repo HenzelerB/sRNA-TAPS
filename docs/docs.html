@@ -177,21 +177,15 @@
     <!-- ── INSTALLATION ─────────────────────────────────────────────────── -->
     <h2 id="installation">Installation</h2>
 
-    <h3>Conda (recommended)</h3>
-    <p>Installs sRNA-TAPS and all bioinformatics dependencies automatically.</p>
-    <pre><code>conda install -c bioconda -c conda-forge srna-taps</code></pre>
-
-    <h3>pip</h3>
-    <pre><code>pip install sRNA-TAPS</code></pre>
-
     <h3>From source</h3>
     <pre><code>git clone https://github.com/HenzelerB/sRNA-TAPS
 cd sRNA-TAPS
-pip install -e .</code></pre>
+git checkout v0.1.0
+python -m pip install -e .</code></pre>
 
     <h3>Full environment</h3>
     <pre><code>conda env create -f environment.yaml
-conda activate RNA_taps</code></pre>
+conda activate sRNA-TAPS</code></pre>
 
     <h3>R packages</h3>
     <p>Required for report figure generation. Figures are produced automatically by the pipeline — install R packages once before the first run.</p>
@@ -201,33 +195,32 @@ conda activate RNA_taps</code></pre>
     <h2 id="quickstart">Quick Start</h2>
     <p>sRNA-TAPS runs as a <strong>Snakemake 9 profile-based workflow</strong>. All SLURM resource allocation is handled by the profile — no cluster submission strings or job scripts to manage.</p>
 
-    <pre><code># 1. Create a project directory and add raw FASTQs
-mkdir ~/my_project && cd ~/my_project
-mkdir rawfiles
-# copy *.fq.gz into rawfiles/
+    <pre><code># 1. Create a project with a complete config.yaml and a samples.tsv template
+srnataps init --outdir ~/my_project --species human --fastq-dir /path/to/fastq
+cd ~/my_project
 
-# 2. Create config.yaml and samples.tsv (see Configuration below)
+# 2. Set the paths marked &lt;REQUIRED&gt; in config.yaml and list your samples in samples.tsv
 
 # 3. Dry-run to verify the DAG
 snakemake \
-    --snakefile /path/to/sRNA-TAPS/workflow/Snakefile \
+    --snakefile /path/to/sRNA-TAPS/srnataps/workflow/Snakefile \
     --configfile config.yaml \
-    --profile    /path/to/sRNA-TAPS/profile \
+    --profile    /path/to/sRNA-TAPS/srnataps/workflow/profiles/slurm \
     --dry-run
 
 # 4. Run the full pipeline
 bash /path/to/sRNA-TAPS/sRNA_taps.bash
 #    — or directly in the background —
 snakemake \
-    --snakefile /path/to/sRNA-TAPS/workflow/Snakefile \
+    --snakefile /path/to/sRNA-TAPS/srnataps/workflow/Snakefile \
     --configfile config.yaml \
-    --profile    /path/to/sRNA-TAPS/profile &
+    --profile    /path/to/sRNA-TAPS/srnataps/workflow/profiles/slurm &
 
 # 5. Run with benchmarking (optional)
 snakemake \
-    --snakefile /path/to/sRNA-TAPS/workflow/Snakefile \
+    --snakefile /path/to/sRNA-TAPS/srnataps/workflow/Snakefile \
     --configfile config.yaml \
-    --profile    /path/to/sRNA-TAPS/profile \
+    --profile    /path/to/sRNA-TAPS/srnataps/workflow/profiles/slurm \
     all_benchmark</code></pre>
 
     <div class="note"><strong>Reference auto-download:</strong> If <code>genome_fa</code> or <code>gtf</code> are left blank, sRNA-TAPS derives the matching Ensembl files for the configured <code>reference.species</code> and builds the Bowtie1 index automatically. No pre-built index is needed for new users.</div>
@@ -242,45 +235,22 @@ snakemake \
 └── rawfiles/        # input FASTQs (*.fq.gz)</code></pre>
 
     <h3>config.yaml</h3>
-    <pre><code>project:
-  name: my_experiment
-  outdir: /path/to/my_project
-
-reference:
-  species:         human   # run "srnataps species" to list supported values
-  genome_fa:       ""      # derived and downloaded automatically
-  gtf:             ""      # derived and downloaded automatically
-  bowtie1_index:   ""      # derived and built automatically
+    <p>Create the project with <code>srnataps init</code>. It writes a complete <code>config.yaml</code> containing every required section. Set the paths marked <code>&lt;REQUIRED&gt;</code> and keep the other defaults unless you have a reason to change them.</p>
+    <pre><code>srnataps init --outdir my_project --species human --fastq-dir /data/fastq</code></pre>
+    <p>The settings most often changed are:</p>
+    <pre><code>reference:
+  species: human          # run "srnataps species" to list supported values
   ensembl_release: 112
-  dbsnp_vcf: ""          # optional — leave empty to skip dbSNP layer
+  dbsnp_vcf: ""           # optional, leave empty to skip the dbSNP layer
 
-output:
-  fastqc:    02.fastqc
-  trimmed:   03.trimGalore
-  genome:    04a.genome
-  aligned:   04b.aligned
-  biotypes:  05.biotype_bams
-  snp:       06.snp_resources
-  calls:     07.taps_calls
-  umap:      07a.umap
-  benchmark: 08.benchmark
-  compare:   09.compare
-  logs:      logs
-
-umap:
-  enabled: true
-  method: umap
-  n_neighbors: 15
-  eps: 0.5
-  random_state: 42
-
-benchmark:
-  tools:
-    astair:
-      min_depth: 5
-      min_mapq:  20
-      min_baseq: 20
-      context:   all</code></pre>
+condition_analysis:
+  test_min_coverage: 5
+  minimum_replicates: 3
+  minimum_delta: 0.10
+  replicate_test: "bayesian"       # bayesian, beta_binomial, or mannwhitney
+  primary_control: "no_treat"      # PB stays a background measurement
+  minimum_posterior_probability: 0.95
+  stringent_max_padj: 1.0e-20</code></pre>
 
     <div class="note"><strong>Built-in references:</strong> Set <code>reference.species</code> and leave <code>genome_fa</code>, <code>gtf</code>, and <code>bowtie1_index</code> empty to use the Ensembl-backed registry. If you already have a matching FASTA and GTF, explicit paths override the automatic download.</div>
     <p>List supported species and assemblies with <code>srnataps species</code>:</p>
@@ -292,7 +262,7 @@ benchmark:
       <tr><td><code>zebrafish</code></td><td><em>Danio rerio</em></td><td>GRCz11</td></tr>
       <tr><td><code>fruit_fly</code></td><td><em>Drosophila melanogaster</em></td><td>BDGP6.46</td></tr>
       <tr><td><code>c_elegans</code></td><td><em>Caenorhabditis elegans</em></td><td>WBcel235</td></tr>
-      <tr><td><code>chicken</code></td><td><em>Gallus gallus</em></td><td>GRCg7b</td></tr>
+      <tr><td><code>chicken</code></td><td><em>Gallus gallus</em></td><td>bGalGal1.mat.broiler.GRCg7b</td></tr>
     </table>
     <div class="tip"><strong>Custom references:</strong> For organisms or assemblies outside the built-in registry, provide matching <code>genome_fa</code> and <code>gtf</code> paths directly in <code>config.yaml</code>.</div>
 
@@ -301,7 +271,7 @@ benchmark:
     <table>
       <tr><th>Column</th><th>Description</th></tr>
       <tr><td><code>sample</code></td><td>Unique sample identifier — used for all output filenames</td></tr>
-      <tr><td><code>condition</code></td><td>Experimental condition — any name; must include a <code>treat</code>, <code>pb_Ctrl</code>, and <code>no-treat</code> equivalent</td></tr>
+      <tr><td><code>condition</code></td><td>One of the three conditions. Common labels are recognised, such as <code>treat</code>, <code>pb_Ctrl</code>, <code>no-treat</code> and <code>no_treat</code>, and a label that cannot be recognised stops the run</td></tr>
       <tr><td><code>cell_line</code></td><td>Cell line or biological source — any name; used to group SNP blacklists and colour palettes</td></tr>
       <tr><td><code>fastq</code></td><td>Full path to the input <code>.fq.gz</code> file (single-end)</td></tr>
     </table>
@@ -318,17 +288,18 @@ treat_HEK_R2            treat      HEK        /data/rawfiles/treat_HEK_R2.fq.gz
 treat_HEK_R3            treat      HEK        /data/rawfiles/treat_HEK_R3.fq.gz
 no-treat_Ctrl_Caco2_R1  no-treat   Caco2      /data/rawfiles/no-treat_Ctrl_Caco2_R1.fq.gz
 ...                     ...        ...        ...</code></pre>
-    <div class="note"><strong>Minimum requirement:</strong> At least 3 replicates per condition are required for reproducibility filtering. The three condition types (<code>treat</code>, <code>pb_Ctrl</code>, <code>no-treat</code>) can use any names — the R scripts auto-detect them from the data. Multi-cell-line datasets are fully supported.</div>
+    <div class="note"><strong>Minimum requirement:</strong> At least 3 replicates per condition are required for reproducibility filtering. Cell line names can be anything. Condition labels must map to one of the three conditions. Multi-cell-line datasets are fully supported.</div>
 
     <!-- ── REQUIREMENTS ────────────────────────────────────────────────── -->
     <h2 id="requirements">Requirements</h2>
     <table>
       <tr><th>Tool</th><th>Version</th><th>Purpose</th></tr>
-      <tr><td>Python</td><td>≥ 3.11</td><td>Core pipeline</td></tr>
+      <tr><td>Python</td><td>≥ 3.10 (tested on 3.11)</td><td>Core pipeline</td></tr>
       <tr><td>Snakemake</td><td>≥ 9.0</td><td>Workflow management</td></tr>
       <tr><td>snakemake-executor-plugin-slurm</td><td>≥ 2.7</td><td>SLURM profile submission</td></tr>
       <tr><td>bowtie</td><td>1.3.1</td><td>TAPS-aware alignment</td></tr>
       <tr><td>samtools</td><td>≥ 1.20</td><td>BAM processing</td></tr>
+      <tr><td>bedtools</td><td>any</td><td>Site annotation</td></tr>
       <tr><td>bcftools</td><td>≥ 1.20</td><td>Variant calling</td></tr>
       <tr><td>fastqc</td><td>≥ 0.12</td><td>Quality control</td></tr>
       <tr><td>trim-galore</td><td>≥ 0.6.10</td><td>Adapter trimming</td></tr>
@@ -355,11 +326,15 @@ no-treat_Ctrl_Caco2_R1  no-treat   Caco2      /data/rawfiles/no-treat_Ctrl_Caco2
 01. FastQC (pre-trim)   QC on raw reads
 02. Trim Galore         TruSeq SR adapter trimming (--small_rna)
 03. FastQC (post-trim)  QC on trimmed reads
-04. Bowtie1             Alignment: -v2 --norc -k10 --best --strata -m100
+04. Three-letter Bowtie1 C-to-T/G-to-A alignment; original sequences restored
 05. Biotype split       miRNA > tRNA > piRNA > snoRNA > snRNA > rRNA > lncRNA > other
 06. SNP filter          3-layer: cell-line + heterozygosity [+ dbSNP]
-07. TAPS calling        Pileup → C→T counting → binomial test → BH FDR
+07. TAPS calling        Strand-aware C/T counting and per-sample binomial screen
 07a. Sample-profile QC  UMAP/PCA of per-sample modification profiles
+07b. Pool conditions    Pool counts within condition and cell line
+07c. Control contrast   Pooled Fisher tests against PB-only and no-treatment
+07d. Replicate calls    Bayesian replicate model gated on no-treatment
+07e. Stringent calls    Configurable q-value, effect, and depth tier
     ↓
     [Reports — generated automatically after each stage]
     report_qc           Read length distribution, mapping rates
@@ -396,18 +371,18 @@ no-treat_Ctrl_Caco2_R1  no-treat   Caco2      /data/rawfiles/no-treat_Ctrl_Caco2
     <!-- ── STEP 2 ───────────────────────────────────────────────────────── -->
     <h2 id="step2">Step 2 — Adapter Trimming</h2>
     <p><strong>Tool:</strong> Trim Galore (Cutadapt)</p>
-    <p>Trim Galore removes the TruSeq small RNA 3′ adapter (<code>TGGAATTCTCGGGTGCCAAGG</code>) and quality-trims the 3′ end. Reads shorter than 18 nt or longer than 50 nt are discarded. The <code>--small_rna</code> flag sets sensible defaults for this library type.</p>
+    <p>Trim Galore removes the TruSeq small RNA 3′ adapter (<code>TGGAATTCTCGGGTGCCAAGG</code>) and quality-trims the 3′ end. Reads shorter than 18 nt are discarded. The <code>--small_rna</code> flag sets sensible defaults for this library type.</p>
 
     <!-- ── STEP 3 ───────────────────────────────────────────────────────── -->
     <h2 id="step3">Step 3 — TAPS-aware Alignment</h2>
     <p><strong>Tool:</strong> Bowtie 1.3.1, SAMtools</p>
-    <p>Alignment is to the whole reference genome rather than a transcriptome — tRNA families (~600 gene copies), piRNA clusters, and snoRNA loci need genomic coordinates for correct downstream annotation. Four parameters are set specifically for TAPS data:</p>
+    <p>Alignment is to the whole reference genome rather than a transcriptome — tRNA families (~600 gene copies), piRNA clusters, and snoRNA loci need genomic coordinates for correct downstream annotation. Three-letter alignment neutralises TAPS conversions during mapping:</p>
     <table>
       <tr><th>Parameter</th><th>Purpose</th></tr>
-      <tr><td><code>-v 2</code></td><td>Up to 2 total mismatches — tolerates C→T modifications without penalising them</td></tr>
-      <tr><td><code>--norc</code></td><td>Forward strand only — prevents false G→A calls on reverse strand</td></tr>
-      <tr><td><code>-k 10 --best --strata</code></td><td>Up to 10 alignments from the best stratum; writes <code>XA:i:N</code> tag for fractional weighting</td></tr>
-      <tr><td><code>--sam</code></td><td>Required for XA tag output</td></tr>
+      <tr><td>C-to-T and G-to-A branches</td><td>Converted reads align to converted references for each genomic strand</td></tr>
+      <tr><td>Branch selection</td><td>The alignment with the fewest mismatches is retained for each read</td></tr>
+      <tr><td>Single-locus assignment</td><td>Each read is reported at one locus (<code>-k 1</code>), so reads from repetitive or paralogous loci go to one representative locus</td></tr>
+      <tr><td>Sequence restoration</td><td>Original bases and qualities are restored before modification calling</td></tr>
     </table>
 
     <!-- ── STEP 4 ───────────────────────────────────────────────────────── -->
@@ -416,7 +391,6 @@ no-treat_Ctrl_Caco2_R1  no-treat   Caco2      /data/rawfiles/no-treat_Ctrl_Caco2
     <p>Reads are assigned to the highest-priority overlapping biotype using the Ensembl GTF, and separate sorted BAMs are written per biotype per sample:</p>
     <pre><code>miRNA > tRNA > piRNA > snoRNA > snRNA > rRNA > lncRNA > other</code></pre>
     <p>A biotype composition summary (<code>05.biotype_bams/*_biotype_summary.txt</code>) is written alongside each BAM for downstream QC figures.</p>
-    <div class="note"><strong>Note:</strong> TAPS enriches for rRNA relative to untreated libraries due to the pyridine borane step. Biotype proportions will differ between conditions — this is expected and not a sign of a failed experiment.</div>
 
     <!-- ── STEP 5 ───────────────────────────────────────────────────────── -->
     <h2 id="step5">Step 5 — SNP Filtering</h2>
@@ -439,18 +413,17 @@ no-treat_Ctrl_Caco2_R1  no-treat   Caco2      /data/rawfiles/no-treat_Ctrl_Caco2
       <tr><th>Feature</th><th>Implementation</th></tr>
       <tr><td>Strand-specific logic</td><td>Forward strand: modified C reads as T. Reverse strand: modified C reads as A.</td></tr>
       <tr><td>CIGAR-aware parsing</td><td><code>get_aligned_pairs()</code> handles indels and soft-clipping without positional offsets</td></tr>
-      <tr><td>Multi-mapper weighting</td><td>Reads with <code>XA:i:N</code> contribute <code>1/N</code> per locus — prevents inflation at tRNA gene copies and rRNA repeats</td></tr>
       <tr><td>Base quality filter</td><td>Bases with Phred Q &lt; 20 are excluded</td></tr>
       <tr><td>Parallel processing</td><td>Jobs distributed across chromosomes</td></tr>
-      <tr><td>Statistical testing</td><td>Binomial test against background rate, BH FDR correction</td></tr>
+      <tr><td>Per-sample screening</td><td>Binomial test against a fixed background rate of 0.005, BH FDR correction. This result is retained for reference and does not gate later stages</td></tr>
     </table>
-    <p>Output columns: <code>chrom, start, end, context, mod_count, unmod_count, coverage, mod_rate, pvalue, padj, snp_flag</code></p>
+    <p>Output columns: <code>chrom, start, end, strand, context, mod_count, unmod_count, coverage, mod_rate, pvalue, padj, snp_flag</code></p>
 
     <!-- ── STEP 7 ───────────────────────────────────────────────────────── -->
-    <h2 id="step7">Step 7 — Background Correction</h2>
+    <h2 id="step7">Step 7 — Condition Testing</h2>
     <p><strong>Tool:</strong> Custom Python</p>
-    <pre><code>δ = treat_mod_rate − pb_Ctrl_mod_rate</code></pre>
-    <p>Subtracting <code>pb_Ctrl</code> removes both the global pyridine borane background (~8–9%) and sequence-context-specific biases. Sites observed in only one replicate are discarded — stochastic noise is not reproducible across replicates.</p>
+    <p><strong>Pooled contrast.</strong> Counts are pooled within each condition. For sites with coverage of at least 5 in treatment and both controls, treatment is compared with each control using a one-sided Fisher's exact test with BH correction. This tier does not gate the replicate model.</p>
+    <p><strong>Replicate model.</strong> With at least 3 replicates per condition, each rate has the posterior Beta(1 + total modified, 1 + total unmodified). A site is called against the untreated control when the posterior probability of a difference of at least 0.10 is at least 0.95, and the median-of-replicates difference is also at least 0.10. The same difference against <code>pb_Ctrl</code> quantifies PB-associated background and is not a pass/fail gate.</p>
 
     <!-- ── STEP 8 ───────────────────────────────────────────────────────── -->
     <h2 id="step8">Step 8 — Genomic Annotation</h2>
@@ -478,9 +451,9 @@ no-treat_Ctrl_Caco2_R1  no-treat   Caco2      /data/rawfiles/no-treat_Ctrl_Caco2
     <p>The optional benchmark suite compares sRNA-TAPS calls against three established tools: <strong>rastair</strong> (Bowtie1 BAMs, CpG-only and all-context modes), <strong>asTair</strong> (biotype-split BAMs, all contexts), and <strong>Bismark</strong> (bisulfite contrast, chemistry inverted for comparison).</p>
     <pre><code># Run benchmark + core pipeline in one command
 snakemake \
-    --snakefile /path/to/sRNA-TAPS/workflow/Snakefile \
+    --snakefile /path/to/sRNA-TAPS/srnataps/workflow/Snakefile \
     --configfile config.yaml \
-    --profile    /path/to/sRNA-TAPS/profile \
+    --profile    /path/to/sRNA-TAPS/srnataps/workflow/profiles/slurm \
     all_benchmark</code></pre>
     <p>This target includes everything in <code>rule all</code> plus rastair, asTair, Bismark, the comparison step, and the benchmark report figures. The benchmark is intentionally opt-in — Bismark genome preparation and asTair on large biotypes are slow and not needed for routine analysis.</p>
     <div class="note"><strong>asTair environment:</strong> asTair must be installed in a dedicated conda environment (<code>astair_env</code>) due to dependency conflicts with Snakemake. The pipeline calls it via its full binary path — no manual activation needed. See the <a href="tutorial.html">Tutorial</a> for setup.</div>
@@ -488,17 +461,18 @@ snakemake \
 
     <!-- ── DELTA SCORE ─────────────────────────────────────────────────── -->
     <h2 id="delta">The Delta (δ) Score</h2>
-    <pre><code>δ = treat_mod_rate − pb_Ctrl_mod_rate</code></pre>
-    <p>Pyridine borane causes ~8–9% non-specific C→T conversion at unmodified cytosines. Subtracting <code>pb_Ctrl</code> at each position removes this background, leaving only the TET-dependent 5mC/5hmC signal.</p>
+    <pre><code>δ_ct = median(treat rates) − median(no-treat rates)    significance gate
+δ_pb = median(treat rates) − median(pb_Ctrl rates)     background-corrected level</code></pre>
+    <p>A site at 70% in <code>treat</code> and 30% in <code>pb_Ctrl</code> is gated for significance against the untreated control and reported at a corrected level of about 40%.</p>
     <table>
       <tr><th>δ value</th><th>Interpretation</th></tr>
-      <tr><td>~0.00</td><td>No methylation above background</td></tr>
-      <tr><td>0.10–0.20</td><td>Low-level methylation</td></tr>
-      <tr><td>0.20–0.40</td><td>Moderate methylation — confident candidate</td></tr>
-      <tr><td>0.40–0.70</td><td>High methylation</td></tr>
-      <tr><td>&gt; 0.70</td><td>Near-stoichiometric methylation</td></tr>
+      <tr><td>&lt; 0.10</td><td>Below the calling threshold</td></tr>
+      <tr><td>0.10–0.20</td><td>Low-level modification</td></tr>
+      <tr><td>0.20–0.40</td><td>Moderate modification</td></tr>
+      <tr><td>0.40–0.70</td><td>High modification</td></tr>
+      <tr><td>&gt; 0.70</td><td>Very high modification</td></tr>
     </table>
-    <div class="note"><strong>Note:</strong> δ is not absolute stoichiometry. Use it for site discovery and cross-condition comparisons, not as an absolute measure of methylation fraction.</div>
+    <div class="note"><strong>Note:</strong> δ is not absolute stoichiometry. Use it for site discovery and cross-condition comparisons, not as an absolute measure of modification fraction.</div>
 
     <!-- ── SNP FILTERING ───────────────────────────────────────────────── -->
     <h2 id="snp">SNP Filtering</h2>
@@ -560,36 +534,28 @@ snakemake \
 
     <!-- ── TEST DATASET ────────────────────────────────────────────────── -->
     <h2 id="testdata">Test Dataset</h2>
-    <p>The repository includes a synthetic FASTQ simulator (<code>tests/simulate_taps_srna.py</code>) that generates small RNA reads with realistic TAPS chemistry. Known m5C positions are seeded into the templates at 40–80% conversion in the <code>treat</code> condition and 2–5% background in <code>no_treat</code>.</p>
+    <p>The repository includes a synthetic FASTQ simulator (<code>tests/simulate_taps_srna.py</code>) that generates small RNA reads with realistic TAPS chemistry. Known m5C positions are seeded into the templates at 60 to 90% conversion in <code>treat</code>, against 5 to 10% in <code>pb_Ctrl</code> and 1 to 3% in <code>no-treat</code>.</p>
     <p>The test dataset uses <strong>100 samples</strong> to stress-test the full pipeline at scale:</p>
     <pre><code>python3 tests/simulate_taps_srna.py \
-    --outdir ~/srnataps_test/fastq \
-    --samples 100 \
+    --outdir ~/srnataps_sim \
+    --reads 1000000 \
     --seed 42</code></pre>
-    <p>This writes 100 <code>.fq.gz</code> files and a <code>samples.tsv</code>. Reads are 18–50 nt with the TruSeq small RNA adapter. Biotypes: miRNA 40%, tRNA 25%, rRNA 25%, snoRNA 10%, drawn from real hg38 loci.</p>
+    <p>This writes 100 <code>.fastq.gz</code> files and a <code>samples.tsv</code>.</p>
     <pre><code># Run the test pipeline
+srnataps init --outdir ~/srnataps_test --species human --fastq-dir ~/srnataps_sim
+cp ~/srnataps_sim/samples.tsv ~/srnataps_test/samples.tsv
 cd ~/srnataps_test
-ln -sf fastq/samples.tsv samples.tsv
+# Set the paths marked &lt;REQUIRED&gt; in config.yaml
 
 snakemake \
-    --snakefile /path/to/sRNA-TAPS/workflow/Snakefile \
+    --snakefile /path/to/sRNA-TAPS/srnataps/workflow/Snakefile \
     --configfile config.yaml \
-    --profile    /path/to/sRNA-TAPS/profile</code></pre>
+    --profile    /path/to/sRNA-TAPS/srnataps/workflow/profiles/slurm</code></pre>
 
     <!-- ── EXPECTED RESULTS ────────────────────────────────────────────── -->
     <h2 id="expected">Expected Results</h2>
-    <p>Around 80% of trimmed reads should align to hg38. At the two seeded miRNA m5C sites:</p>
-    <table>
-      <tr><th>Position</th><th>Gene</th><th>Condition</th><th>mod_rate</th></tr>
-      <tr><td>chr17:59841313</td><td>hsa-miR-21-5p</td><td>TET + PB</td><td><strong>~90%</strong></td></tr>
-      <tr><td>chr17:59841313</td><td>hsa-miR-21-5p</td><td>Ctrl</td><td>~2%</td></tr>
-      <tr><td>chrX:66018955</td><td>hsa-miR-223-3p</td><td>TET + PB</td><td><strong>~72%</strong></td></tr>
-      <tr><td>chrX:66018955</td><td>hsa-miR-223-3p</td><td>Ctrl</td><td>~0.2%</td></tr>
-    </table>
-    <pre><code># Quick verification
-grep "^17.*59841313" 07.taps_calls/miRNA/treat_HEK_R1_miRNA_taps.tsv
-grep "^17.*59841313" 07.taps_calls/miRNA/no-treat_Ctrl_HEK_R1_miRNA_taps.tsv</code></pre>
-    <div class="tip"><strong>Tip:</strong> The &gt;40-fold enrichment between <code>treat</code> and <code>no_treat</code> at seeded positions confirms end-to-end pipeline function.</div>
+    <p>Seeded positions are defined by the templates in <code>tests/simulate_taps_srna.py</code>. They should show rates near the simulated 60 to 90% in <code>treat</code> and 1 to 3% in <code>no-treat</code>. Replicate-supported calls are written to <code>07d.replicate_calls/</code>.</p>
+    <div class="tip"><strong>Tip:</strong> This dataset checks that an installation runs from end to end. It is separate from the manuscript benchmark on the <a href="benchmarking.html">Benchmarking</a> page.</div>
 
   </main>
 </div>

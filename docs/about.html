@@ -160,7 +160,7 @@
         <h1>About sRNA-TAPS</h1>
         <div class="lead">
           <p>sRNA-TAPS is an open-source analysis pipeline developed in the Schneider Lab at the Institute of Chemical Epigenetics Munich (ICEM), LMU Munich. It adapts TET-assisted pyridine borane sequencing (TAPS) to study cytosine modifications in small RNA, where short, repetitive, and strand-specific molecules create distinct analytical challenges.</p>
-          <p>Built specifically for small-RNA data, the workflow combines TAPS-aware alignment, fractional handling of multi-mapping reads, biotype-resolved modification calling, and a three-condition framework for chemistry-based background correction. It supports analysis of m5C and hm5C across miRNA, tRNA, rRNA, snoRNA, snRNA, piRNA, and lncRNA with species-aware reference support, without the harsh degradation associated with bisulfite treatment.</p>
+          <p>Built specifically for small-RNA data, the workflow combines TAPS-aware alignment, single-locus read assignment, biotype-resolved modification calling, and a three-condition framework for chemistry-based background correction. It supports analysis of m5C and hm5C across miRNA, tRNA, rRNA, snoRNA, snRNA, piRNA, and lncRNA with species-aware reference support, without the harsh degradation associated with bisulfite treatment.</p>
         </div>
       </div>
       <div class="hero-highlights">
@@ -172,7 +172,7 @@
         <div class="highlight-card">
           <span class="highlight-kicker">Built around</span>
           <strong>Reliable signal correction</strong>
-          <p>A three-condition framework supports chemistry-aware background correction from the start.</p>
+          <p>A three-condition framework separates modification signal from chemistry background from the start.</p>
         </div>
         <div class="highlight-card">
           <span class="highlight-kicker">Covers</span>
@@ -269,7 +269,7 @@
       </div>
       <p>If you use sRNA-TAPS in your research, please cite:</p>
       <div class="cite-block">
-        <p>Simsir Ö., Henzeler B. et al. sRNA-TAPS: TAPS-based m5C detection in small RNA. <em>(in preparation)</em></p>
+        <p>Simsir Ö., Henzeler B. et al. Base-resolution sequencing of small RNA with sRNA-TAPS identifies m5C enriched at the miRNA seed sequence. <em>(in preparation)</em></p>
       </div>
       <p style="margin-top:20px">And the underlying TAPS method:</p>
       <div class="cite-block">
@@ -287,6 +287,7 @@
         <span class="section-kicker">Usage</span>
         <h2>License</h2>
       </div>
+      <p>Sequencing data are available from GEO under accession <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE350670" target="_blank">GSE350670</a>.</p>
       <p>sRNA-TAPS is released under the <strong>MIT License</strong>. Free to use, modify, and distribute with attribution.</p>
       <p class="license-note">Copyright &copy; 2026 Bennett Henzeler, Institute of Chemical Epigenetics-Munich, Ludwig-Maximilians-Universität München.</p>
     </div>

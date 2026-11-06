@@ -53,6 +53,8 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
+# Match the configured pipeline output directory.  The old _3letter name is
+# retained only in the report scripts as a compatibility fallback.
 CALLS_DIR = "07.taps_calls"
 BENCH_DIR = "08.benchmark"
 OUT_DIR   = "09.compare"

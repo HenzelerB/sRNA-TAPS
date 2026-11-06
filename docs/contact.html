@@ -262,7 +262,7 @@
           </div>
           <div class="faq-answer">
             <div class="faq-answer-inner">
-              <p>Minimum coverage thresholds vary by biotype: rRNA requires &ge;10x, miRNA and snoRNA &ge;5x, and tRNA &ge;3x. In practice, deeper coverage improves sensitivity and reduces false positives. For miRNA, we recommend at least 20&ndash;30x coverage at expressed loci. Standard small RNA-seq libraries of 10&ndash;20 million reads per sample are generally sufficient.</p>
+              <p>Per-sample coverage thresholds vary by biotype: rRNA requires &ge;10x, miRNA, tRNA and snoRNA &ge;3x, and snRNA, piRNA, lncRNA and other biotypes &ge;5x. Replicate-level testing uses coverage of at least 5. In practice, deeper coverage improves sensitivity and reduces false positives. For miRNA, we recommend at least 20&ndash;30x coverage at expressed loci. Standard small RNA-seq libraries of 10&ndash;20 million reads per sample are generally sufficient.</p>
             </div>
           </div>
         </div>
@@ -274,7 +274,7 @@
           </div>
           <div class="faq-answer">
             <div class="faq-answer-inner">
-              <p>The pipeline requires a <code>pb_Ctrl</code> condition for background correction. Without it, the delta (&delta;) score cannot be calculated, and genuine m5C signal cannot be distinguished from pyridine borane chemistry noise (~8&ndash;9% background C&rarr;T). We strongly recommend including at least two <code>pb_Ctrl</code> replicates per cell line in your experimental design.</p>
+              <p>No. The condition module expects treatment, <code>pb_Ctrl</code> and untreated samples. Sites are called against the untreated control, and <code>pb_Ctrl</code> quantifies PB-associated background so that a corrected modification level can be reported. Use at least three replicates per condition.</p>
             </div>
           </div>
         </div>
@@ -300,7 +300,7 @@
           </div>
           <div class="faq-answer">
             <div class="faq-answer-inner">
-              <p>First check that adapter trimming ran correctly &mdash; untrimmed reads align poorly. Verify that you are using <code>--norc</code> (forward strand only) and <code>-v 2</code> in Bowtie1. If your alignment rate is below 60%, check the trimming report for adapter content and read length distribution. For synthetic test data, ~80% alignment is expected; for real data, 70&ndash;90% is typical depending on library quality.</p>
+              <p>First check that adapter trimming ran correctly &mdash; untrimmed reads align poorly. Confirm that <code>alignment.strategy</code> is <code>three_letter</code>. If your alignment rate is below 60%, check the trimming report for adapter content and read length distribution. For synthetic test data, ~80% alignment is expected; for real data, 70&ndash;90% is typical depending on library quality.</p>
             </div>
           </div>
         </div>
@@ -324,7 +324,7 @@
           </div>
           <div class="faq-answer">
             <div class="faq-answer-inner">
-              <p>A negative &delta; means the <code>pb_Ctrl</code> mod_rate is higher than the <code>treat</code> mod_rate at that position. This typically indicates a SNP or sequence variant that causes elevated C&rarr;T in the background control, or a position where pyridine borane chemistry has unusual context-specific reactivity. Sites with &delta; &lt; 0 are filtered out during the differential methylation step and should not be interpreted as biologically meaningful.</p>
+              <p>A negative &delta; means the control rate is higher than the treatment rate at that position. This can reflect a sequence variant or a position with unusual background reactivity. Such a site does not meet the minimum difference of 0.10 and is not called.</p>
             </div>
           </div>
         </div>
@@ -348,7 +348,7 @@
           </div>
           <div class="faq-answer">
             <div class="faq-answer-inner">
-              <p>Please cite: Simsir &Ouml;., Henzeler B. et al. sRNA-TAPS: TAPS-based m5C detection in small RNA. <em>(in preparation, 2026)</em>. See the <a href="references.html">References page</a> for a full list of tools and methods used in the pipeline that should also be cited.</p>
+              <p>Please cite: Simsir &Ouml;., Henzeler B. et al. Base-resolution sequencing of small RNA with sRNA-TAPS identifies m5C enriched at the miRNA seed sequence. <em>(in preparation, 2026)</em>. See the <a href="references.html">References page</a> for a full list of tools and methods used in the pipeline that should also be cited.</p>
             </div>
           </div>
         </div>

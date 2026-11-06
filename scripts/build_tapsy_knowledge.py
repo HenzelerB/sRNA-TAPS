@@ -37,9 +37,9 @@ def build():
         chunks.append(dict(row,kind='literature'))
     html=(DOCS/'m5c-atlas.html').read_text()
     rows=json.loads(re.search(r'<script id="site-data"[^>]*>(.*?)</script>',html,re.S)[1])
-    fields=('id','biotype','subtype','gene_name','transcript','chrom','position','strand','position_label','mod_rate','coverage','status','literature')
+    fields=('id','biotype','subtype','gene_name','transcript','chrom','position','strand','position_label','mod_rate','coverage','cell_lines','site_set','status','literature')
     sites=[{k:r.get(k) for k in fields} for r in rows]
-    summary={'total':len(rows),'biotypes':dict(Counter(r['biotype'] for r in rows)),
+    summary={'total':len(rows),'site_sets':dict(Counter(r.get('site_set') for r in rows)),'biotypes':dict(Counter(r['biotype'] for r in rows)),
              'status_by_biotype':{b:dict(Counter(r['status'] for r in rows if r['biotype']==b)) for b in sorted({r['biotype'] for r in rows})}}
     data=dict(schema=1,sources=manifest,chunks=chunks,sites=sites,atlas_summary=summary)
     (DOCS/'knowledge/index.json').write_text(json.dumps(data,ensure_ascii=False,separators=(',',':'))+'\n')

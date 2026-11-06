@@ -1,5 +1,5 @@
 # =============================================================================
-# 04_benchmark.R — Benchmarking comparison figures
+# 04_benchmark.R — Figure 5: benchmarking comparison
 # =============================================================================
 suppressPackageStartupMessages(library(optparse))
 # Locate 00_setup.R: env var SRNATAPS_R_DIR wins (set by the pipeline); otherwise
@@ -106,9 +106,9 @@ if (file.exists(conc_file)) {
     theme_srnataps() +
     theme(axis.text.x = element_text(angle = 30, hjust = 1))
 
-  save_figure(p_conc, file.path(opt$figdir, "04a_concordance_lollipop.pdf"),
+  save_figure(p_conc, file.path(opt$figdir, "05a_concordance_lollipop.pdf"),
               width = 7, height = 5)
-  message("Figure 4a: Concordance lollipop — done")
+  message("Figure 5a: Concordance lollipop — done")
 }
 
 # ── Figure 4b: Pearson correlation ────────────────────────────────────────────
@@ -116,14 +116,15 @@ corr_file <- file.path(COMPARE_DIR, "correlation_summary.tsv")
 if (file.exists(corr_file)) {
   corr <- read_tsv(corr_file, show_col_types = FALSE) %>%
     add_condition_group() %>%
-    dplyr::filter(condition_group == "treat", !is.na(pearson_r)) %>%
+    dplyr::filter(condition_group == "treat", !is.na(pearson_r),
+                  tool %in% c("rastair", "astair", "bismark")) %>%
     dplyr::group_by(biotype, tool) %>%
     dplyr::summarise(pearson_r = mean(pearson_r, na.rm = TRUE), .groups = "drop") %>%
     dplyr::mutate(
       biotype = factor(biotype, levels = BIOTYPE_ORDER),
       tool    = factor(tool,    levels = TOOL_ORDER)
     ) %>%
-    dplyr::filter(!is.na(biotype))
+    dplyr::filter(!is.na(biotype), !is.na(tool))
 
   message("  Correlation rows: ", nrow(corr))
 
@@ -132,7 +133,8 @@ if (file.exists(corr_file)) {
     geom_line(linewidth = 0.6, alpha = 0.8) +
     geom_point(size = 5) +
     geom_text(aes(label = sprintf("%.2f", pearson_r)),
-              size = 2.5, vjust = -0.8, family = "Arial") +
+              size = 2.5, vjust = -0.8, family = "Arial",
+              show.legend = FALSE) +
     geom_hline(yintercept = 0, linetype = "dashed",
                colour = "grey50", linewidth = 0.3) +
     scale_colour_manual(values = TOOL_COLS_FIX, labels = TOOL_LABS, name = "Tool") +
@@ -145,13 +147,16 @@ if (file.exists(corr_file)) {
     theme_srnataps() +
     theme(axis.text.x = element_text(angle = 30, hjust = 1))
 
-  save_figure(p_corr, file.path(opt$figdir, "04b_correlation.pdf"),
+  save_figure(p_corr, file.path(opt$figdir, "05b_correlation.pdf"),
               width = 9, height = 5)
-  message("Figure 4b: Correlation plot — done")
+  message("Figure 5b: Correlation plot — done")
 
   # ── Figure 4b extra: Shared sites scatter ────────────────────────────────
   shared_files <- list.files(COMPARE_DIR, pattern = "shared_treat.*\\.tsv$",
                              full.names = TRUE)
+  # shared_data/shared_long also feed Figure 5e below; only the redundant
+  # scatter panel itself (05b supplement) is disabled, since the histogram
+  # in Figure 5e communicates the shared-site comparison more directly.
   if (length(shared_files) > 0) {
     shared_data <- lapply(shared_files, function(f) {
       bn   <- sub("\\.tsv$", "", basename(f))
@@ -175,6 +180,7 @@ if (file.exists(corr_file)) {
 
     if (nrow(shared_data) > 0 && "mod_rate_custom" %in% names(shared_data)) {
       shared_long <- shared_data %>%
+        dplyr::filter(tool %in% c("rastair", "astair", "bismark")) %>%
         dplyr::mutate(
           mod_rate_tool = dplyr::coalesce(
             mod_rate_rastair, mod_rate_astair, mod_rate_bismark,
@@ -183,9 +189,10 @@ if (file.exists(corr_file)) {
           biotype = factor(biotype, levels = BIOTYPE_ORDER),
           tool    = factor(tool,    levels = TOOL_ORDER)
         ) %>%
-        dplyr::filter(!is.na(mod_rate_tool), !is.na(mod_rate_custom), !is.na(biotype))
+        dplyr::filter(!is.na(mod_rate_tool), !is.na(mod_rate_custom),
+                      !is.na(biotype), !is.na(tool))
 
-      if (nrow(shared_long) > 0) {
+      if (FALSE && nrow(shared_long) > 0) {
         p_shared <- ggplot(shared_long,
                            aes(x = mod_rate_custom, y = mod_rate_tool,
                                colour = biotype)) +
@@ -203,9 +210,9 @@ if (file.exists(corr_file)) {
                x = "Custom pipeline mod rate", y = "Benchmark tool mod rate") +
           theme_srnataps(base_size = 8)
 
-        save_figure(p_shared, file.path(opt$figdir, "04b_shared_sites_scatter.pdf"),
+        save_figure(p_shared, file.path(opt$figdir, "05b_shared_sites_scatter_supplement.pdf"),
                     width = 9, height = 12)
-        message("Figure 4b extra: Shared sites scatter — done")
+        message("Figure 5b supplement: Shared sites scatter — done")
       }
     }
   }
@@ -215,7 +222,8 @@ if (file.exists(corr_file)) {
 if (file.exists(conc_file)) {
   conc_bar <- read_tsv(conc_file, show_col_types = FALSE) %>%
     add_condition_group() %>%
-    dplyr::filter(condition_group == "treat") %>%
+    dplyr::filter(condition_group == "treat",
+                  tool %in% c("rastair", "astair", "bismark")) %>%
     dplyr::group_by(biotype, tool) %>%
     dplyr::summarise(
       sites_custom = mean(sites_custom, na.rm = TRUE),
@@ -234,7 +242,7 @@ if (file.exists(conc_file)) {
       biotype  = factor(biotype, levels = BIOTYPE_ORDER),
       tool     = factor(tool,    levels = TOOL_ORDER)
     ) %>%
-    dplyr::filter(!is.na(biotype))
+    dplyr::filter(!is.na(biotype), !is.na(tool))
 
   if (nrow(conc_bar) > 0) {
     p_venn <- ggplot(conc_bar, aes(x = tool, y = n_sites, fill = category)) +
@@ -245,7 +253,9 @@ if (file.exists(conc_file)) {
                 vjust = -0.3, size = 2, family = "Arial") +
       facet_wrap(~ biotype, scales = "free_y") +
       scale_fill_manual(
-        values = c("Custom only"="#E41A1C","Shared"="#4DAF4A","Tool only"="#377EB8"),
+        values = c("Custom only" = AURORA_GOLD,
+                   "Shared" = AURORA_MINT,
+                   "Tool only" = AURORA_BLUE),
         name   = "Site category") +
       scale_x_discrete(labels = TOOL_LABS) +
       scale_y_continuous(labels = scales::label_comma()) +
@@ -255,13 +265,11 @@ if (file.exists(conc_file)) {
       theme_srnataps() +
       theme(axis.text.x = element_text(angle = 30, hjust = 1, size = 7))
 
-    save_figure(p_venn, file.path(opt$figdir, "04c_site_overlap.pdf"),
+    save_figure(p_venn, file.path(opt$figdir, "05c_site_overlap.pdf"),
                 width = 12, height = 8)
-    message("Figure 4c: Site overlap bar chart — done")
+    message("Figure 5c: Site overlap bar chart — done")
   }
 }
-
-message("04_benchmark.R complete.")
 
 # ── Figure 4d: rastair CpG-only vs all-context — identical output proof ───────
 if (file.exists(corr_file)) {
@@ -286,12 +294,13 @@ if (file.exists(corr_file)) {
       geom_line(linewidth = 0.8, alpha = 0.9) +
       geom_point(size = 3.5) +
       geom_text(aes(label = sprintf("%.2f", pearson_r)),
-                size = 2.5, vjust = -0.8, family = "Arial") +
+                size = 2.5, vjust = -0.8, family = "Arial",
+                show.legend = FALSE) +
       geom_hline(yintercept = 0, linetype = "dashed",
                  colour = "grey50", linewidth = 0.3) +
       scale_colour_manual(
-        values = c("rastair (--cpgs-only)" = "#2196F3",
-                   "rastair (all contexts)" = "#B71C1C"),
+        values = c("rastair (--cpgs-only)" = AURORA_BLUE,
+                   "rastair (all contexts)" = AURORA_GOLD),
         name = "rastair mode") +
       scale_shape_manual(
         values = c("rastair (--cpgs-only)" = 16,
@@ -312,8 +321,85 @@ if (file.exists(corr_file)) {
       theme(axis.text.x = element_text(angle = 30, hjust = 1))
 
     save_figure(p_cpg_all,
-                file.path(opt$figdir, "04d_rastair_cpg_vs_all.pdf"),
+                file.path(opt$figdir, "05d_rastair_cpg_vs_all.pdf"),
                 width = 9, height = 5)
-    message("Figure 4d: rastair CpG vs all-context — done")
+    message("Figure 5d: rastair CpG vs all-context — done")
   }
 }
+
+# ── Figure 4e: Shared-site modification-rate distributions ──────────────────
+# Compare the two rate distributions using exactly the paired sites from 4b.
+if (exists("shared_data") && nrow(shared_data) > 0 &&
+    "mod_rate_custom" %in% names(shared_data)) {
+  paired_rates <- shared_data %>%
+    dplyr::filter(tool %in% c("rastair", "astair", "bismark")) %>%
+    dplyr::mutate(
+      mod_rate_tool = dplyr::coalesce(
+        mod_rate_rastair, mod_rate_astair, mod_rate_bismark
+      ),
+      biotype = factor(biotype, levels = BIOTYPE_ORDER),
+      comparison = factor(tool, levels = c("rastair", "astair", "bismark"),
+                          labels = c("rastair", "asTair", "Bismark"))
+    ) %>%
+    dplyr::filter(is.finite(mod_rate_custom), is.finite(mod_rate_tool),
+                  !is.na(biotype))
+
+  rate_distributions <- dplyr::bind_rows(
+    paired_rates %>%
+      dplyr::transmute(comparison, biotype, series = "sRNA-TAPS",
+                       mod_rate = mod_rate_custom),
+    paired_rates %>%
+      dplyr::transmute(comparison, biotype, series = as.character(tool),
+                       mod_rate = mod_rate_tool)
+  ) %>%
+    dplyr::mutate(series = factor(
+      series, levels = c("sRNA-TAPS", "rastair", "astair", "bismark")
+    ))
+
+  if (nrow(rate_distributions) > 0) {
+    p_rate_hist <- ggplot(
+      rate_distributions,
+      aes(x = mod_rate, fill = series)
+    ) +
+      geom_histogram(
+        aes(y = after_stat(ifelse(count > 0, count, NA_real_))),
+        binwidth = 0.05, boundary = 0,
+                     position = "identity", alpha = 0.55,
+        colour = NA
+      ) +
+      facet_grid(comparison ~ biotype, scales = "free_y") +
+      scale_fill_manual(values = TOOL_COLS_FIX, labels = TOOL_LABS,
+                        name = "Method") +
+      scale_x_continuous(labels = scales::percent_format(accuracy = 1),
+                         limits = c(0, 1), breaks = seq(0, 1, 0.2),
+                         expand = expansion(mult = c(0, 0.02))) +
+      scale_y_continuous(
+        trans = "log10",
+        breaks = c(1, 10, 100, 1000, 10000),
+        labels = scales::label_comma(), minor_breaks = NULL
+      ) +
+      labs(
+        title = "Modification rates at sites shared with sRNA-TAPS",
+        subtitle = "TET+PB condition | Overlapping 5% bins, following the Figure 4a design",
+        x = "Modification rate", y = "Number of shared sites (log10)",
+        caption = paste0(
+          "Each panel contains exactly the sites shared by sRNA-TAPS and the indicated benchmark.\n",
+          "rastair comparisons are CpG-only; asTair and Bismark include all shared sequence contexts."
+        )
+      ) +
+      theme_srnataps() +
+      theme(
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 6),
+        panel.spacing = grid::unit(0.5, "lines")
+      )
+
+    save_figure(
+      p_rate_hist,
+      file.path(opt$figdir, "05e_shared_site_rate_histogram.pdf"),
+      width = 14, height = 8
+    )
+    message("Figure 5e: Shared-site overlapping histograms — done")
+  }
+}
+
+message("04_benchmark.R complete.")

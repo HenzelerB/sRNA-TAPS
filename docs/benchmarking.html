@@ -167,7 +167,7 @@
       <div class="hero-copy">
         <div class="hero-badge">Evidence</div>
         <h1>Benchmarking</h1>
-        <p class="lead">sRNA-TAPS was compared against rastair, asTair, and Bismark to evaluate site-level concordance, modification rate correlation, and how well each approach handles small-RNA biology.</p>
+        <p class="lead">sRNA-TAPS was compared against rastair, asTair, and Bismark to evaluate recovery and accuracy on a synthetic small-RNA truth set.</p>
         <div class="hero-logo-ribbon">
           <div class="logo-card">
             <div class="logo-name">Bismark</div>
@@ -197,7 +197,7 @@
         <div class="highlight-card">
           <span class="highlight-kicker">Readout</span>
           <strong>Figures stay close to the claims</strong>
-          <p>Concordance, shared-site correlation, overlap, and context behaviour are all shown directly below.</p>
+          <p>Recovery, accuracy and precision on the synthetic truth set are shown directly below.</p>
         </div>
       </div>
     </div>
@@ -232,7 +232,7 @@
       </div>
 
       <div class="callout">
-        <p><strong>sRNA-TAPS addresses all three limitations</strong> &mdash; biotype-resolved calling with per-biotype coverage thresholds, TAPS-native C&rarr;T logic, fractional multi-mapper weighting, and a three-layer SNP filter applied upstream of any counting.</p>
+        <p><strong>sRNA-TAPS addresses all three limitations</strong> &mdash; biotype-resolved calling with per-biotype coverage thresholds, TAPS-native C&rarr;T logic, and a three-layer SNP filter applied upstream of any counting.</p>
       </div>
     </div>
   </div>
@@ -263,10 +263,6 @@
         <div class="compare-cell bad">No biotype split ✕</div>
         <div class="compare-cell bad">No biotype split ✕</div>
 
-        <div class="compare-cell highlight good">Multi-mapper weighting ✓</div>
-        <div class="compare-cell ok">Partial &plusmn;</div>
-        <div class="compare-cell bad">No ✕</div>
-        <div class="compare-cell bad">No ✕</div>
 
         <div class="compare-cell highlight good">3-layer SNP filter ✓</div>
         <div class="compare-cell ok">Basic &plusmn;</div>
@@ -299,111 +295,36 @@
         <span class="section-kicker">Results</span>
         <h2>Benchmark results</h2>
       </div>
-      <p>sRNA-TAPS calls were compared against rastair, asTair, and Bismark across all RNA biotypes in HEK293 and Caco2 cell lines. Results show site-level concordance (Jaccard index), modification rate correlation at shared sites (Pearson r), and called site overlap.</p>
+      <p>We planted 738 sites at known rates in simulated small RNA libraries. <strong>Discovery</strong> sites (n = 100) carried signal only under TET + PB. <strong>Shared</strong> sites (n = 638) also carried a correlated PB-only signal at 5 to 15% of the treatment rate. Recovery is the fraction of truth sites with a reported rate at coverage of at least 5. RMSE is computed on recovered sites. The sites are available as <a href="https://github.com/HenzelerB/sRNA-TAPS/blob/main/benchmark/fig2c_truth_set.tsv" target="_blank">fig2c_truth_set.tsv</a>.</p>
 
-      <div class="callout">
-        <p><strong>Note on Bismark:</strong> Bismark uses bisulfite chemistry where the signal direction is inverted &mdash; unmodified C converts to T rather than modified C. Bismark mod_rates are therefore 1 &minus; rate before comparison. Negative or near-zero Pearson r for Bismark is expected and confirms correct chemistry inversion.</p>
+      <div class="compare-grid" style="grid-template-columns:1.2fr 1fr 1fr 1fr">
+        <div class="compare-header">Tool</div>
+        <div class="compare-header">Discovery recovery</div>
+        <div class="compare-header">Shared recovery</div>
+        <div class="compare-header">RMSE</div>
+
+        <div class="compare-row-label">sRNA-TAPS</div>
+        <div class="compare-cell good">98%</div>
+        <div class="compare-cell good">99%</div>
+        <div class="compare-cell good">&asymp; 0.05</div>
+
+        <div class="compare-row-label">Bismark</div>
+        <div class="compare-cell">81%</div>
+        <div class="compare-cell">81%</div>
+        <div class="compare-cell">&asymp; 0.48 to 0.49</div>
+
+        <div class="compare-row-label">asTair</div>
+        <div class="compare-cell">69 to 72% across batches</div>
+        <div class="compare-cell">69 to 72% across batches</div>
+        <div class="compare-cell">&asymp; 0.12 to 0.14</div>
+
+        <div class="compare-row-label">rastair</div>
+        <div class="compare-cell">5 to 8% across batches</div>
+        <div class="compare-cell">5 to 8% across batches</div>
+        <div class="compare-cell">&asymp; 0.02 to 0.03</div>
       </div>
 
-      <div class="figures-grid">
-        <div class="figure-card" onclick="openLightbox(this.querySelector('img'))">
-          <img src="04a_concordance_heatmap.png" alt="Concordance heatmap">
-          <div class="figure-caption">
-            <h4>Figure 4a &mdash; Site concordance (Jaccard index)</h4>
-            <p>Jaccard index between sRNA-TAPS called sites and each benchmark tool, per biotype. Higher values indicate greater overlap in called positions.</p>
-          </div>
-        </div>
-        <div class="figure-card" onclick="openLightbox(this.querySelector('img'))">
-          <img src="04b_correlation.png" alt="Pearson correlation">
-          <div class="figure-caption">
-            <h4>Figure 4b &mdash; Pearson correlation at shared sites</h4>
-            <p>Pearson r of modification rates at sites called by both sRNA-TAPS and each benchmark tool. rastair and asTair show strong positive correlation; Bismark is near zero or negative, as expected from chemistry inversion.</p>
-          </div>
-        </div>
-        <div class="figure-card" onclick="openLightbox(this.querySelector('img'))">
-          <img src="04b_shared_sites_scatter.png" alt="Shared sites scatter">
-          <div class="figure-caption">
-            <h4>Figure 4b &mdash; Modification rates at shared sites</h4>
-            <p>Scatter plot of per-site modification rates at positions called by both sRNA-TAPS and each benchmark tool. Points on the diagonal indicate agreement between pipelines.</p>
-          </div>
-        </div>
-        <div class="figure-card" onclick="openLightbox(this.querySelector('img'))">
-          <img src="04c_site_overlap.png" alt="Site overlap">
-          <div class="figure-caption">
-            <h4>Figure 4c &mdash; Called site overlap</h4>
-            <p>Number of sites called exclusively by sRNA-TAPS, exclusively by each benchmark tool, and shared between both. sRNA-TAPS recovers a distinct set of high-confidence small RNA m5C sites.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section>
-  <div class="container">
-    <div class="section-card">
-      <div class="section-heading">
-        <span class="section-kicker">Context</span>
-        <h2>rastair in small RNA &mdash; a context mismatch</h2>
-      </div>
-      <p>rastair was originally designed and validated for genome-wide DNA methylation calling, where CpG is the dominant and biologically most relevant methylation context. In that setting, CpG-only calling is entirely appropriate and the tool performs excellently.</p>
-      <p>However, when applied to small RNA &mdash; as we do here for benchmarking purposes &mdash; this design choice becomes a fundamental mismatch. The most biologically relevant m5C sites in small RNA occur predominantly in non-CpG contexts: C34 and C38 in tRNA wobble positions (CHH/CHG), internal positions in rRNA, and seed-region cytosines in miRNA are rarely CpG dinucleotides.</p>
-      <p>To confirm this, we ran rastair twice on the same BAMs &mdash; once with <code>--cpgs-only</code> and once without. The outputs were <strong>identical</strong>: the same sites, the same modification rates, the same Pearson correlation with sRNA-TAPS. This demonstrates that rastair's CpG restriction is implemented at the core calling level, not just as a post-processing filter, and cannot be bypassed via command-line flags.</p>
-
-      <div class="callout">
-        <p><strong>This is not a criticism of rastair</strong> &mdash; it is working exactly as designed for its intended use case. It is rather a demonstration of why a dedicated small RNA pipeline is needed. sRNA-TAPS is currently the only pipeline that calls m5C in all cytosine contexts across all small RNA biotypes.</p>
-      </div>
-
-      <div class="figures-grid" style="grid-template-columns:1fr;max-width:700px">
-        <div class="figure-card" onclick="openLightbox(this.querySelector('img'))">
-          <img src="04d_rastair_cpg_vs_all.png" alt="rastair CpG vs all-context">
-          <div class="figure-caption">
-            <h4>Figure 4d &mdash; rastair CpG-only vs all-context: identical output</h4>
-            <p>Pearson r between sRNA-TAPS and rastair at shared sites, comparing the <code>--cpgs-only</code> run against the all-context run. The two lines are completely overlapping, confirming rastair produces identical output regardless of context flag.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section>
-  <div class="container">
-    <div class="section-card">
-      <div class="section-heading">
-        <span class="section-kicker">Validation</span>
-        <h2>Test dataset validation</h2>
-      </div>
-      <p>Using the synthetic test dataset included with sRNA-TAPS, the pipeline correctly recovers seeded m5C positions with high signal-to-noise ratio:</p>
-
-      <div class="compare-grid" style="grid-template-columns:1fr 1fr 1fr 1fr">
-        <div class="compare-header">Position</div>
-        <div class="compare-header">Gene</div>
-        <div class="compare-header">Condition</div>
-        <div class="compare-header">mod_rate</div>
-
-        <div class="compare-row-label">chr17:59841313</div>
-        <div class="compare-cell">hsa-miR-21-5p</div>
-        <div class="compare-cell">TET + PB</div>
-        <div class="compare-cell good">90.9%</div>
-
-        <div class="compare-row-label">chr17:59841313</div>
-        <div class="compare-cell">hsa-miR-21-5p</div>
-        <div class="compare-cell">Ctrl</div>
-        <div class="compare-cell">1.7%</div>
-
-        <div class="compare-row-label">chrX:66018955</div>
-        <div class="compare-cell">hsa-miR-223-3p</div>
-        <div class="compare-cell">TET + PB</div>
-        <div class="compare-cell good">71.6%</div>
-
-        <div class="compare-row-label">chrX:66018955</div>
-        <div class="compare-cell">hsa-miR-223-3p</div>
-        <div class="compare-cell">Ctrl</div>
-        <div class="compare-cell">0.2%</div>
-      </div>
-
-      <p style="margin-top:16px">The &gt;40-fold enrichment between TET and pyridine borane treated (TET + PB) and Untreated (Ctrl) conditions at seeded m5C positions confirms accurate TAPS signal detection. See the <a href="tutorial.html">tutorial</a> for step-by-step instructions to reproduce these results.</p>
+      <p style="margin-top:16px">rastair was the most accurate tool on the few sites it called, but it recovered only a small share of truth sites. These figures describe a planted simulation and are not performance guarantees for biological samples.</p>
     </div>
   </div>
 </section>

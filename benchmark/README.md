@@ -47,3 +47,7 @@ srnataps evaluate \
 Truth-based evaluation is for synthetic validation only. It is not used by
 the caller and must not be used to tune thresholds on biological
 experiments.
+
+## Rebuilding this table
+
+[`simulation/`](simulation/) contains the scripts and input loci that regenerate this table byte for byte, and the simulator used to create the reads.

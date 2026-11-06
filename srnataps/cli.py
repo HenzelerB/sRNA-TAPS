@@ -149,6 +149,9 @@ def init(outdir, species, genome, gtf, fastq_dir, force):
                 "test_min_coverage": 5,
                 "minimum_replicates": 3,
                 "minimum_delta": 0.10,
+                "replicate_test": "bayesian",
+                "primary_control": "no_treat",
+                "minimum_posterior_probability": 0.95,
                 "discovery_max_padj": 0.05,
                 "stringent_max_padj": 1e-20,
                 "stringent_min_coverage": 5,
@@ -156,7 +159,7 @@ def init(outdir, species, genome, gtf, fastq_dir, force):
             "benchmark": {"enabled": False, "tools": {
                 "rastair": {"min_depth":5,"min_mapq":10,"min_baseq":20},
                 "astair":  {"min_depth":3,"min_mapq":10,"min_baseq":20,"context":"all","astair_env":""},
-                "bismark": {"bismark_index":""},
+                "bismark": {"bismark_index":"","min_mapq":20,"min_baseq":10},
             }},
             "slurm": {"partition":"compute","account":"","mail_user":"",
                       "default_resources":{"cpus_per_task":8,"mem_mb":32000,"runtime":240},

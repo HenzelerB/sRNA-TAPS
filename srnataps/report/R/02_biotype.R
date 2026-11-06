@@ -27,7 +27,12 @@ opt <- parse_args(OptionParser(option_list = option_list))
 if (is.null(opt$figdir)) opt$figdir <- file.path(opt$outdir, "report", "figures")
 dir.create(opt$figdir, recursive = TRUE, showWarnings = FALSE)
 
-biotype_dir  <- file.path(opt$outdir, "05.biotype_bams")
+# The workflow writes biotype-split BAMs to 05.biotype_bams.  Keep a fallback
+# for older runs that used the previous 05.biotype_bams_3letter directory.
+biotype_dir <- file.path(opt$outdir, "05.biotype_bams")
+if (!dir.exists(biotype_dir)) {
+  biotype_dir <- file.path(opt$outdir, "05.biotype_bams_3letter")
+}
 biotype_file <- file.path(biotype_dir, "biotype_composition_all_samples.tsv")
 
 # Assemble from per-sample summary files if combined TSV doesn't exist

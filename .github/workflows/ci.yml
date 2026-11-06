@@ -40,17 +40,7 @@ jobs:
 
       - name: Run validated test suite
         run: |
-          python -m pytest \
-            tests/test_utils.py \
-            tests/test_compare.py \
-            tests/test_caller.py \
-            tests/test_contrast.py \
-            tests/test_evaluate.py \
-            tests/test_replicate_contrast.py \
-            tests/test_three_letter.py \
-            tests/test_tier.py \
-            tests/test_evidence_summary.py \
-            -q
+          python -m pytest tests -q
 
   build:
     name: Build distribution

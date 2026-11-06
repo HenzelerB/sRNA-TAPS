@@ -704,7 +704,7 @@
       <div class="hero-copy">
         <div class="hero-core">
   <img src="sRNA-taps_logo.svg" alt="sRNA-TAPS logo" class="hero-logo">
-  <div class="hero-badge">🧬 New · v0.3.0 released</div>
+  <div class="hero-badge">🧬 New · v0.1.0 released</div>
   <h1><span class="hero-title-main">m<sup>5</sup>C detection in <span class="hero-accent">small RNA</span></span><span class="hero-qualifier">without bisulfite conversion</span></h1>
   <p class="hero-desc">sRNA-TAPS calls m<sup>5</sup>C and hm<sup>5</sup>C in small RNA using TET-assisted pyridine borane sequencing with species-aware references.</p>
   <div class="hero-actions">
@@ -739,17 +739,15 @@
         <div class="hero-metric"><strong>7</strong> biotypes with biotype-aware thresholds.</div>
         <div class="hero-metric"><strong>3</strong> conditions separate background from signal.</div>
         <div class="hero-metric"><strong>75</strong> figures generated automatically.</div>
-        <a href="m5c-atlas.html" class="hero-metric"><strong>6,524</strong> m<sup>5</sup>C sites in the Atlas →</a>
+        <a href="m5c-atlas.html" class="hero-metric"><strong>2,416</strong> m<sup>5</sup>C sites in the Atlas →</a>
       </div>
       </div>
     </div>
     <div class="hero-footer">
       <div class="hero-status">
         <div class="badge"><div class="dot dot-green"></div> MIT License</div>
-        <div class="badge"><div class="dot dot-blue"></div> Python 3.11+</div>
+        <div class="badge"><div class="dot dot-blue"></div> Python 3.10+</div>
         <div class="badge"><div class="dot dot-blue"></div> Multi-species</div>
-        <div class="badge"><div class="dot dot-teal"></div> Available on bioconda</div>
-        <div class="badge"><div class="dot dot-teal"></div> Available on PyPI</div>
       </div>
       <div class="tools-float">
         <div class="tool-badge highlight"><span class="tool-step">00</span> Snakemake 9</div>
@@ -912,7 +910,7 @@
       <div class="condition-card notx"><div class="condition-tag">Ctrl</div><h3>PCR only (No treatment)</h3><p>Ctrl baseline for sequencing noise and SNP filtering.</p></div>
     </div>
     <div class="chem-callout">
-      <p>The <strong>delta score</strong> subtracts PB background from TET + PB signal to isolate TET-dependent conversion.</p>
+      <p>Sites are called against Ctrl. <strong>PB</strong> then quantifies background, which is subtracted to report a corrected modification level.</p>
     </div>
     </div>
   </div>
@@ -925,7 +923,7 @@
       <div>
         <div class="section-label">Explore the data</div>
         <h2 class="section-title">The m<sup>5</sup>C Site Atlas</h2>
-        <p class="section-desc">Every high-confidence m<sup>5</sup>C site sRNA-TAPS has called across Caco2 and HEK293 cells, browsable and cross-referenced against the literature. Search by gene or transcript, filter by biotype and reported/novel status, and click any site for its full sequence, structure, and literature support.</p>
+        <p class="section-desc">The final 2,416 m<sup>5</sup>C sites sRNA-TAPS has called across Caco2 and HEK293T cells, plus 321 labelled miRNA sites used in Figs. 4 to 6 of the manuscript, browsable and cross-referenced against the literature. Search by gene or transcript, filter by biotype and reported/novel status, and click any site for its full sequence, structure, and literature support.</p>
         <div><a href="m5c-atlas.html" class="btn btn-primary">Browse the Atlas →</a></div>
       </div>
       <div>
@@ -940,10 +938,10 @@
             </div>
             <div class="atlas-demo-table" id="atlasDemoTable">
               <div class="atlas-demo-row atlas-demo-head"><span>Transcript</span><span>Position</span><span>Mod. rate</span><span>Status</span></div>
-              <div class="atlas-demo-row" data-row><span>hsa-miR-21-5p</span><span>nt 4</span><span>21.6%</span><span class="atlas-demo-status is-reported">Reported</span></div>
-              <div class="atlas-demo-row" data-row><span>hsa-miR-21-5p</span><span>nt 13</span><span>18.1%</span><span class="atlas-demo-status is-reported">Reported</span></div>
-              <div class="atlas-demo-row" data-row><span>hsa-miR-21-3p</span><span>nt 7</span><span>21.3%</span><span class="atlas-demo-status is-novel">Novel</span></div>
-              <div class="atlas-demo-row" data-row><span>hsa-miR-21-3p</span><span>nt 11</span><span>15.9%</span><span class="atlas-demo-status is-novel">Novel</span></div>
+              <div class="atlas-demo-row" data-row><span>hsa-miR-21-5p</span><span>nt 4</span><span>22.7%</span><span class="atlas-demo-status is-reported">Reported</span></div>
+              <div class="atlas-demo-row" data-row><span>hsa-miR-21-3p</span><span>nt 4</span><span>11.9%</span><span class="atlas-demo-status is-novel">Novel</span></div>
+              <div class="atlas-demo-row" data-row><span>hsa-miR-21-3p</span><span>nt 7</span><span>23.6%</span><span class="atlas-demo-status is-novel">Novel</span></div>
+              <div class="atlas-demo-row" data-row><span>hsa-miR-21-3p</span><span>nt 18</span><span>12.4%</span><span class="atlas-demo-status is-reported">Reported</span></div>
             </div>
             <div class="atlas-demo-popup" id="atlasDemoPopup">
               <div class="atlas-demo-popup-head">
@@ -956,8 +954,8 @@
               </div>
               <div class="atlas-demo-popup-scroll" id="atlasDemoPopupScroll">
                 <div class="atlas-demo-popup-stats">
-                  <div><strong>21.6%</strong><span>Mod. rate</span></div>
-                  <div><strong>159,930&times;</strong><span>Coverage</span></div>
+                  <div><strong>22.7%</strong><span>Mod. rate</span></div>
+                  <div><strong>145,113&times;</strong><span>Coverage</span></div>
                   <div><strong>Reported</strong><span>Status</span></div>
                 </div>
                 <div class="atlas-demo-popup-section">
@@ -1070,10 +1068,10 @@
       </div>
     </div>
     <div class="stats-row" style="margin-top:40px">
-      <div class="stat-card"><div class="stat-num">6524</div><div class="stat-label">HC-called sites</div></div>
-      <div class="stat-card"><div class="stat-num">905</div><div class="stat-label">genes / loci</div></div>
-      <div class="stat-card"><div class="stat-num">580</div><div class="stat-label">novel sites</div></div>
-      <div class="stat-card"><div class="stat-num">232</div><div class="stat-label">reported in literature</div></div>
+      <div class="stat-card"><div class="stat-num">2416</div><div class="stat-label">final sites</div></div>
+      <div class="stat-card"><div class="stat-num">381</div><div class="stat-label">genes / loci</div></div>
+      <div class="stat-card"><div class="stat-num">377</div><div class="stat-label">novel sites</div></div>
+      <div class="stat-card"><div class="stat-num">175</div><div class="stat-label">reported in literature</div></div>
     </div>
     </div>
   </div>
@@ -1086,7 +1084,7 @@
       <div>
         <div class="section-label">Installation</div>
         <h2 class="section-title">Up and running in minutes</h2>
-        <p class="section-desc">Available on bioconda, PyPI, and from source. Conda is the quickest start.</p>
+        <p class="section-desc">Install from source using the tagged release.</p>
       </div>
       <div>
         <div class="code-block">
@@ -1099,11 +1097,10 @@
 <script>
 (function(){
   const lines = [
-    { text: '# conda (recommended)', type: 'comment', delay: 400 },
-    { text: 'conda install -c bioconda -c conda-forge srna-taps', type: 'cmd', delay: 100 },
-    { text: '', type: 'br', delay: 0 },
-    { text: '# or pip', type: 'comment', delay: 200 },
-    { text: 'pip install sRNA-TAPS', type: 'cmd', delay: 100 },
+    { text: '# install from source', type: 'comment', delay: 400 },
+    { text: 'git clone https://github.com/HenzelerB/sRNA-TAPS', type: 'cmd', delay: 100 },
+    { text: 'cd sRNA-TAPS && git checkout v0.1.0', type: 'cmd', delay: 100 },
+    { text: 'python -m pip install -e .', type: 'cmd', delay: 100 },
     { text: '', type: 'br', delay: 0 },
     { text: '# R packages for reports', type: 'comment', delay: 200 },
     { text: 'Rscript install_R_packages.R', type: 'cmd', delay: 100 },

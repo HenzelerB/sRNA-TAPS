@@ -8,8 +8,11 @@
 # Runs in order:
 #   01_qc.R           — Read length distribution, mapping rates
 #   02_biotype.R      — Biotype composition
-#   03_modification.R — Modification rates, top species, conditions
-#   04_benchmark.R    — Benchmarking concordance and correlation
+#   07_global_distribution.R — Figure 3, global distributions by RNA biotype
+#   03_modification.R — Figure 4, detailed modification landscape
+#   04_benchmark.R    — Figure 5, benchmarking
+#   05_sequence_logos.R — Figure 6, sequence context
+#   06_mirna_atlas.R  — Figure 7, miRNA positional atlas
 # =============================================================================
 
 suppressPackageStartupMessages(library(optparse))
@@ -25,7 +28,8 @@ option_list <- list(
   make_option("--skip-mod", action = "store_true", default = FALSE),
   make_option("--skip-bench", action = "store_true", default = FALSE),
   make_option("--skip-logos", action = "store_true", default = FALSE,
-              help = "Skip sequence logo generation (requires BSgenome)")
+              help = "Skip sequence logo generation (requires BSgenome)"),
+  make_option("--skip-mirna-atlas", action = "store_true", default = FALSE)
 )
 opt <- parse_args(OptionParser(option_list = option_list))
 
@@ -41,8 +45,9 @@ run_script <- function(script_name, extra_args = "") {
     message("WARNING: Script not found: ", script_path)
     return(invisible(NULL))
   }
+  rscript_bin <- file.path(R.home("bin"), "Rscript")
   cmd <- paste(
-    "Rscript", shQuote(script_path),
+    shQuote(rscript_bin), shQuote(script_path),
     "--outdir", shQuote(opt$outdir),
     "--figdir", shQuote(opt$figdir),
     extra_args
@@ -68,9 +73,11 @@ message(strrep("-", 60))
 
 if (!opt$`skip-qc`)    run_script("01_qc.R")
 if (!opt$`skip-bio`)   run_script("02_biotype.R")
+if (!opt$`skip-mod`)   run_script("07_global_distribution.R")
 if (!opt$`skip-mod`)   run_script("03_modification.R")
 if (!opt$`skip-bench`) run_script("04_benchmark.R")
 if (!opt$`skip-logos`) run_script("05_sequence_logos.R")
+if (!opt$`skip-mirna-atlas`) run_script("06_mirna_atlas.R")
 
 message("\n", strrep("=", 60))
 message("All figures complete.")

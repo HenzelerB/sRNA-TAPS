@@ -18,9 +18,11 @@ htmlcov/
 *.tsv
 !srnataps/config/samples.tsv
 !benchmark/fig2c_truth_set.tsv
+!benchmark/simulation/probes/*.tsv
 bioconda-recipes/
 bioconda-recipes/
 
 # Editing backups from patch scripts
 *.bak
 *.bak_*
+Rplots.pdf
